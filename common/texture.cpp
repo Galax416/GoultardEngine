@@ -1,10 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <string>
+#include <stdexcept>
 
 #include <GL/glew.h>
 
 #include <GLFW/glfw3.h>
+
+#include "stb_image.hpp"
 
 
 GLuint loadBMP_custom(const char * imagepath){
@@ -95,28 +99,58 @@ GLuint loadBMP_custom(const char * imagepath){
 
 // Since GLFW 3, glfwLoadTexture2D() has been removed. You have to use another texture loading library, 
 // or do it yourself (just like loadBMP_custom and loadDDS)
-//GLuint loadTGA_glfw(const char * imagepath){
-//
-//	// Create one OpenGL texture
-//	GLuint textureID;
-//	glGenTextures(1, &textureID);
-//
-//	// "Bind" the newly created texture : all future texture functions will modify this texture
-//	glBindTexture(GL_TEXTURE_2D, textureID);
-//
-//	// Read the file, call glTexImage2D with the right parameters
-//	glfwLoadTexture2D(imagepath, 0);
-//
-//	// Nice trilinear filtering.
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); 
-//	glGenerateMipmap(GL_TEXTURE_2D);
-//
-//	// Return the ID of the texture we just created
-//	return textureID;
-//}
+// GLuint loadTGA_glfw(const char * imagepath){
+
+// 	// Create one OpenGL texture
+// 	GLuint textureID;
+// 	glGenTextures(1, &textureID);
+
+// 	// "Bind" the newly created texture : all future texture functions will modify this texture
+// 	glBindTexture(GL_TEXTURE_2D, textureID);
+
+// 	// Read the file, call glTexImage2D with the right parameters
+// 	glfwLoadTexture2D(imagepath, 0);
+
+// 	// Nice trilinear filtering.
+// 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+// 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+// 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+// 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); 
+// 	glGenerateMipmap(GL_TEXTURE_2D);
+
+// 	// Return the ID of the texture we just created
+// 	return textureID;
+// }
+
+void setDefaultTexture2DParameters(GLuint texture) {
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+}
+
+GLuint loadTexture2DFromFilePath(const std::string& path) {
+	GLuint texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	int width = 0;
+	int height = 0;
+	int channels = 3;
+	unsigned char* data = stbi_load(path.c_str(), &width, &height, &channels, 3);
+	if (!data) {
+		stbi_image_free(data);
+		throw std::runtime_error("Failed to load texture: " + path);
+	}
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	stbi_image_free(data);
+	setDefaultTexture2DParameters(texture);
+	return texture;
+}
+
+
 
 
 

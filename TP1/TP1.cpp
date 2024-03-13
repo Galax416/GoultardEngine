@@ -14,24 +14,29 @@ GLFWwindow* window;
 // Include GLM
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <iostream>
+#include <glm/gtc/type_ptr.hpp>
+
 
 using namespace glm;
 
 #include <common/shader.hpp>
 #include <common/objloader.hpp>
 #include <common/vboindexer.hpp>
+#include <common/camera.hpp>
 
 void processInput(GLFWwindow *window);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods); // Fix les input trop rapide
+void mouse_callback(GLFWwindow* window, double xpos, double ypos); // Souris
+double lastX = 400, lastY = 300;
+bool firstMouse = true;
+bool mouseButtonPressed = false; // Indicateur pour savoir si le bouton de la souris est actuellement enfoncé
 
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 // camera
-glm::vec3 camera_position   = glm::vec3(0.0f, 0.0f,  3.0f);
-glm::vec3 camera_target = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 camera_up    = glm::vec3(0.0f, 1.0f,  0.0f);
+Camera camera_libre;
 
 // timing
 float deltaTime = 0.0f;	// time between current frame and last frame
@@ -40,6 +45,9 @@ float lastFrame = 0.0f;
 //rotation
 float angle = 0.;
 float zoom = 1.;
+
+//wire mode 
+bool wireMode = false;
 /*******************************************************************************/
 
 int main( void )
@@ -80,7 +88,8 @@ int main( void )
     // Ensure we can capture the escape key being pressed below
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
     // Hide the mouse and enable unlimited mouvement
-    //  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    glfwSetCursorPosCallback(window, mouse_callback);
 
     // Set the mouse at the center of the screen
     glfwPollEvents();
@@ -113,7 +122,7 @@ int main( void )
     std::vector<glm::vec3> indexed_vertices;
 
     //Chargement du fichier de maillage
-    std::string filename("chair.off");
+    std::string filename("suzanne.off");
     loadOFF(filename, indexed_vertices, indices, triangles );
 
     // Load it into a VBO
@@ -133,7 +142,8 @@ int main( void )
     glUseProgram(programID);
     GLuint LightID = glGetUniformLocation(programID, "LightPosition_worldspace");
 
-
+    // Pressing only one time
+    glfwSetKeyCallback(window, key_callback);
 
     // For speed computation
     double lastTime = glfwGetTime();
@@ -151,6 +161,15 @@ int main( void )
         // input
         // -----
         processInput(window);
+        glfwSetMouseButtonCallback(window, [](GLFWwindow* window, int button, int action, int mods) {
+            if (button == GLFW_MOUSE_BUTTON_LEFT) {
+                mouseButtonPressed = (action == GLFW_PRESS);
+                if (mouseButtonPressed) {
+                    // Mettre à jour la dernière position de la souris uniquement lorsqu'elle est enfoncée
+                    glfwGetCursorPos(window, &lastX, &lastY);
+                }
+            }
+        });
 
 
         // Clear the screen
@@ -162,13 +181,19 @@ int main( void )
 
         /*****************TODO***********************/
         // Model matrix : an identity matrix (model will be at the origin) then change
+        glm::mat4 modelMatrix = glm::mat4(1.f);
 
         // View matrix : camera/view transformation lookat() utiliser camera_position camera_target camera_up
-
+        glm::mat4 viewMatrix = glm::lookAt(camera_libre.getPosition(), camera_libre.getPosition() + camera_libre.getTarget(), camera_libre.getUp());
+        
         // Projection matrix : 45 Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
+        glm::mat4 projectionMatrix = camera_libre.getProjectionMatrix();
 
         // Send our transformation to the currently bound shader,
         // in the "Model View Projection" to the shader uniforms
+        glUniformMatrix4fv(glGetUniformLocation(programID, "Model"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
+        glUniformMatrix4fv(glGetUniformLocation(programID, "View"), 1, GL_FALSE, glm::value_ptr(viewMatrix));
+        glUniformMatrix4fv(glGetUniformLocation(programID, "Projection"), 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
         /****************************************/
 
@@ -229,14 +254,57 @@ void processInput(GLFWwindow *window)
         glfwSetWindowShouldClose(window, true);
 
     //Camera zoom in and out
-    float cameraSpeed = 2.5 * deltaTime;
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera_position += cameraSpeed * camera_target;
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera_position -= cameraSpeed * camera_target;
+    camera_libre.setCameraSpeed(2.5 * deltaTime);
 
-    //TODO add translations
+    // ZQSD
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) camera_libre.moveFoward();
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) camera_libre.moveBackward();
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) camera_libre.moveLeft();
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) camera_libre.moveRight();
 
+    // Haut/Bas
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) camera_libre.moveUp();
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) camera_libre.moveDown();
+
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods){
+    if (key == GLFW_KEY_Z && action == GLFW_PRESS) {
+        wireMode = !wireMode;
+        if(wireMode) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        else glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+}
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+    if (firstMouse && mouseButtonPressed) {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+
+    if (mouseButtonPressed) {
+        // Calculer la différence de position de la souris depuis la dernière frame
+        float xoffset = xpos - lastX;
+        float yoffset = lastY - ypos; // Inverser car l'origine de l'écran est en haut à gauche
+
+        // Mettre à jour la dernière position de la souris
+        lastX = xpos;
+        lastY = ypos;
+
+        // Ajuster la direction de la caméra en fonction des mouvements de la souris
+        xoffset *= 0.1f;
+        yoffset *= 0.1f;
+
+        // Rotation autour de l'axe y (gauche/droite)
+        glm::mat4 rotationY = glm::rotate(glm::mat4(1.0f), -glm::radians(xoffset), camera_libre.getUp());
+        camera_libre.setTarget(glm::vec3(rotationY * glm::vec4(camera_libre.getTarget(), 0.0f)));   
+
+        // Rotation autour de l'axe x (haut/bas)
+        glm::vec3 right = glm::normalize(glm::cross(camera_libre.getUp(), camera_libre.getTarget()));
+        glm::mat4 rotationX = glm::rotate(glm::mat4(1.0f), -glm::radians(yoffset), right);
+        camera_libre.setTarget(glm::vec3(rotationX * glm::vec4(camera_libre.getTarget(), 0.0f)));
+    }
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
