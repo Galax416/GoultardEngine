@@ -60,8 +60,11 @@ add_executable(TP1
 	common/shader.hpp
 	common/controls.cpp
 	common/controls.hpp
+	common/camera.hpp
 	common/texture.cpp
 	common/texture.hpp
+	common/stb_image.cpp
+	common/stb_image.hpp
 	common/objloader.cpp
 	common/objloader.hpp
 	common/vboindexer.cpp
