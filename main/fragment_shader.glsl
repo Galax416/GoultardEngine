@@ -1,10 +1,12 @@
 #version 330 core
 
 // Ouput data
-out vec3 color;
+out vec4 FragColor;
+
+uniform vec3 colorSampler;
 
 void main(){
 
-        color =vec3(0.2, 0.2,0.4);
+        FragColor = vec4(colorSampler, 1.0);//vec3(0.2, 0.2,0.4);
 
 }

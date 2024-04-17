@@ -6,6 +6,7 @@
 #include <GL/glew.h> //GLuint
 #include  "Mesh.hpp" //Mesh
 #include "Transform.hpp" //Transform
+#include "Camera.hpp"
 
 
 class Entity {
@@ -27,7 +28,7 @@ public:
 	Transform transform;
 
 	// ID
-	GLuint modelLocation;
+	GLuint program_scene;
 
 	void addChild(Entity& child) {
 		child.parent = this;
@@ -57,17 +58,26 @@ public:
 		}
 	}
 
-	void render() {
-		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, &transform.getModelMatrix()[0][0]); // Model Matrix
+
+	void render(Camera &_camera) {
+		glUseProgram(program_scene);
+
+        glUniformMatrix4fv(glGetUniformLocation(program_scene, "View"), 1, GL_FALSE, &_camera.getViewMatrix()[0][0]);
+        glUniformMatrix4fv(glGetUniformLocation(program_scene, "Projection"), 1, GL_FALSE, & _camera.getProjectionMatrix()[0][0]);
+		
+		glUniformMatrix4fv(glGetUniformLocation(program_scene, "Model"), 1, GL_FALSE, &transform.getModelMatrix()[0][0]); // Model Matrix
+		
+		// Draw Mesh
 		mesh.render(); // Render geometry
+
 		for (auto&& child : children) {
-			child->render();
+			child->render(_camera);
 		}
 	}
 
 	void bindVBO(GLuint programID) {
 		mesh.bindVBO(programID);
-		this->modelLocation = glGetUniformLocation(programID, "Model");
+		this->program_scene = programID;
 		for (auto&& child : children) {
 			child->bindVBO(programID);
 		}

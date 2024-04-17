@@ -1,6 +1,10 @@
 #ifndef TEXTURE_HPP
 #define TEXTURE_HPP
 
+#include <GLFW/glfw3.h>
+#include <string>
+#include <vector>
+
 // Load a .BMP file using our custom loader
 GLuint loadBMP_custom(const char * imagepath);
 
@@ -13,6 +17,8 @@ GLuint loadBMP_custom(const char * imagepath);
 GLuint loadDDS(const char * imagepath);
 
 GLuint loadTexture2DFromFilePath(const std::string& path);
+
+GLuint loadCubeMapTexture(std::vector<std::string> faces);
 
 
 

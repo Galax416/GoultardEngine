@@ -1,10 +1,12 @@
 #include <iostream>
 #include <vector>
-#include <common/stb_image.h>
 #include <string>
+
 #include <glm/glm.hpp>
-#include <common/objloader.hpp>
 #include <GL/glew.h>
+
+#include "objloader.hpp"
+#include "texture.hpp"
 
 class Mesh {
 private:
@@ -14,8 +16,13 @@ private:
     std::vector<glm::vec3> indexed_vertices;
     std::vector<glm::vec2> indexed_uvs;
 
+    GLuint progam_mesh;
+
     GLuint texture; // Texture
     glm::vec3 color = glm::vec3(1.0f, 0.0f, 0.0f); // Color
+
+    // VAO
+    GLuint meshVAO;
 
     // VBO & ID
     GLuint vertexbuffer;
@@ -67,6 +74,8 @@ public:
 	}
 
     void bindVBO(GLuint programID) {
+
+        this->progam_mesh = programID;
         // Load it into a VBO
         glGenBuffers(1, &vertexbuffer);
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
@@ -85,9 +94,20 @@ public:
         // Load the texture
         textureID = glGetUniformLocation(programID, "textureSampler");
         colorID = glGetUniformLocation(programID, "colorSampler");
+
+        
     }
 
     void render() {
+        glUseProgram(progam_mesh);
+
+        glGenVertexArrays(1, &meshVAO);
+        // glGenBuffers(1, &vertexbuffer);
+        
+        // Liaison du VAO
+        glBindVertexArray(meshVAO);
+
+
         // Bind our texture in Texture Unit 0
         if (texture != -1) {
             glActiveTexture(GL_TEXTURE0);
@@ -96,23 +116,30 @@ public:
         }
         if (colorID != -1) glUniform3fv(colorID, 1, &color[0]); // Color
 
-        // Bind UVs
-        glEnableVertexAttribArray(1);
-        glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), 0);
-        
         // 1rst attribute buffer : vertices
         glEnableVertexAttribArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
         glVertexAttribPointer(
-                    0,                  // attribute
-                    3,                  // size
-                    GL_FLOAT,           // type
-                    GL_FALSE,           // normalized?
-                    0,                  // stride
-                    (void*)0            // array buffer offset
-                    );
+            0,                  // attribute
+            3,                  // size
+            GL_FLOAT,           // type
+            GL_FALSE,           // normalized?
+            0,                  // stride
+            (void*)0            // array buffer offset
+            );
 
+        // 2nd attribute buffer : UVs
+        glEnableVertexAttribArray(1);
+        glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+        glVertexAttribPointer(
+            1,                  // attribute
+            2,                  // size
+            GL_FLOAT,           // type
+            GL_FALSE,           // normalized?
+            0,                  // stride
+            (void*)0            // array buffer offset
+            );
+        
         // Index buffer
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
 
@@ -124,15 +151,20 @@ public:
                     (void*)0           // element array buffer offset
                     );
 
+        glBindVertexArray(0);
         glDisableVertexAttribArray(1);
         glDisableVertexAttribArray(0);
 
     }
 
     void unbindVBO() {
-        // Cleanup VBO and shader
+        // Cleanup VAO, VBO and shader
+        glDeleteVertexArrays(1, &meshVAO);
         glDeleteBuffers(1, &vertexbuffer);
         glDeleteBuffers(1, &elementbuffer);
         glDeleteBuffers(1, &uvbuffer);
+
+        // Cleanup program
+        glDeleteProgram(progam_mesh);
     }
 };

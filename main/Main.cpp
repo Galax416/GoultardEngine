@@ -16,27 +16,20 @@ GLFWwindow* window;
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-
 using namespace glm;
 
 #include <common/shader.hpp>
 #include <common/objloader.hpp>
 #include <common/vboindexer.hpp>
-#include <common/camera.hpp>
+#include <common/Camera.hpp>
+#include <common/Entity.hpp>
+#include <common/Skybox.hpp>
 
-void processInput(GLFWwindow *window);
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods); // Fix les input trop rapide
-void mouse_callback(GLFWwindow* window, double xpos, double ypos); // Souris
-double lastX = 400, lastY = 300;
-bool firstMouse = true;
-bool mouseButtonPressed = false; // Indicateur pour savoir si le bouton de la souris est actuellement enfoncé
+
 
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
-
-// camera
-Camera camera_libre;
 
 // timing
 float deltaTime = 0.0f;	// time between current frame and last frame
@@ -48,6 +41,10 @@ float zoom = 1.;
 
 //wire mode 
 bool wireMode = false;
+
+// Fonctions
+void processInput(GLFWwindow *window);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 /*******************************************************************************/
 
 int main( void )
@@ -67,7 +64,7 @@ int main( void )
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Open a window and create its OpenGL context
-    window = glfwCreateWindow( 1024, 768, "TP1 - GLFW", NULL, NULL);
+    window = glfwCreateWindow( 1024, 768, "GoultardEngine", NULL, NULL);
     if( window == NULL ){
         fprintf( stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n" );
         getchar();
@@ -88,12 +85,9 @@ int main( void )
     // Ensure we can capture the escape key being pressed below
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
     // Hide the mouse and enable unlimited mouvement
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-    glfwSetCursorPosCallback(window, mouse_callback);
 
     // Set the mouse at the center of the screen
     glfwPollEvents();
-    glfwSetCursorPos(window, 1024/2, 768/2);
 
     // Dark blue background
     glClearColor(0.8f, 0.8f, 0.8f, 0.0f);
@@ -104,43 +98,39 @@ int main( void )
     glDepthFunc(GL_LESS);
 
     // Cull triangles which normal is not towards the camera
-    //glEnable(GL_CULL_FACE);
-
-    GLuint VertexArrayID;
-    glGenVertexArrays(1, &VertexArrayID);
-    glBindVertexArray(VertexArrayID);
+    // glEnable(GL_CULL_FACE);
 
     // Create and compile our GLSL program from the shaders
     GLuint programID = LoadShaders( "vertex_shader.glsl", "fragment_shader.glsl" );
 
-    /*****************TODO***********************/
-    // Get a handle for our "Model View Projection" matrices uniforms
-
-    /****************************************/
-    std::vector<unsigned short> indices; //Triangles concaténés dans une liste
-    std::vector<std::vector<unsigned short> > triangles;
-    std::vector<glm::vec3> indexed_vertices;
+    // Chargement de la Skybox
+    Skybox skybox;
+    skybox.init();
 
     //Chargement du fichier de maillage
     std::string filename("suzanne.off");
-    loadOFF(filename, indexed_vertices, indices, triangles );
+    Entity scene;
 
-    // Load it into a VBO
+    Entity suzane(filename);
+    suzane.mesh.setcolor(glm::vec3(1.0, 0.0, 1.0));
 
-    GLuint vertexbuffer;
-    glGenBuffers(1, &vertexbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-    glBufferData(GL_ARRAY_BUFFER, indexed_vertices.size() * sizeof(glm::vec3), &indexed_vertices[0], GL_STATIC_DRAW);
+    Entity suzane2(filename);
+    suzane2.transform.setLocalPosition(glm::vec3(0.0f, 2.0, 0.0));
 
-    // Generate a buffer for the indices as well
-    GLuint elementbuffer;
-    glGenBuffers(1, &elementbuffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned short), &indices[0] , GL_STATIC_DRAW);
+    scene.addChild(suzane);
+    scene.addChild(suzane2);
+
+    scene.bindVBO(programID);
+   
+    // Init Camera
+    Camera camera_libre;
+    camera_libre.init();
 
     // Get a handle for our "LightPosition" uniform
-    glUseProgram(programID);
-    GLuint LightID = glGetUniformLocation(programID, "LightPosition_worldspace");
+    // glUseProgram(programID);
+
+
+    // GLuint LightID = glGetUniformLocation(programID, "LightPosition_worldspace");
 
     // Pressing only one time
     glfwSetKeyCallback(window, key_callback);
@@ -158,72 +148,26 @@ int main( void )
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
+        // std::cout << round(1.0 / deltaTime) << std::endl; // Show FPS in consol
+
         // input
         // -----
         processInput(window);
-        glfwSetMouseButtonCallback(window, [](GLFWwindow* window, int button, int action, int mods) {
-            if (button == GLFW_MOUSE_BUTTON_LEFT) {
-                mouseButtonPressed = (action == GLFW_PRESS);
-                if (mouseButtonPressed) {
-                    // Mettre à jour la dernière position de la souris uniquement lorsqu'elle est enfoncée
-                    glfwGetCursorPos(window, &lastX, &lastY);
-                }
-            }
-        });
-
 
         // Clear the screen
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Use our shader
-        glUseProgram(programID);
+
+        camera_libre.update(deltaTime, window);
+
+        skybox.render(camera_libre);
+
+        scene.render(camera_libre);
+        suzane2.transform.setRotation(glm::vec3(0.0, 0.5, 0.0));
 
 
-        /*****************TODO***********************/
-        // Model matrix : an identity matrix (model will be at the origin) then change
-        glm::mat4 modelMatrix = glm::mat4(1.f);
+        scene.updateSelfAndChild();
 
-        // View matrix : camera/view transformation lookat() utiliser camera_position camera_target camera_up
-        glm::mat4 viewMatrix = glm::lookAt(camera_libre.getPosition(), camera_libre.getPosition() + camera_libre.getTarget(), camera_libre.getUp());
-        
-        // Projection matrix : 45 Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
-        glm::mat4 projectionMatrix = camera_libre.getProjectionMatrix();
-
-        // Send our transformation to the currently bound shader,
-        // in the "Model View Projection" to the shader uniforms
-        glUniformMatrix4fv(glGetUniformLocation(programID, "Model"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
-        glUniformMatrix4fv(glGetUniformLocation(programID, "View"), 1, GL_FALSE, glm::value_ptr(viewMatrix));
-        glUniformMatrix4fv(glGetUniformLocation(programID, "Projection"), 1, GL_FALSE, glm::value_ptr(projectionMatrix));
-
-        /****************************************/
-
-
-
-
-        // 1rst attribute buffer : vertices
-        glEnableVertexAttribArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-        glVertexAttribPointer(
-                    0,                  // attribute
-                    3,                  // size
-                    GL_FLOAT,           // type
-                    GL_FALSE,           // normalized?
-                    0,                  // stride
-                    (void*)0            // array buffer offset
-                    );
-
-        // Index buffer
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
-
-        // Draw the triangles !
-        glDrawElements(
-                    GL_TRIANGLES,      // mode
-                    indices.size(),    // count
-                    GL_UNSIGNED_SHORT,   // type
-                    (void*)0           // element array buffer offset
-                    );
-
-        glDisableVertexAttribArray(0);
 
         // Swap buffers
         glfwSwapBuffers(window);
@@ -234,10 +178,8 @@ int main( void )
            glfwWindowShouldClose(window) == 0 );
 
     // Cleanup VBO and shader
-    glDeleteBuffers(1, &vertexbuffer);
-    glDeleteBuffers(1, &elementbuffer);
-    glDeleteProgram(programID);
-    glDeleteVertexArrays(1, &VertexArrayID);
+    scene.unbindVBO();
+    skybox.clear();
 
     // Close OpenGL window and terminate GLFW
     glfwTerminate();
@@ -253,19 +195,7 @@ void processInput(GLFWwindow *window)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    //Camera zoom in and out
-    camera_libre.setCameraSpeed(2.5 * deltaTime);
-
-    // ZQSD
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) camera_libre.moveFoward();
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) camera_libre.moveBackward();
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) camera_libre.moveLeft();
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) camera_libre.moveRight();
-
-    // Haut/Bas
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) camera_libre.moveUp();
-    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) camera_libre.moveDown();
-
+    
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods){
@@ -273,37 +203,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         wireMode = !wireMode;
         if(wireMode) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         else glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    }
-}
-
-void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
-    if (firstMouse && mouseButtonPressed) {
-        lastX = xpos;
-        lastY = ypos;
-        firstMouse = false;
-    }
-
-    if (mouseButtonPressed) {
-        // Calculer la différence de position de la souris depuis la dernière frame
-        float xoffset = xpos - lastX;
-        float yoffset = lastY - ypos; // Inverser car l'origine de l'écran est en haut à gauche
-
-        // Mettre à jour la dernière position de la souris
-        lastX = xpos;
-        lastY = ypos;
-
-        // Ajuster la direction de la caméra en fonction des mouvements de la souris
-        xoffset *= 0.1f;
-        yoffset *= 0.1f;
-
-        // Rotation autour de l'axe y (gauche/droite)
-        glm::mat4 rotationY = glm::rotate(glm::mat4(1.0f), -glm::radians(xoffset), camera_libre.getUp());
-        camera_libre.setTarget(glm::vec3(rotationY * glm::vec4(camera_libre.getTarget(), 0.0f)));   
-
-        // Rotation autour de l'axe x (haut/bas)
-        glm::vec3 right = glm::normalize(glm::cross(camera_libre.getUp(), camera_libre.getTarget()));
-        glm::mat4 rotationX = glm::rotate(glm::mat4(1.0f), -glm::radians(yoffset), right);
-        camera_libre.setTarget(glm::vec3(rotationX * glm::vec4(camera_libre.getTarget(), 0.0f)));
     }
 }
 
