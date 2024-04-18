@@ -1,11 +1,9 @@
 #include "Camera.hpp"
 
-#include <iostream> // Debug
-
 void Camera::init()
 {
     m_fovDegree = 45.0f;
-    m_translationSpeed = 2.5f;
+    m_translationSpeed = 42.5f;
 	m_rotationSpeed = 0.1f;
     m_position = glm::vec3(0.f, 0.f, 2.f);
 	m_eulerAngle = glm::vec3(0.f, 0.f, 0.f);
@@ -67,6 +65,26 @@ glm::vec3 Camera::quatToEuler(glm::quat _quat)
 	return eulerAngles;
 }
 
+glm::vec3 Camera::projectVectorOnPlan(glm::vec3 vector, glm::vec3 normalPlan) 
+{
+	return glm::cross(normalPlan, glm::cross(vector, normalPlan));
+}
+
+float Camera::interpolate(float ratio, InterpolationType type)
+{
+	switch (type) {
+        case SMOOTHSTEP:
+            return ratio * ratio * (3 - 2 * ratio); // Interpolation smooth
+        case COSINUS:
+            return 0.5f * (1.0f - cos(ratio * M_PI));
+        case EXPONENTIAL:
+            return exp(ratio) / exp(1.0f); // Interpolation exponentielle
+        case LOGARITHMIC:
+            return log(ratio * (glm::e<float>() - 1.0f) + 1.0f) / log(glm::e<float>()); // Interpolation logarithmique
+        default:
+            return ratio; // Interpolation linéaire, pas de modification
+    }
+}
 
 void Camera::updateInput(float _deltaTime, GLFWwindow* _window)
 {   
