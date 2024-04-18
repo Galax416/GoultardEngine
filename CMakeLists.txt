@@ -58,6 +58,7 @@ add_executable(main
         main/Main.cpp
 	common/shader.cpp
 	common/shader.hpp
+	common/Input.hpp
 	common/Camera.cpp
 	common/Camera.hpp
 	common/texture.cpp

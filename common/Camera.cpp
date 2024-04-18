@@ -70,38 +70,40 @@ glm::vec3 Camera::quatToEuler(glm::quat _quat)
 
 void Camera::updateInput(float _deltaTime, GLFWwindow* _window)
 {   
-
     float cameraTranslationSpeed = m_translationSpeed * _deltaTime;
 	float cameraRotationSpeed = m_rotationSpeed * _deltaTime;
 
-    
 
     if (m_isEditionMode) // Mode édition (Camera Libre)
     { 
-        glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-        // Mouse movement
-        double mouseX, mouseY;
-        glfwGetCursorPos(_window, &mouseX, &mouseY);
+		// Vérifie si le bouton gauche de la souris est enfoncé
+        bool isMouseLeftPressed = glfwGetMouseButton(_window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
 
-        // Calculez la différence de position de la souris depuis la dernière frame
-        static double lastMouseX = mouseX;
-        static double lastMouseY = mouseY;
-        double deltaX = mouseX - lastMouseX;
-        double deltaY = mouseY - lastMouseY;
-        lastMouseX = mouseX;
-        lastMouseY = mouseY;
+        // Active ou désactive le mode de capture de la souris en fonction du clic gauche
+        glfwSetInputMode(_window, GLFW_CURSOR, isMouseLeftPressed ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
 
-        // Modification des angles de rotation de la caméra en fonction du mouvement de la souris
-		m_eulerAngle.y -= (float)(deltaX) * m_rotationSpeed;
-		
-		// Limitation de l'angle de yaw entre -180 et 180 degrés
-		m_eulerAngle.y = clipAngle180(m_eulerAngle.y);
-		
-		m_eulerAngle.x -= (float)(deltaY) * m_rotationSpeed;
 
-		// Limitation de l'angle de pitch entre -90 et 90 degrés
-		m_eulerAngle.x = glm::clamp(m_eulerAngle.x, -90.0f, 90.0f);
+		// Capture les mouvements de la souris
+		double mouseX, mouseY;
+		glfwGetCursorPos(_window, &mouseX, &mouseY);
+
+		// Calculez la différence de position de la souris depuis la dernière frame
+		static double lastMouseX = mouseX;
+		static double lastMouseY = mouseY;
+		double deltaX = mouseX - lastMouseX;
+		double deltaY = mouseY - lastMouseY;
+		lastMouseX = mouseX;
+		lastMouseY = mouseY;
+
+		if (isMouseLeftPressed) {
+            // Modification des angles de rotation de la caméra en fonction du mouvement de la souris
+            m_eulerAngle.y -= (float)(deltaX) * m_rotationSpeed;
+            m_eulerAngle.y = clipAngle180(m_eulerAngle.y); // Limite l'angle de yaw entre -180 et 180 degrés
+            m_eulerAngle.x -= (float)(deltaY) * m_rotationSpeed;
+            m_eulerAngle.x = glm::clamp(m_eulerAngle.x, -90.0f, 90.0f); // Limite l'angle de pitch entre -90 et 90 degrés
+        }
+
 
 		// ZQSD
 		if (glfwGetKey(_window, GLFW_KEY_W) == GLFW_PRESS) {
