@@ -1,6 +1,5 @@
 #include "draco/io/file_writer_factory.h"
 
-#include <string>
 #include <vector>
 
 namespace draco {

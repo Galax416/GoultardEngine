@@ -3,7 +3,9 @@
 Open Asset Import Library (assimp)
 ---------------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
+
+
 
 All rights reserved.
 
@@ -39,6 +41,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ---------------------------------------------------------------------------
 */
 
+
 #ifndef ASSIMP_BUILD_NO_MD2_IMPORTER
 
 /** @file Implementation of the MD2 importer class */
@@ -62,7 +65,7 @@ using namespace Assimp::MD2;
 #   define ARRAYSIZE(_array) (int(sizeof(_array) / sizeof(_array[0])))
 #endif
 
-static constexpr aiImporterDesc desc = {
+static const aiImporterDesc desc = {
     "Quake II Mesh Importer",
     "",
     "",
@@ -76,7 +79,7 @@ static constexpr aiImporterDesc desc = {
 };
 
 // ------------------------------------------------------------------------------------------------
-// Helper function to lookup a normal in Quake 2's pre-calculated table
+// Helper function to lookup a normal in Quake 2's precalculated table
 void MD2::LookupNormalIndex(uint8_t iNormalIndex,aiVector3D& vOut)
 {
     // make sure the normal index has a valid value
@@ -96,6 +99,10 @@ MD2Importer::MD2Importer()
     mBuffer(),
     fileSize()
 {}
+
+// ------------------------------------------------------------------------------------------------
+// Destructor, private as well
+MD2Importer::~MD2Importer() = default;
 
 // ------------------------------------------------------------------------------------------------
 // Returns whether the class can handle the format of the given file.

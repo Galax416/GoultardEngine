@@ -2,7 +2,8 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
+
 
 All rights reserved.
 
@@ -384,10 +385,12 @@ struct Dummy : public BaseNode {
 /** \brief Class to parse ASE files
  */
 class Parser {
-public:
-    /// @brief No default constructor.
-    Parser() = delete;
+private:
+    Parser() AI_NO_EXCEPT {
+        // empty
+    }
 
+public:
     // -------------------------------------------------------------------
     //! Construct a parser from a given input file which is
     //! guaranteed to be terminated with zero.
@@ -619,9 +622,6 @@ private:
 public:
     //! Pointer to current data
     const char *filePtr;
-
-    /// The end pointer of the file data
-    const char *mEnd;
 
     //! background color to be passed to the viewer
     //! QNAN if none was found

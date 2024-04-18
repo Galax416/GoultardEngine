@@ -2,7 +2,7 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
 
 All rights reserved.
 
@@ -121,7 +121,7 @@ namespace STEP {
 
 // -------------------------------------------------------------------------------
 /** Exception class used by the STEP loading & parsing code. It is typically
- *  coupled with a line number.
+ *  coupled with a line number. 
  */
 // -------------------------------------------------------------------------------
 struct SyntaxError : DeadlyImportError {
@@ -199,30 +199,38 @@ public:
     }
 
 public:
-    /// @brief Parse a variable from a string and set 'inout' to the character behind the last consumed character.
-    ///
-    ///  An optional schema enables, if specified, automatic conversion of custom data types.
-    ///
-    /// @throw SyntaxError
-    static std::shared_ptr<const EXPRESS::DataType> Parse(const char *&inout, const char *end,
-            uint64_t line = SyntaxError::LINE_NOT_SPECIFIED, const EXPRESS::ConversionSchema *schema = nullptr);
+    /** parse a variable from a string and set 'inout' to the character
+     *  behind the last consumed character. An optional schema enables,
+     *  if specified, automatic conversion of custom data types.
+     *
+     *  @throw SyntaxError
+     */
+    static std::shared_ptr<const EXPRESS::DataType> Parse(const char *&inout,
+            uint64_t line = SyntaxError::LINE_NOT_SPECIFIED,
+            const EXPRESS::ConversionSchema *schema = nullptr);
 };
 
 typedef DataType SELECT;
 typedef DataType LOGICAL;
 
 // -------------------------------------------------------------------------------
-/// Sentinel class to represent explicitly unset (optional) fields ($)
+/** Sentinel class to represent explicitly unset (optional) fields ($) */
 // -------------------------------------------------------------------------------
-class UNSET : public DataType {};
+class UNSET : public DataType {
+public:
+private:
+};
 
 // -------------------------------------------------------------------------------
-/// Sentinel class to represent explicitly derived fields (*)
+/** Sentinel class to represent explicitly derived fields (*) */
 // -------------------------------------------------------------------------------
-class ISDERIVED : public DataType {};
+class ISDERIVED : public DataType {
+public:
+private:
+};
 
 // -------------------------------------------------------------------------------
-/** Shared implementation for some of the primitive data type, i.e. int, float
+/** Shared implementation for some of the primitive data type, i.e. int, float 
  */
 // -------------------------------------------------------------------------------
 template <typename T>
@@ -270,7 +278,7 @@ public:
 typedef ENUMERATION BOOLEAN;
 
 // -------------------------------------------------------------------------------
-/** This is just a reference to an entity/object somewhere else
+/** This is just a reference to an entity/object somewhere else 
  */
 // -------------------------------------------------------------------------------
 class ENTITY : public PrimitiveDataType<uint64_t> {
@@ -294,9 +302,9 @@ public:
     }
 
 public:
-    /** @see DaraType::Parse
+    /** @see DaraType::Parse 
      */
-    static std::shared_ptr<const EXPRESS::LIST> Parse(const char *&inout, const char *end,
+    static std::shared_ptr<const EXPRESS::LIST> Parse(const char *&inout,
             uint64_t line = SyntaxError::LINE_NOT_SPECIFIED,
             const EXPRESS::ConversionSchema *schema = nullptr);
 
@@ -314,7 +322,7 @@ public:
 // -------------------------------------------------------------------------------
 /* Not exactly a full EXPRESS schema but rather a list of conversion functions
  * to extract valid C++ objects out of a STEP file. Those conversion functions
- * may, however, perform further schema validations.
+ * may, however, perform further schema validations. 
  */
 // -------------------------------------------------------------------------------
 class ConversionSchema {
@@ -376,7 +384,7 @@ struct HeaderInfo {
 };
 
 // ------------------------------------------------------------------------------
-/** Base class for all concrete object instances
+/** Base class for all concrete object instances 
  */
 // ------------------------------------------------------------------------------
 class Object {
@@ -503,7 +511,7 @@ private:
 
 // ------------------------------------------------------------------------------
 /** A LazyObject is created when needed. Before this happens, we just keep
- *  the text line that contains the object definition.
+ *  the text line that contains the object definition. 
  */
 // -------------------------------------------------------------------------------
 class LazyObject {

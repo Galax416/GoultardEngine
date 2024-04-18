@@ -2,7 +2,7 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
 
 All rights reserved.
 
@@ -39,15 +39,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ----------------------------------------------------------------------
 */
 
-/// @file  IFCProfile.cpp
-/// @brief Read profile and curves entities from IFC files
+/** @file  IFCProfile.cpp
+ *  @brief Read profile and curves entities from IFC files
+ */
 
 #ifndef ASSIMP_BUILD_NO_IFC_IMPORTER
 #include "IFCUtil.h"
 
 namespace Assimp {
 namespace IFC {
-
 namespace {
 
 // --------------------------------------------------------------------------------
@@ -56,7 +56,8 @@ namespace {
 class Conic : public Curve {
 public:
     // --------------------------------------------------
-    Conic(const Schema_2x3::IfcConic& entity, ConversionData& conv) : Curve(entity,conv) {
+    Conic(const Schema_2x3::IfcConic& entity, ConversionData& conv)
+    : Curve(entity,conv) {
         IfcMatrix4 trafo;
         ConvertAxisPlacement(trafo,*entity.Position,conv);
 
@@ -68,12 +69,12 @@ public:
     }
 
     // --------------------------------------------------
-    bool IsClosed() const override {
+    bool IsClosed() const {
         return true;
     }
 
     // --------------------------------------------------
-    size_t EstimateSampleCount(IfcFloat a, IfcFloat b) const override {
+    size_t EstimateSampleCount(IfcFloat a, IfcFloat b) const {
         ai_assert( InRange( a ) );
         ai_assert( InRange( b ) );
 
@@ -87,7 +88,7 @@ public:
     }
 
     // --------------------------------------------------
-    ParamRange GetParametricRange() const override {
+    ParamRange GetParametricRange() const {
         return std::make_pair(static_cast<IfcFloat>( 0. ), static_cast<IfcFloat>( AI_MATH_TWO_PI / conv.angle_scale ));
     }
 
@@ -101,13 +102,14 @@ protected:
 class Circle : public Conic {
 public:
     // --------------------------------------------------
-    Circle(const Schema_2x3::IfcCircle& entity, ConversionData& conv) : Conic(entity,conv) , entity(entity) {}
-    
+    Circle(const Schema_2x3::IfcCircle& entity, ConversionData& conv)
+        : Conic(entity,conv)
+        , entity(entity)
+    {
+    }
+
     // --------------------------------------------------
-    ~Circle() override = default;
-    
-    // --------------------------------------------------
-    IfcVector3 Eval(IfcFloat u) const override {
+    IfcVector3 Eval(IfcFloat u) const {
         u = -conv.angle_scale * u;
         return location + static_cast<IfcFloat>(entity.Radius)*(static_cast<IfcFloat>(std::cos(u))*p[0] +
             static_cast<IfcFloat>(std::sin(u))*p[1]);
@@ -130,7 +132,7 @@ public:
     }
 
     // --------------------------------------------------
-    IfcVector3 Eval(IfcFloat u) const override {
+    IfcVector3 Eval(IfcFloat u) const {
         u = -conv.angle_scale * u;
         return location + static_cast<IfcFloat>(entity.SemiAxis1)*static_cast<IfcFloat>(std::cos(u))*p[0] +
             static_cast<IfcFloat>(entity.SemiAxis2)*static_cast<IfcFloat>(std::sin(u))*p[1];
@@ -153,17 +155,17 @@ public:
     }
 
     // --------------------------------------------------
-    bool IsClosed() const override {
+    bool IsClosed() const {
         return false;
     }
 
     // --------------------------------------------------
-    IfcVector3 Eval(IfcFloat u) const override {
+    IfcVector3 Eval(IfcFloat u) const {
         return p + u*v;
     }
 
     // --------------------------------------------------
-    size_t EstimateSampleCount(IfcFloat a, IfcFloat b) const override {
+    size_t EstimateSampleCount(IfcFloat a, IfcFloat b) const {
         ai_assert( InRange( a ) );
         ai_assert( InRange( b ) );
         // two points are always sufficient for a line segment
@@ -172,7 +174,7 @@ public:
 
 
     // --------------------------------------------------
-    void SampleDiscrete(TempMesh& out,IfcFloat a, IfcFloat b) const override {
+    void SampleDiscrete(TempMesh& out,IfcFloat a, IfcFloat b) const {
         ai_assert( InRange( a ) );
         ai_assert( InRange( b ) );
 
@@ -186,7 +188,7 @@ public:
     }
 
     // --------------------------------------------------
-    ParamRange GetParametricRange() const override {
+    ParamRange GetParametricRange() const {
         const IfcFloat inf = std::numeric_limits<IfcFloat>::infinity();
 
         return std::make_pair(-inf,+inf);
@@ -232,7 +234,7 @@ public:
     }
 
     // --------------------------------------------------
-    IfcVector3 Eval(IfcFloat u) const override {
+    IfcVector3 Eval(IfcFloat u) const {
         if (curves.empty()) {
             return IfcVector3();
         }
@@ -252,7 +254,7 @@ public:
     }
 
     // --------------------------------------------------
-    size_t EstimateSampleCount(IfcFloat a, IfcFloat b) const override {
+    size_t EstimateSampleCount(IfcFloat a, IfcFloat b) const {
         ai_assert( InRange( a ) );
         ai_assert( InRange( b ) );
         size_t cnt = 0;
@@ -273,7 +275,7 @@ public:
     }
 
     // --------------------------------------------------
-    void SampleDiscrete(TempMesh& out,IfcFloat a, IfcFloat b) const override {
+    void SampleDiscrete(TempMesh& out,IfcFloat a, IfcFloat b) const {
         ai_assert( InRange( a ) );
         ai_assert( InRange( b ) );
 
@@ -291,7 +293,7 @@ public:
     }
 
     // --------------------------------------------------
-    ParamRange GetParametricRange() const override {
+    ParamRange GetParametricRange() const {
         return std::make_pair(static_cast<IfcFloat>( 0. ),total);
     }
 
@@ -371,27 +373,27 @@ public:
     }
 
     // --------------------------------------------------
-    IfcVector3 Eval(IfcFloat p) const override {
+    IfcVector3 Eval(IfcFloat p) const {
         ai_assert(InRange(p));
         return base->Eval( TrimParam(p) );
     }
 
     // --------------------------------------------------
-    size_t EstimateSampleCount(IfcFloat a, IfcFloat b) const override {
+    size_t EstimateSampleCount(IfcFloat a, IfcFloat b) const {
         ai_assert( InRange( a ) );
         ai_assert( InRange( b ) );
         return base->EstimateSampleCount(TrimParam(a),TrimParam(b));
     }
 
     // --------------------------------------------------
-    void SampleDiscrete(TempMesh& out,IfcFloat a,IfcFloat b) const override {
+    void SampleDiscrete(TempMesh& out,IfcFloat a,IfcFloat b) const {
         ai_assert(InRange(a));
         ai_assert(InRange(b));
         return base->SampleDiscrete(out,TrimParam(a),TrimParam(b));
     }
 
     // --------------------------------------------------
-    ParamRange GetParametricRange() const override {
+    ParamRange GetParametricRange() const {
         return std::make_pair(static_cast<IfcFloat>( 0. ),maxval);
     }
 
@@ -429,7 +431,7 @@ public:
     }
 
     // --------------------------------------------------
-    IfcVector3 Eval(IfcFloat p) const override {
+    IfcVector3 Eval(IfcFloat p) const {
         ai_assert(InRange(p));
 
         const size_t b = static_cast<size_t>(std::floor(p));
@@ -442,14 +444,14 @@ public:
     }
 
     // --------------------------------------------------
-    size_t EstimateSampleCount(IfcFloat a, IfcFloat b) const override {
+    size_t EstimateSampleCount(IfcFloat a, IfcFloat b) const {
         ai_assert(InRange(a));
         ai_assert(InRange(b));
         return static_cast<size_t>( std::ceil(b) - std::floor(a) );
     }
 
     // --------------------------------------------------
-    ParamRange GetParametricRange() const override {
+    ParamRange GetParametricRange() const {
         return std::make_pair(static_cast<IfcFloat>( 0. ),static_cast<IfcFloat>(points.size()-1));
     }
 
@@ -514,7 +516,7 @@ size_t Curve::EstimateSampleCount(IfcFloat a, IfcFloat b) const {
     ai_assert( InRange( a ) );
     ai_assert( InRange( b ) );
 
-    // arbitrary default value, deriving classes should supply better-suited values
+    // arbitrary default value, deriving classes should supply better suited values
     return 16;
 }
 

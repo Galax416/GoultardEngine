@@ -3,7 +3,7 @@
 Open Asset Import Library (assimp)
 ---------------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
 
 All rights reserved.
 
@@ -60,9 +60,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <assimp/Importer.hpp>
 #include <memory>
 
-namespace Assimp {
+using namespace Assimp;
 
-static constexpr aiImporterDesc desc = {
+static const aiImporterDesc desc = {
     "AC3D Importer",
     "",
     "",
@@ -77,8 +77,8 @@ static constexpr aiImporterDesc desc = {
 
 // ------------------------------------------------------------------------------------------------
 // skip to the next token
-inline const char *AcSkipToNextToken(const char *buffer, const char *end) {
-    if (!SkipSpaces(&buffer, end)) {
+inline const char *AcSkipToNextToken(const char *buffer) {
+    if (!SkipSpaces(&buffer)) {
         ASSIMP_LOG_ERROR("AC3D: Unexpected EOF/EOL");
     }
     return buffer;
@@ -86,13 +86,13 @@ inline const char *AcSkipToNextToken(const char *buffer, const char *end) {
 
 // ------------------------------------------------------------------------------------------------
 // read a string (may be enclosed in double quotation marks). buffer must point to "
-inline const char *AcGetString(const char *buffer, const char *end, std::string &out) {
+inline const char *AcGetString(const char *buffer, std::string &out) {
     if (*buffer == '\0') {
         throw DeadlyImportError("AC3D: Unexpected EOF in string");
     }
     ++buffer;
     const char *sz = buffer;
-    while ('\"' != *buffer && buffer != end) {
+    while ('\"' != *buffer) {
         if (IsLineEnd(*buffer)) {
             ASSIMP_LOG_ERROR("AC3D: Unexpected EOF/EOL in string");
             out = "ERROR";
@@ -112,8 +112,8 @@ inline const char *AcGetString(const char *buffer, const char *end, std::string 
 // ------------------------------------------------------------------------------------------------
 // read 1 to n floats prefixed with an optional predefined identifier
 template <class T>
-inline const char *TAcCheckedLoadFloatArray(const char *buffer, const char *end, const char *name, size_t name_length, size_t num, T *out) {
-    buffer = AcSkipToNextToken(buffer, end);
+inline const char *TAcCheckedLoadFloatArray(const char *buffer, const char *name, size_t name_length, size_t num, T *out) {
+    buffer = AcSkipToNextToken(buffer);
     if (0 != name_length) {
         if (0 != strncmp(buffer, name, name_length) || !IsSpace(buffer[name_length])) {
             ASSIMP_LOG_ERROR("AC3D: Unexpected token. ", name, " was expected.");
@@ -122,7 +122,7 @@ inline const char *TAcCheckedLoadFloatArray(const char *buffer, const char *end,
         buffer += name_length + 1;
     }
     for (unsigned int _i = 0; _i < num; ++_i) {
-        buffer = AcSkipToNextToken(buffer, end);
+        buffer = AcSkipToNextToken(buffer);
         buffer = fast_atoreal_move<float>(buffer, ((float *)out)[_i]);
     }
 
@@ -132,7 +132,7 @@ inline const char *TAcCheckedLoadFloatArray(const char *buffer, const char *end,
 // ------------------------------------------------------------------------------------------------
 // Constructor to be privately used by Importer
 AC3DImporter::AC3DImporter() :
-        mBuffer(),
+        buffer(),
         configSplitBFCull(),
         configEvalSubdivision(),
         mNumMeshes(),
@@ -164,17 +164,17 @@ const aiImporterDesc *AC3DImporter::GetInfo() const {
 // ------------------------------------------------------------------------------------------------
 // Get a pointer to the next line from the file
 bool AC3DImporter::GetNextLine() {
-    SkipLine(&mBuffer.data, mBuffer.end);
-    return SkipSpaces(&mBuffer.data, mBuffer.end);
+    SkipLine(&buffer);
+    return SkipSpaces(&buffer);
 }
 
 // ------------------------------------------------------------------------------------------------
 // Parse an object section in an AC file
-bool AC3DImporter::LoadObjectSection(std::vector<Object> &objects) {
-    if (!TokenMatch(mBuffer.data, "OBJECT", 6))
-        return false;
+void AC3DImporter::LoadObjectSection(std::vector<Object> &objects) {
+    if (!TokenMatch(buffer, "OBJECT", 6))
+        return;
 
-    SkipSpaces(&mBuffer.data, mBuffer.end);
+    SkipSpaces(&buffer);
 
     ++mNumMeshes;
 
@@ -182,7 +182,7 @@ bool AC3DImporter::LoadObjectSection(std::vector<Object> &objects) {
     Object &obj = objects.back();
 
     aiLight *light = nullptr;
-    if (!ASSIMP_strincmp(mBuffer.data, "light", 5)) {
+    if (!ASSIMP_strincmp(buffer, "light", 5)) {
         // This is a light source. Add it to the list
         mLights->push_back(light = new aiLight());
 
@@ -198,66 +198,60 @@ bool AC3DImporter::LoadObjectSection(std::vector<Object> &objects) {
 
         ASSIMP_LOG_VERBOSE_DEBUG("AC3D: Light source encountered");
         obj.type = Object::Light;
-    } else if (!ASSIMP_strincmp(mBuffer.data, "group", 5)) {
+    } else if (!ASSIMP_strincmp(buffer, "group", 5)) {
         obj.type = Object::Group;
-    } else if (!ASSIMP_strincmp(mBuffer.data, "world", 5)) {
+    } else if (!ASSIMP_strincmp(buffer, "world", 5)) {
         obj.type = Object::World;
     } else
         obj.type = Object::Poly;
     while (GetNextLine()) {
-        if (TokenMatch(mBuffer.data, "kids", 4)) {
-            SkipSpaces(&mBuffer.data, mBuffer.end);
-            unsigned int num = strtoul10(mBuffer.data, &mBuffer.data);
+        if (TokenMatch(buffer, "kids", 4)) {
+            SkipSpaces(&buffer);
+            unsigned int num = strtoul10(buffer, &buffer);
             GetNextLine();
             if (num) {
                 // load the children of this object recursively
                 obj.children.reserve(num);
-                for (unsigned int i = 0; i < num; ++i) {
-                    if (!LoadObjectSection(obj.children)) {
-                        ASSIMP_LOG_WARN("AC3D: wrong number of kids");
-                        break;
-                    }
-                }
+                for (unsigned int i = 0; i < num; ++i)
+                    LoadObjectSection(obj.children);
             }
-            return true;
-        } else if (TokenMatch(mBuffer.data, "name", 4)) {
-            SkipSpaces(&mBuffer.data, mBuffer.data);
-            mBuffer.data = AcGetString(mBuffer.data, mBuffer.end, obj.name);
+            return;
+        } else if (TokenMatch(buffer, "name", 4)) {
+            SkipSpaces(&buffer);
+            buffer = AcGetString(buffer, obj.name);
 
             // If this is a light source, we'll also need to store
             // the name of the node in it.
             if (light) {
                 light->mName.Set(obj.name);
             }
-        } else if (TokenMatch(mBuffer.data, "texture", 7)) {
-            SkipSpaces(&mBuffer.data, mBuffer.end);
-            std::string texture;
-            mBuffer.data = AcGetString(mBuffer.data, mBuffer.end, texture);
-            obj.textures.push_back(texture);
-        } else if (TokenMatch(mBuffer.data, "texrep", 6)) {
-            SkipSpaces(&mBuffer.data, mBuffer.end);
-            mBuffer.data = TAcCheckedLoadFloatArray(mBuffer.data, mBuffer.end, "", 0, 2, &obj.texRepeat);
+        } else if (TokenMatch(buffer, "texture", 7)) {
+            SkipSpaces(&buffer);
+            buffer = AcGetString(buffer, obj.texture);
+        } else if (TokenMatch(buffer, "texrep", 6)) {
+            SkipSpaces(&buffer);
+            buffer = TAcCheckedLoadFloatArray(buffer, "", 0, 2, &obj.texRepeat);
             if (!obj.texRepeat.x || !obj.texRepeat.y)
                 obj.texRepeat = aiVector2D(1.f, 1.f);
-        } else if (TokenMatch(mBuffer.data, "texoff", 6)) {
-            SkipSpaces(&mBuffer.data, mBuffer.end);
-            mBuffer.data = TAcCheckedLoadFloatArray(mBuffer.data, mBuffer.end, "", 0, 2, &obj.texOffset);
-        } else if (TokenMatch(mBuffer.data, "rot", 3)) {
-            SkipSpaces(&mBuffer.data, mBuffer.end);
-            mBuffer.data = TAcCheckedLoadFloatArray(mBuffer.data, mBuffer.end, "", 0, 9, &obj.rotation);
-        } else if (TokenMatch(mBuffer.data, "loc", 3)) {
-            SkipSpaces(&mBuffer.data, mBuffer.end);
-            mBuffer.data = TAcCheckedLoadFloatArray(mBuffer.data, mBuffer.end, "", 0, 3, &obj.translation);
-        } else if (TokenMatch(mBuffer.data, "subdiv", 6)) {
-            SkipSpaces(&mBuffer.data, mBuffer.end);
-            obj.subDiv = strtoul10(mBuffer.data, &mBuffer.data);
-        } else if (TokenMatch(mBuffer.data, "crease", 6)) {
-            SkipSpaces(&mBuffer.data, mBuffer.end);
-            obj.crease = fast_atof(mBuffer.data);
-        } else if (TokenMatch(mBuffer.data, "numvert", 7)) {
-            SkipSpaces(&mBuffer.data, mBuffer.end);
+        } else if (TokenMatch(buffer, "texoff", 6)) {
+            SkipSpaces(&buffer);
+            buffer = TAcCheckedLoadFloatArray(buffer, "", 0, 2, &obj.texOffset);
+        } else if (TokenMatch(buffer, "rot", 3)) {
+            SkipSpaces(&buffer);
+            buffer = TAcCheckedLoadFloatArray(buffer, "", 0, 9, &obj.rotation);
+        } else if (TokenMatch(buffer, "loc", 3)) {
+            SkipSpaces(&buffer);
+            buffer = TAcCheckedLoadFloatArray(buffer, "", 0, 3, &obj.translation);
+        } else if (TokenMatch(buffer, "subdiv", 6)) {
+            SkipSpaces(&buffer);
+            obj.subDiv = strtoul10(buffer, &buffer);
+        } else if (TokenMatch(buffer, "crease", 6)) {
+            SkipSpaces(&buffer);
+            obj.crease = fast_atof(buffer);
+        } else if (TokenMatch(buffer, "numvert", 7)) {
+            SkipSpaces(&buffer);
 
-            unsigned int t = strtoul10(mBuffer.data, &mBuffer.data);
+            unsigned int t = strtoul10(buffer, &buffer);
             if (t >= AI_MAX_ALLOC(aiVector3D)) {
                 throw DeadlyImportError("AC3D: Too many vertices, would run out of memory");
             }
@@ -266,59 +260,59 @@ bool AC3DImporter::LoadObjectSection(std::vector<Object> &objects) {
                 if (!GetNextLine()) {
                     ASSIMP_LOG_ERROR("AC3D: Unexpected EOF: not all vertices have been parsed yet");
                     break;
-                } else if (!IsNumeric(*mBuffer.data)) {
+                } else if (!IsNumeric(*buffer)) {
                     ASSIMP_LOG_ERROR("AC3D: Unexpected token: not all vertices have been parsed yet");
-                    --mBuffer.data; // make sure the line is processed a second time
+                    --buffer; // make sure the line is processed a second time
                     break;
                 }
                 obj.vertices.emplace_back();
                 aiVector3D &v = obj.vertices.back();
-                mBuffer.data = TAcCheckedLoadFloatArray(mBuffer.data, mBuffer.end, "", 0, 3, &v.x);
+                buffer = TAcCheckedLoadFloatArray(buffer, "", 0, 3, &v.x);
             }
-        } else if (TokenMatch(mBuffer.data, "numsurf", 7)) {
-            SkipSpaces(&mBuffer.data, mBuffer.end);
+        } else if (TokenMatch(buffer, "numsurf", 7)) {
+            SkipSpaces(&buffer);
 
             bool Q3DWorkAround = false;
 
-            const unsigned int t = strtoul10(mBuffer.data, &mBuffer.data);
+            const unsigned int t = strtoul10(buffer, &buffer);
             obj.surfaces.reserve(t);
             for (unsigned int i = 0; i < t; ++i) {
                 GetNextLine();
-                if (!TokenMatch(mBuffer.data, "SURF", 4)) {
+                if (!TokenMatch(buffer, "SURF", 4)) {
                     // FIX: this can occur for some files - Quick 3D for
                     // example writes no surf chunks
                     if (!Q3DWorkAround) {
                         ASSIMP_LOG_WARN("AC3D: SURF token was expected");
                         ASSIMP_LOG_VERBOSE_DEBUG("Continuing with Quick3D Workaround enabled");
                     }
-                    --mBuffer.data; // make sure the line is processed a second time
+                    --buffer; // make sure the line is processed a second time
                     // break; --- see fix notes above
 
                     Q3DWorkAround = true;
                 }
-                SkipSpaces(&mBuffer.data, mBuffer.end);
+                SkipSpaces(&buffer);
                 obj.surfaces.emplace_back();
                 Surface &surf = obj.surfaces.back();
-                surf.flags = strtoul_cppstyle(mBuffer.data);
+                surf.flags = strtoul_cppstyle(buffer);
 
                 while (true) {
                     if (!GetNextLine()) {
                         throw DeadlyImportError("AC3D: Unexpected EOF: surface is incomplete");
                     }
-                    if (TokenMatch(mBuffer.data, "mat", 3)) {
-                        SkipSpaces(&mBuffer.data, mBuffer.end);
-                        surf.mat = strtoul10(mBuffer.data);
-                    } else if (TokenMatch(mBuffer.data, "refs", 4)) {
+                    if (TokenMatch(buffer, "mat", 3)) {
+                        SkipSpaces(&buffer);
+                        surf.mat = strtoul10(buffer);
+                    } else if (TokenMatch(buffer, "refs", 4)) {
                         // --- see fix notes above
                         if (Q3DWorkAround) {
                             if (!surf.entries.empty()) {
-                                mBuffer.data -= 6;
+                                buffer -= 6;
                                 break;
                             }
                         }
 
-                        SkipSpaces(&mBuffer.data, mBuffer.end);
-                        const unsigned int m = strtoul10(mBuffer.data);
+                        SkipSpaces(&buffer);
+                        const unsigned int m = strtoul10(buffer);
                         surf.entries.reserve(m);
 
                         obj.numRefs += m;
@@ -331,12 +325,12 @@ bool AC3DImporter::LoadObjectSection(std::vector<Object> &objects) {
                             surf.entries.emplace_back();
                             Surface::SurfaceEntry &entry = surf.entries.back();
 
-                            entry.first = strtoul10(mBuffer.data, &mBuffer.data);
-                            SkipSpaces(&mBuffer.data, mBuffer.end);
-                            mBuffer.data = TAcCheckedLoadFloatArray(mBuffer.data, mBuffer.end, "", 0, 2, &entry.second);
+                            entry.first = strtoul10(buffer, &buffer);
+                            SkipSpaces(&buffer);
+                            buffer = TAcCheckedLoadFloatArray(buffer, "", 0, 2, &entry.second);
                         }
                     } else {
-                        --mBuffer.data; // make sure the line is processed a second time
+                        --buffer; // make sure the line is processed a second time
                         break;
                     }
                 }
@@ -344,7 +338,6 @@ bool AC3DImporter::LoadObjectSection(std::vector<Object> &objects) {
         }
     }
     ASSIMP_LOG_ERROR("AC3D: Unexpected EOF: \'kids\' line was expected");
-    return false;
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -358,8 +351,8 @@ void AC3DImporter::ConvertMaterial(const Object &object,
         s.Set(matSrc.name);
         matDest.AddProperty(&s, AI_MATKEY_NAME);
     }
-    if (!object.textures.empty()) {
-        s.Set(object.textures[0]);
+    if (object.texture.length()) {
+        s.Set(object.texture);
         matDest.AddProperty(&s, AI_MATKEY_TEXTURE_DIFFUSE(0));
 
         // UV transformation
@@ -450,7 +443,7 @@ aiNode *AC3DImporter::ConvertObjectSection(Object &object,
                     idx = 0;
                 }
                 if ((*it).entries.empty()) {
-                    ASSIMP_LOG_WARN("AC3D: surface has zero vertex references");
+                    ASSIMP_LOG_WARN("AC3D: surface her zero vertex references");
                 }
 
                 // validate all vertex indices to make sure we won't crash here
@@ -468,15 +461,16 @@ aiNode *AC3DImporter::ConvertObjectSection(Object &object,
                 }
 
                 switch ((*it).GetType()) {
-                case Surface::ClosedLine: // closed line
-                    needMat[idx].first += static_cast<unsigned int>((*it).entries.size());
-                    needMat[idx].second += static_cast<unsigned int>((*it).entries.size() << 1u);
+                    // closed line
+                case Surface::ClosedLine:
+                    needMat[idx].first += (unsigned int)(*it).entries.size();
+                    needMat[idx].second += (unsigned int)(*it).entries.size() << 1u;
                     break;
 
                     // unclosed line
                 case Surface::OpenLine:
-                    needMat[idx].first += static_cast<unsigned int>((*it).entries.size() - 1);
-                    needMat[idx].second += static_cast<unsigned int>(((*it).entries.size() - 1) << 1u);
+                    needMat[idx].first += (unsigned int)(*it).entries.size() - 1;
+                    needMat[idx].second += ((unsigned int)(*it).entries.size() - 1) << 1u;
                     break;
 
                     // triangle strip
@@ -538,7 +532,7 @@ aiNode *AC3DImporter::ConvertObjectSection(Object &object,
                 // allocate UV coordinates, but only if the texture name for the
                 // surface is not empty
                 aiVector3D *uv = nullptr;
-                if (!object.textures.empty()) {
+                if (object.texture.length()) {
                     uv = mesh->mTextureCoords[0] = new aiVector3D[mesh->mNumVertices];
                     mesh->mNumUVComponents[0] = 2;
                 }
@@ -577,6 +571,15 @@ aiNode *AC3DImporter::ConvertObjectSection(Object &object,
                                 const Surface::SurfaceEntry &entry1 = src.entries[i];
                                 const Surface::SurfaceEntry &entry2 = src.entries[i + 1];
                                 const Surface::SurfaceEntry &entry3 = src.entries[i + 2];
+
+                                // skip degenerate triangles
+                                if (object.vertices[entry1.first] == object.vertices[entry2.first] ||
+                                        object.vertices[entry1.first] == object.vertices[entry3.first] ||
+                                        object.vertices[entry2.first] == object.vertices[entry3.first]) {
+                                    mesh->mNumFaces--;
+                                    mesh->mNumVertices -= 3;
+                                    continue;
+                                }
 
                                 aiFace &face = *faces++;
                                 face.mNumIndices = 3;
@@ -755,18 +758,17 @@ void AC3DImporter::InternReadFile(const std::string &pFile,
     std::vector<char> mBuffer2;
     TextFileToBuffer(file.get(), mBuffer2);
 
-    mBuffer.data = &mBuffer2[0];
-    mBuffer.end = &mBuffer2[0] + mBuffer2.size();
+    buffer = &mBuffer2[0];
     mNumMeshes = 0;
 
     mLightsCounter = mPolysCounter = mWorldsCounter = mGroupsCounter = 0;
 
-    if (::strncmp(mBuffer.data, "AC3D", 4)) {
+    if (::strncmp(buffer, "AC3D", 4)) {
         throw DeadlyImportError("AC3D: No valid AC3D file, magic sequence not found");
     }
 
     // print the file format version to the console
-    unsigned int version = HexDigitToDecimal(mBuffer.data[4]);
+    unsigned int version = HexDigitToDecimal(buffer[4]);
     char msg[3];
     ASSIMP_itoa10(msg, 3, version);
     ASSIMP_LOG_INFO("AC3D file format version: ", msg);
@@ -781,31 +783,30 @@ void AC3DImporter::InternReadFile(const std::string &pFile,
     mLights = &lights;
 
     while (GetNextLine()) {
-        if (TokenMatch(mBuffer.data, "MATERIAL", 8)) {
+        if (TokenMatch(buffer, "MATERIAL", 8)) {
             materials.emplace_back();
             Material &mat = materials.back();
 
             // manually parse the material ... sscanf would use the buldin atof ...
             // Format: (name) rgb %f %f %f  amb %f %f %f  emis %f %f %f  spec %f %f %f  shi %d  trans %f
 
-            mBuffer.data = AcSkipToNextToken(mBuffer.data, mBuffer.end);
-            if ('\"' == *mBuffer.data) {
-                mBuffer.data = AcGetString(mBuffer.data, mBuffer.end, mat.name);
-                mBuffer.data = AcSkipToNextToken(mBuffer.data, mBuffer.end);
+            buffer = AcSkipToNextToken(buffer);
+            if ('\"' == *buffer) {
+                buffer = AcGetString(buffer, mat.name);
+                buffer = AcSkipToNextToken(buffer);
             }
 
-            mBuffer.data = TAcCheckedLoadFloatArray(mBuffer.data, mBuffer.end, "rgb", 3, 3, &mat.rgb);
-            mBuffer.data = TAcCheckedLoadFloatArray(mBuffer.data, mBuffer.end, "amb", 3, 3, &mat.amb);
-            mBuffer.data = TAcCheckedLoadFloatArray(mBuffer.data, mBuffer.end, "emis", 4, 3, &mat.emis);
-            mBuffer.data = TAcCheckedLoadFloatArray(mBuffer.data, mBuffer.end, "spec", 4, 3, &mat.spec);
-            mBuffer.data = TAcCheckedLoadFloatArray(mBuffer.data, mBuffer.end, "shi", 3, 1, &mat.shin);
-            mBuffer.data = TAcCheckedLoadFloatArray(mBuffer.data, mBuffer.end, "trans", 5, 1, &mat.trans);
-        } else {
-            LoadObjectSection(rootObjects);
+            buffer = TAcCheckedLoadFloatArray(buffer, "rgb", 3, 3, &mat.rgb);
+            buffer = TAcCheckedLoadFloatArray(buffer, "amb", 3, 3, &mat.amb);
+            buffer = TAcCheckedLoadFloatArray(buffer, "emis", 4, 3, &mat.emis);
+            buffer = TAcCheckedLoadFloatArray(buffer, "spec", 4, 3, &mat.spec);
+            buffer = TAcCheckedLoadFloatArray(buffer, "shi", 3, 1, &mat.shin);
+            buffer = TAcCheckedLoadFloatArray(buffer, "trans", 5, 1, &mat.trans);
         }
+        LoadObjectSection(rootObjects);
     }
 
-    if (rootObjects.empty() || mNumMeshes == 0u) {
+    if (rootObjects.empty() || !mNumMeshes) {
         throw DeadlyImportError("AC3D: No meshes have been loaded");
     }
     if (materials.empty()) {
@@ -821,7 +822,7 @@ void AC3DImporter::InternReadFile(const std::string &pFile,
     materials.reserve(mNumMeshes);
 
     // generate a dummy root if there are multiple objects on the top layer
-    Object *root = nullptr;
+    Object *root;
     if (1 == rootObjects.size())
         root = &rootObjects[0];
     else {
@@ -834,7 +835,7 @@ void AC3DImporter::InternReadFile(const std::string &pFile,
         delete root;
     }
 
-    if (::strncmp(pScene->mRootNode->mName.data, "Node", 4) == 0) {
+    if (!::strncmp(pScene->mRootNode->mName.data, "Node", 4)) {
         pScene->mRootNode->mName.Set("<AC3DWorld>");
     }
 
@@ -853,12 +854,10 @@ void AC3DImporter::InternReadFile(const std::string &pFile,
 
     // copy lights
     pScene->mNumLights = (unsigned int)lights.size();
-    if (!lights.empty()) {
+    if (lights.size()) {
         pScene->mLights = new aiLight *[lights.size()];
         ::memcpy(pScene->mLights, &lights[0], lights.size() * sizeof(void *));
     }
 }
-
-} // namespace Assimp
 
 #endif //!defined ASSIMP_BUILD_NO_AC_IMPORTER

@@ -2,7 +2,8 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
+
 
 All rights reserved.
 
@@ -39,8 +40,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ----------------------------------------------------------------------
 */
 
-/// @file  BlenderTessellator.cpp
-/// @brief A simple tessellation wrapper
+/** @file  BlenderTessellator.cpp
+ *  @brief A simple tessellation wrapper
+ */
+
 
 #ifndef ASSIMP_BUILD_NO_BLEND_IMPORTER
 
@@ -59,7 +62,8 @@ namspace Assimp
 {
     template< > const char* LogFunctions< BlenderTessellatorGL >::Prefix()
     {
-        return "BLEND_TESS_GL: ";
+        static auto prefix = "BLEND_TESS_GL: ";
+        return prefix;
     }
 }
 
@@ -77,7 +81,9 @@ BlenderTessellatorGL::BlenderTessellatorGL( BlenderBMeshConverter& converter ):
 }
 
 // ------------------------------------------------------------------------------------------------
-BlenderTessellatorGL::~BlenderTessellatorGL() = default;
+BlenderTessellatorGL::~BlenderTessellatorGL( )
+{
+}
 
 // ------------------------------------------------------------------------------------------------
 void BlenderTessellatorGL::Tessellate( const MLoop* polyLoop, int vertexCount, const std::vector< MVert >& vertices )
@@ -253,7 +259,8 @@ namespace Assimp
 {
     template< > const char* LogFunctions< BlenderTessellatorP2T >::Prefix()
     {
-        return "BLEND_TESS_P2T: ";
+        static auto prefix = "BLEND_TESS_P2T: ";
+        return prefix;
     }
 }
 

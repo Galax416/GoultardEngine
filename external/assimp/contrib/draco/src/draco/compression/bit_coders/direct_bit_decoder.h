@@ -47,13 +47,14 @@ class DirectBitDecoder {
 
   // Decode the next |nbits| and return the sequence in |value|. |nbits| must be
   // > 0 and <= 32.
-  bool DecodeLeastSignificantBits32(int nbits, uint32_t *value) {
+  void DecodeLeastSignificantBits32(int nbits, uint32_t *value) {
     DRACO_DCHECK_EQ(true, nbits <= 32);
     DRACO_DCHECK_EQ(true, nbits > 0);
     const int remaining = 32 - num_used_bits_;
     if (nbits <= remaining) {
       if (pos_ == bits_.end()) {
-        return false;
+        *value = 0;
+        return;
       }
       *value = (*pos_ << num_used_bits_) >> (32 - nbits);
       num_used_bits_ += nbits;
@@ -63,7 +64,8 @@ class DirectBitDecoder {
       }
     } else {
       if (pos_ + 1 == bits_.end()) {
-        return false;
+        *value = 0;
+        return;
       }
       const uint32_t value_l = ((*pos_) << num_used_bits_);
       num_used_bits_ = nbits - remaining;
@@ -71,7 +73,6 @@ class DirectBitDecoder {
       const uint32_t value_r = (*pos_) >> (32 - num_used_bits_);
       *value = (value_l >> (32 - num_used_bits_ - remaining)) | value_r;
     }
-    return true;
   }
 
   void EndDecoding() {}

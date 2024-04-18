@@ -147,7 +147,6 @@ class Metadata {
   bool AddSubMetadata(const std::string &name,
                       std::unique_ptr<Metadata> sub_metadata);
   const Metadata *GetSubMetadata(const std::string &name) const;
-  Metadata *sub_metadata(const std::string &name);
 
   void RemoveEntry(const std::string &name);
 

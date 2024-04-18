@@ -31,11 +31,6 @@ class PointCloud {
   PointCloud();
   virtual ~PointCloud() = default;
 
-#ifdef DRACO_TRANSCODER_SUPPORTED
-  // Copies all data from the |src| point cloud.
-  void Copy(const PointCloud &src);
-#endif
-
   // Returns the number of named attributes of a given type.
   int32_t NumNamedAttributes(GeometryAttribute::Type type) const;
 
@@ -190,11 +185,6 @@ class PointCloud {
   void set_num_points(PointIndex::ValueType num) { num_points_ = num; }
 
  protected:
-#ifdef DRACO_TRANSCODER_SUPPORTED
-  // Copies metadata from the |src| point cloud.
-  void CopyMetadata(const PointCloud &src);
-#endif
-
 #ifdef DRACO_ATTRIBUTE_INDICES_DEDUPLICATION_SUPPORTED
   // Applies id mapping of deduplicated points (called by DeduplicatePointIds).
   virtual void ApplyPointIdDeduplication(

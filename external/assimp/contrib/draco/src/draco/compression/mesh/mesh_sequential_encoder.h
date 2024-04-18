@@ -33,6 +33,7 @@ namespace draco {
 
 // Class that encodes mesh data using a simple binary representation of mesh's
 // connectivity and geometry.
+// TODO(ostava): Use a better name.
 class MeshSequentialEncoder : public MeshEncoder {
  public:
   MeshSequentialEncoder();

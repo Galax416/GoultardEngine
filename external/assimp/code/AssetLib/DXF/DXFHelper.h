@@ -2,7 +2,7 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
 
 
 All rights reserved.
@@ -65,6 +65,7 @@ public:
     LineReader(StreamReaderLE& reader)
     : splitter(reader,false,true)
     , groupcode( 0 )
+    , value()
     , end() {
         // empty
     }
@@ -185,7 +186,8 @@ struct InsertBlock {
     InsertBlock()
     : pos()
     , scale(1.f,1.f,1.f)
-    , angle() {
+    , angle()
+    , name() {
         // empty
     }
 

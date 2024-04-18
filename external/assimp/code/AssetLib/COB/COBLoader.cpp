@@ -2,7 +2,7 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
 
 All rights reserved.
 
@@ -61,11 +61,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <memory>
 
-namespace Assimp {
+using namespace Assimp;
 using namespace Assimp::COB;
 using namespace Assimp::Formatter;
 
-static constexpr float units[] = {
+static const float units[] = {
     1000.f,
     100.f,
     1.f,
@@ -76,7 +76,7 @@ static constexpr float units[] = {
     1.f / 1609.344f
 };
 
-static constexpr aiImporterDesc desc = {
+static const aiImporterDesc desc = {
     "TrueSpace Object Importer",
     "",
     "",
@@ -88,6 +88,14 @@ static constexpr aiImporterDesc desc = {
     0,
     "cob scn"
 };
+
+// ------------------------------------------------------------------------------------------------
+// Constructor to be privately used by Importer
+COBImporter::COBImporter() = default;
+
+// ------------------------------------------------------------------------------------------------
+// Destructor, private as well
+COBImporter::~COBImporter() = default;
 
 // ------------------------------------------------------------------------------------------------
 // Returns whether the class can handle the format of the given file.
@@ -473,9 +481,8 @@ void COBImporter::ReadBasicNodeInfo_Ascii(Node &msh, LineSplitter &splitter, con
         } else if (splitter.match_start("Transform")) {
             for (unsigned int y = 0; y < 4 && ++splitter; ++y) {
                 const char *s = splitter->c_str();
-                const char *end = s + splitter->size();
                 for (unsigned int x = 0; x < 4; ++x) {
-                    SkipSpaces(&s, end);
+                    SkipSpaces(&s);
                     msh.transform[y][x] = fast_atof(&s);
                 }
             }
@@ -487,12 +494,12 @@ void COBImporter::ReadBasicNodeInfo_Ascii(Node &msh, LineSplitter &splitter, con
 
 // ------------------------------------------------------------------------------------------------
 template <typename T>
-void COBImporter::ReadFloat3Tuple_Ascii(T &fill, const char **in, const char *end) {
+void COBImporter::ReadFloat3Tuple_Ascii(T &fill, const char **in) {
     const char *rgb = *in;
     for (unsigned int i = 0; i < 3; ++i) {
-        SkipSpaces(&rgb, end);
+        SkipSpaces(&rgb);
         if (*rgb == ',') ++rgb;
-        SkipSpaces(&rgb, end);
+        SkipSpaces(&rgb);
 
         fill[i] = fast_atof(&rgb);
     }
@@ -539,7 +546,7 @@ void COBImporter::ReadMat1_Ascii(Scene &out, LineSplitter &splitter, const Chunk
     }
 
     const char *rgb = splitter[1];
-    ReadFloat3Tuple_Ascii(mat.rgb, &rgb, splitter.getEnd());
+    ReadFloat3Tuple_Ascii(mat.rgb, &rgb);
 
     ++splitter;
     if (!splitter.match_start("alpha ")) {
@@ -618,21 +625,20 @@ void COBImporter::ReadLght_Ascii(Scene &out, LineSplitter &splitter, const Chunk
     }
 
     const char *rgb = splitter[1];
-    const char *end = splitter.getEnd();
-    ReadFloat3Tuple_Ascii(msh.color, &rgb, end);
+    ReadFloat3Tuple_Ascii(msh.color, &rgb);
 
-    SkipSpaces(&rgb, end);
+    SkipSpaces(&rgb);
     if (strncmp(rgb, "cone angle", 10) != 0) {
         ASSIMP_LOG_WARN("Expected `cone angle` entity in `color` line in `Lght` chunk ", nfo.id);
     }
-    SkipSpaces(rgb + 10, &rgb, end);
+    SkipSpaces(rgb + 10, &rgb);
     msh.angle = fast_atof(&rgb);
 
-    SkipSpaces(&rgb, end);
+    SkipSpaces(&rgb);
     if (strncmp(rgb, "inner angle", 11) != 0) {
         ASSIMP_LOG_WARN("Expected `inner angle` entity in `color` line in `Lght` chunk ", nfo.id);
     }
-    SkipSpaces(rgb + 11, &rgb, end);
+    SkipSpaces(rgb + 11, &rgb);
     msh.inner_angle = fast_atof(&rgb);
 
     // skip the rest for we can't handle this kind of physically-based lighting information.
@@ -705,14 +711,14 @@ void COBImporter::ReadPolH_Ascii(Scene &out, LineSplitter &splitter, const Chunk
 
             for (unsigned int cur = 0; cur < cnt && ++splitter; ++cur) {
                 const char *s = splitter->c_str();
-                const char *end = splitter.getEnd();
+
                 aiVector3D &v = msh.vertex_positions[cur];
 
-                SkipSpaces(&s, end);
+                SkipSpaces(&s);
                 v.x = fast_atof(&s);
-                SkipSpaces(&s, end);
+                SkipSpaces(&s);
                 v.y = fast_atof(&s);
-                SkipSpaces(&s, end);
+                SkipSpaces(&s);
                 v.z = fast_atof(&s);
             }
         } else if (splitter.match_start("Texture Vertices")) {
@@ -721,13 +727,12 @@ void COBImporter::ReadPolH_Ascii(Scene &out, LineSplitter &splitter, const Chunk
 
             for (unsigned int cur = 0; cur < cnt && ++splitter; ++cur) {
                 const char *s = splitter->c_str();
-                const char *end = splitter.getEnd();
 
                 aiVector2D &v = msh.texture_coords[cur];
 
-                SkipSpaces(&s, end);
+                SkipSpaces(&s);
                 v.x = fast_atof(&s);
-                SkipSpaces(&s, end);
+                SkipSpaces(&s);
                 v.y = fast_atof(&s);
             }
         } else if (splitter.match_start("Faces")) {
@@ -752,9 +757,8 @@ void COBImporter::ReadPolH_Ascii(Scene &out, LineSplitter &splitter, const Chunk
                 face.material = strtoul10(splitter[6]);
 
                 const char *s = (++splitter)->c_str();
-                const char *end = splitter.getEnd();
                 for (size_t i = 0; i < face.indices.size(); ++i) {
-                    if (!SkipSpaces(&s, end)) {
+                    if (!SkipSpaces(&s)) {
                         ThrowException("Expected EOL token in Face entry");
                     }
                     if ('<' != *s++) {
@@ -1166,8 +1170,6 @@ void COBImporter::ReadUnit_Binary(COB::Scene &out, StreamReaderLE &reader, const
         }
     }
     ASSIMP_LOG_WARN("`Unit` chunk ", nfo.id, " is a child of ", nfo.parent_id, " which does not exist");
-}
-
 }
 
 #endif // ASSIMP_BUILD_NO_COB_IMPORTER

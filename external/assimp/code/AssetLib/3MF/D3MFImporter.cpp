@@ -2,7 +2,7 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
 
 All rights reserved.
 
@@ -68,7 +68,7 @@ namespace Assimp {
 
 using namespace D3MF;
 
-static constexpr aiImporterDesc desc = {
+static const aiImporterDesc desc = {
     "3mf Importer",
     "",
     "",
@@ -81,17 +81,16 @@ static constexpr aiImporterDesc desc = {
     "3mf"
 };
 
-bool D3MFImporter::CanRead(const std::string &filename, IOSystem *pIOHandler, bool ) const {
+D3MFImporter::D3MFImporter() = default;
+
+D3MFImporter::~D3MFImporter() = default;
+
+bool D3MFImporter::CanRead(const std::string &filename, IOSystem *pIOHandler, bool /*checkSig*/) const {
     if (!ZipArchiveIOSystem::isZipArchive(pIOHandler, filename)) {
         return false;
     }
-    static const char *const ModelRef = "3D/3dmodel.model";
-    ZipArchiveIOSystem archive(pIOHandler, filename);
-    if (!archive.Exists(ModelRef)) {
-        return false;
-    }
-
-    return true;
+    D3MF::D3MFOpcPackage opcPackage(pIOHandler, filename);
+    return opcPackage.validate();
 }
 
 void D3MFImporter::SetupProperties(const Importer*) {

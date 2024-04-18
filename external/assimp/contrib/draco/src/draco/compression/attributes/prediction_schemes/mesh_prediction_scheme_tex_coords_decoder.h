@@ -105,7 +105,7 @@ class MeshPredictionSchemeTexCoordsDecoder
                     static_cast<float>(data[data_offset + 1]));
   }
 
-  bool ComputePredictedValue(CornerIndex corner_id, const DataTypeT *data,
+  void ComputePredictedValue(CornerIndex corner_id, const DataTypeT *data,
                              int data_id);
 
  private:
@@ -123,10 +123,6 @@ bool MeshPredictionSchemeTexCoordsDecoder<DataTypeT, TransformT, MeshDataT>::
     ComputeOriginalValues(const CorrType *in_corr, DataTypeT *out_data,
                           int /* size */, int num_components,
                           const PointIndex *entry_to_point_id_map) {
-  if (num_components != 2) {
-    // Corrupt/malformed input. Two output components are req'd.
-    return false;
-  }
   num_components_ = num_components;
   entry_to_point_id_map_ = entry_to_point_id_map;
   predicted_value_ =
@@ -137,9 +133,7 @@ bool MeshPredictionSchemeTexCoordsDecoder<DataTypeT, TransformT, MeshDataT>::
       static_cast<int>(this->mesh_data().data_to_corner_map()->size());
   for (int p = 0; p < corner_map_size; ++p) {
     const CornerIndex corner_id = this->mesh_data().data_to_corner_map()->at(p);
-    if (!ComputePredictedValue(corner_id, out_data, p)) {
-      return false;
-    }
+    ComputePredictedValue(corner_id, out_data, p);
 
     const int dst_offset = p * num_components;
     this->transform().ComputeOriginalValue(
@@ -165,11 +159,6 @@ bool MeshPredictionSchemeTexCoordsDecoder<DataTypeT, TransformT, MeshDataT>::
   if (num_orientations == 0) {
     return false;
   }
-  if (num_orientations > this->mesh_data().corner_table()->num_corners()) {
-    // We can't have more orientations than the maximum number of decoded
-    // values.
-    return false;
-  }
   orientations_.resize(num_orientations);
   bool last_orientation = true;
   RAnsBitDecoder decoder;
@@ -188,7 +177,7 @@ bool MeshPredictionSchemeTexCoordsDecoder<DataTypeT, TransformT, MeshDataT>::
 }
 
 template <typename DataTypeT, class TransformT, class MeshDataT>
-bool MeshPredictionSchemeTexCoordsDecoder<DataTypeT, TransformT, MeshDataT>::
+void MeshPredictionSchemeTexCoordsDecoder<DataTypeT, TransformT, MeshDataT>::
     ComputePredictedValue(CornerIndex corner_id, const DataTypeT *data,
                           int data_id) {
   // Compute the predicted UV coordinate from the positions on all corners
@@ -217,17 +206,9 @@ bool MeshPredictionSchemeTexCoordsDecoder<DataTypeT, TransformT, MeshDataT>::
     const Vector2f p_uv = GetTexCoordForEntryId(prev_data_id, data);
     if (p_uv == n_uv) {
       // We cannot do a reliable prediction on degenerated UV triangles.
-      // Technically floats > INT_MAX are undefined, but compilers will
-      // convert those values to INT_MIN. We are being explicit here for asan.
-      for (const int i : {0, 1}) {
-        if (std::isnan(p_uv[i]) || static_cast<double>(p_uv[i]) > INT_MAX ||
-            static_cast<double>(p_uv[i]) < INT_MIN) {
-          predicted_value_[i] = INT_MIN;
-        } else {
-          predicted_value_[i] = static_cast<int>(p_uv[i]);
-        }
-      }
-      return true;
+      predicted_value_[0] = static_cast<int>(p_uv[0]);
+      predicted_value_[1] = static_cast<int>(p_uv[1]);
+      return;
     }
 
     // Get positions at all corners.
@@ -301,40 +282,32 @@ bool MeshPredictionSchemeTexCoordsDecoder<DataTypeT, TransformT, MeshDataT>::
     const float pnvs = pn_uv[1] * s + n_uv[1];
     const float pnvt = pn_uv[1] * t;
     Vector2f predicted_uv;
-    if (orientations_.empty()) {
-      return false;
-    }
 
     // When decoding the data, we already know which orientation to use.
     const bool orientation = orientations_.back();
     orientations_.pop_back();
-    if (orientation) {
+    if (orientation)
       predicted_uv = Vector2f(pnus - pnvt, pnvs + pnut);
-    } else {
+    else
       predicted_uv = Vector2f(pnus + pnvt, pnvs - pnut);
-    }
+
     if (std::is_integral<DataTypeT>::value) {
       // Round the predicted value for integer types.
-      // Technically floats > INT_MAX are undefined, but compilers will
-      // convert those values to INT_MIN. We are being explicit here for asan.
-      const double u = floor(predicted_uv[0] + 0.5);
-      if (std::isnan(u) || u > INT_MAX || u < INT_MIN) {
+      if (std::isnan(predicted_uv[0])) {
         predicted_value_[0] = INT_MIN;
       } else {
-        predicted_value_[0] = static_cast<int>(u);
+        predicted_value_[0] = static_cast<int>(floor(predicted_uv[0] + 0.5));
       }
-      const double v = floor(predicted_uv[1] + 0.5);
-      if (std::isnan(v) || v > INT_MAX || v < INT_MIN) {
+      if (std::isnan(predicted_uv[1])) {
         predicted_value_[1] = INT_MIN;
       } else {
-        predicted_value_[1] = static_cast<int>(v);
+        predicted_value_[1] = static_cast<int>(floor(predicted_uv[1] + 0.5));
       }
     } else {
       predicted_value_[0] = static_cast<int>(predicted_uv[0]);
       predicted_value_[1] = static_cast<int>(predicted_uv[1]);
     }
-
-    return true;
+    return;
   }
   // Else we don't have available textures on both corners. For such case we
   // can't use positions for predicting the uv value and we resort to delta
@@ -357,13 +330,12 @@ bool MeshPredictionSchemeTexCoordsDecoder<DataTypeT, TransformT, MeshDataT>::
       for (int i = 0; i < num_components_; ++i) {
         predicted_value_[i] = 0;
       }
-      return true;
+      return;
     }
   }
   for (int i = 0; i < num_components_; ++i) {
     predicted_value_[i] = data[data_offset + i];
   }
-  return true;
 }
 
 }  // namespace draco

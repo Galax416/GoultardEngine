@@ -4,7 +4,7 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
 
 
 All rights reserved.
@@ -86,7 +86,7 @@ public:
     ColladaLoader();
 
     /// The class destructor.
-    ~ColladaLoader() override = default;
+    ~ColladaLoader() override;
 
     /// Returns whether the class can handle the format of the given file.
     /// @see BaseImporter::CanRead() for more details.
@@ -239,7 +239,6 @@ protected:
     bool noSkeletonMesh;
     bool removeEmptyBones;
     bool ignoreUpDirection;
-    bool ignoreUnitSize;
     bool useColladaName;
 
     /** Used by FindNameForNode() to generate unique node names */

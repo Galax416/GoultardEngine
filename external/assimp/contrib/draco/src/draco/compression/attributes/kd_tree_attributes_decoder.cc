@@ -72,19 +72,16 @@ class PointAttributeVectorOutputIterator {
 
   Self &operator*() { return *this; }
   // Still needed in some cases.
-  // TODO(b/199760123): Remove.
+  // TODO(hemmer): remove.
   // hardcoded to 3 based on legacy usage.
   const Self &operator=(const VectorD<CoeffT, 3> &val) {
     DRACO_DCHECK_EQ(attributes_.size(), 1);  // Expect only ONE attribute.
     AttributeTuple &att = attributes_[0];
     PointAttribute *attribute = std::get<0>(att);
-    const AttributeValueIndex avi = attribute->mapped_index(point_id_);
-    if (avi >= static_cast<uint32_t>(attribute->size())) {
-      return *this;
-    }
     const uint32_t &offset = std::get<1>(att);
     DRACO_DCHECK_EQ(offset, 0);  // expected to be zero
-    attribute->SetAttributeValue(avi, &val[0] + offset);
+    attribute->SetAttributeValue(attribute->mapped_index(point_id_),
+                                 &val[0] + offset);
     return *this;
   }
   // Additional operator taking std::vector as argument.
@@ -92,10 +89,6 @@ class PointAttributeVectorOutputIterator {
     for (auto index = 0; index < attributes_.size(); index++) {
       AttributeTuple &att = attributes_[index];
       PointAttribute *attribute = std::get<0>(att);
-      const AttributeValueIndex avi = attribute->mapped_index(point_id_);
-      if (avi >= static_cast<uint32_t>(attribute->size())) {
-        return *this;
-      }
       const uint32_t &offset = std::get<1>(att);
       const uint32_t &data_size = std::get<3>(att);
       const uint32_t &num_components = std::get<4>(att);
@@ -109,6 +102,10 @@ class PointAttributeVectorOutputIterator {
         }
         // redirect to copied data
         data_source = reinterpret_cast<uint32_t *>(data_);
+      }
+      const AttributeValueIndex avi = attribute->mapped_index(point_id_);
+      if (avi >= static_cast<uint32_t>(attribute->size())) {
+        return *this;
       }
       attribute->SetAttributeValue(avi, data_source);
     }
@@ -198,74 +195,60 @@ bool KdTreeAttributesDecoder::DecodePortableAttributes(
                               data_size, num_components);
     total_dimensionality += num_components;
   }
-  typedef PointAttributeVectorOutputIterator<uint32_t> OutIt;
-  OutIt out_it(atts);
+  PointAttributeVectorOutputIterator<uint32_t> out_it(atts);
 
   switch (compression_level) {
     case 0: {
-      if (!DecodePoints<0, OutIt>(total_dimensionality, num_points, in_buffer,
-                                  &out_it)) {
+      DynamicIntegerPointsKdTreeDecoder<0> decoder(total_dimensionality);
+      if (!decoder.DecodePoints(in_buffer, out_it)) {
         return false;
       }
       break;
     }
     case 1: {
-      if (!DecodePoints<1, OutIt>(total_dimensionality, num_points, in_buffer,
-                                  &out_it)) {
+      DynamicIntegerPointsKdTreeDecoder<1> decoder(total_dimensionality);
+      if (!decoder.DecodePoints(in_buffer, out_it)) {
         return false;
       }
       break;
     }
     case 2: {
-      if (!DecodePoints<2, OutIt>(total_dimensionality, num_points, in_buffer,
-                                  &out_it)) {
+      DynamicIntegerPointsKdTreeDecoder<2> decoder(total_dimensionality);
+      if (!decoder.DecodePoints(in_buffer, out_it)) {
         return false;
       }
       break;
     }
     case 3: {
-      if (!DecodePoints<3, OutIt>(total_dimensionality, num_points, in_buffer,
-                                  &out_it)) {
+      DynamicIntegerPointsKdTreeDecoder<3> decoder(total_dimensionality);
+      if (!decoder.DecodePoints(in_buffer, out_it)) {
         return false;
       }
       break;
     }
     case 4: {
-      if (!DecodePoints<4, OutIt>(total_dimensionality, num_points, in_buffer,
-                                  &out_it)) {
+      DynamicIntegerPointsKdTreeDecoder<4> decoder(total_dimensionality);
+      if (!decoder.DecodePoints(in_buffer, out_it)) {
         return false;
       }
       break;
     }
     case 5: {
-      if (!DecodePoints<5, OutIt>(total_dimensionality, num_points, in_buffer,
-                                  &out_it)) {
+      DynamicIntegerPointsKdTreeDecoder<5> decoder(total_dimensionality);
+      if (!decoder.DecodePoints(in_buffer, out_it)) {
         return false;
       }
       break;
     }
     case 6: {
-      if (!DecodePoints<6, OutIt>(total_dimensionality, num_points, in_buffer,
-                                  &out_it)) {
+      DynamicIntegerPointsKdTreeDecoder<6> decoder(total_dimensionality);
+      if (!decoder.DecodePoints(in_buffer, out_it)) {
         return false;
       }
       break;
     }
     default:
       return false;
-  }
-  return true;
-}
-
-template <int level_t, typename OutIteratorT>
-bool KdTreeAttributesDecoder::DecodePoints(int total_dimensionality,
-                                           int num_expected_points,
-                                           DecoderBuffer *in_buffer,
-                                           OutIteratorT *out_iterator) {
-  DynamicIntegerPointsKdTreeDecoder<level_t> decoder(total_dimensionality);
-  if (!decoder.DecodePoints(in_buffer, *out_iterator, num_expected_points) ||
-      decoder.num_decoded_points() != num_expected_points) {
-    return false;
   }
   return true;
 }
@@ -353,10 +336,6 @@ bool KdTreeAttributesDecoder::DecodeDataNeededByPortableTransforms(
     return false;
   }
   if (method == KdTreeAttributesEncodingMethod::kKdTreeQuantizationEncoding) {
-    // This method only supports one attribute with exactly three components.
-    if (atts.size() != 1 || std::get<4>(atts[0]) != 3) {
-      return false;
-    }
     uint8_t compression_level = 0;
     if (!in_buffer->Decode(&compression_level)) {
       return false;
@@ -397,7 +376,7 @@ bool KdTreeAttributesDecoder::DecodeDataNeededByPortableTransforms(
           GetDecoder()->point_cloud()->attribute(att_id);
       attr->Reset(num_points);
       attr->SetIdentityMapping();
-    }
+    };
 
     PointAttributeVectorOutputIterator<uint32_t> out_it(atts);
 
@@ -476,11 +455,7 @@ bool KdTreeAttributesDecoder::TransformAttributeBackToSignedType(
     att->GetValue(avi, &unsigned_val[0]);
     for (int c = 0; c < att->num_components(); ++c) {
       // Up-cast |unsigned_val| to int32_t to ensure we don't overflow it for
-      // smaller data types. But first check that the up-casting does not cause
-      // signed integer overflow.
-      if (unsigned_val[c] > std::numeric_limits<int32_t>::max()) {
-        return false;
-      }
+      // smaller data types.
       signed_val[c] = static_cast<SignedDataTypeT>(
           static_cast<int32_t>(unsigned_val[c]) +
           min_signed_values_[num_processed_signed_components + c]);

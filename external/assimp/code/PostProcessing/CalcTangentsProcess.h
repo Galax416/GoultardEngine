@@ -2,7 +2,7 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
 
 
 All rights reserved.
@@ -59,11 +59,14 @@ namespace Assimp
  * because the joining of vertices also considers tangents and bitangents for
  * uniqueness.
  */
-class ASSIMP_API_WINONLY CalcTangentsProcess : public BaseProcess {
+class ASSIMP_API_WINONLY CalcTangentsProcess : public BaseProcess
+{
 public:
-    CalcTangentsProcess();
-    ~CalcTangentsProcess() override = default;
 
+    CalcTangentsProcess();
+    ~CalcTangentsProcess();
+
+public:
     // -------------------------------------------------------------------
     /** Returns whether the processing step is present in the given flag.
     * @param pFlags The processing flags the importer was called with.
@@ -71,21 +74,24 @@ public:
     * @return true if the process is present in this flag fields,
     *   false if not.
     */
-    bool IsActive( unsigned int pFlags) const override;
+    bool IsActive( unsigned int pFlags) const;
 
     // -------------------------------------------------------------------
     /** Called prior to ExecuteOnScene().
     * The function is a request to the process to update its configuration
     * basing on the Importer's configuration property list.
     */
-    void SetupProperties(const Importer* pImp) override;
+    void SetupProperties(const Importer* pImp);
+
 
     // setter for configMaxAngle
-    void SetMaxSmoothAngle(float f) {
+    inline void SetMaxSmoothAngle(float f)
+    {
         configMaxAngle =f;
     }
 
 protected:
+
     // -------------------------------------------------------------------
     /** Calculates tangents and bitangents for a specific mesh.
     * @param pMesh The mesh to process.
@@ -97,9 +103,10 @@ protected:
     /** Executes the post processing step on the given imported data.
     * @param pScene The imported data to work at.
     */
-    void Execute( aiScene* pScene) override;
+    void Execute( aiScene* pScene);
 
 private:
+
     /** Configuration option: maximum smoothing angle, in radians*/
     float configMaxAngle;
     unsigned int configSourceUV;

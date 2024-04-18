@@ -59,9 +59,9 @@ namespace Assimp {
 
 // ------------------------------------------------------------------------------------------------
 // Worker function for exporting a scene to Wavefront OBJ. Prototyped and registered in Exporter.cpp
-void ExportSceneObj(const char* pFile,IOSystem* pIOSystem, const aiScene* pScene, const ExportProperties* props) {
+void ExportSceneObj(const char* pFile,IOSystem* pIOSystem, const aiScene* pScene, const ExportProperties* /*pProperties*/) {
     // invoke the exporter
-    ObjExporter exporter(pFile, pScene, false, props);
+    ObjExporter exporter(pFile, pScene);
 
     if (exporter.mOutput.fail() || exporter.mOutputMat.fail()) {
         throw DeadlyExportError("output data creation failed. Most likely the file became too large: " + std::string(pFile));
@@ -86,9 +86,9 @@ void ExportSceneObj(const char* pFile,IOSystem* pIOSystem, const aiScene* pScene
 
 // ------------------------------------------------------------------------------------------------
 // Worker function for exporting a scene to Wavefront OBJ without the material file. Prototyped and registered in Exporter.cpp
-void ExportSceneObjNoMtl(const char* pFile,IOSystem* pIOSystem, const aiScene* pScene, const ExportProperties* props) {
+void ExportSceneObjNoMtl(const char* pFile,IOSystem* pIOSystem, const aiScene* pScene, const ExportProperties* ) {
     // invoke the exporter
-    ObjExporter exporter(pFile, pScene, true, props);
+    ObjExporter exporter(pFile, pScene, true);
 
     if (exporter.mOutput.fail() || exporter.mOutputMat.fail()) {
         throw DeadlyExportError("output data creation failed. Most likely the file became too large: " + std::string(pFile));
@@ -111,7 +111,7 @@ void ExportSceneObjNoMtl(const char* pFile,IOSystem* pIOSystem, const aiScene* p
 static const std::string MaterialExt = ".mtl";
 
 // ------------------------------------------------------------------------------------------------
-ObjExporter::ObjExporter(const char* _filename, const aiScene* pScene, bool noMtl, const ExportProperties* props)
+ObjExporter::ObjExporter(const char* _filename, const aiScene* pScene, bool noMtl)
 : filename(_filename)
 , pScene(pScene)
 , vn()
@@ -130,10 +130,7 @@ ObjExporter::ObjExporter(const char* _filename, const aiScene* pScene, bool noMt
     mOutputMat.imbue(l);
     mOutputMat.precision(ASSIMP_AI_REAL_TEXT_PRECISION);
 
-    WriteGeometryFile(
-        noMtl,
-        props == nullptr ? true : props->GetPropertyBool("bJoinIdenticalVertices", true)
-    );
+    WriteGeometryFile(noMtl);
     if ( !noMtl ) {
         WriteMaterialFile();
     }
@@ -258,14 +255,14 @@ void ObjExporter::WriteMaterialFile() {
     }
 }
 
-void ObjExporter::WriteGeometryFile(bool noMtl, bool merge_identical_vertices) {
+void ObjExporter::WriteGeometryFile(bool noMtl) {
     WriteHeader(mOutput);
     if (!noMtl)
         mOutput << "mtllib "  << GetMaterialLibName() << endl << endl;
 
     // collect mesh geometry
     aiMatrix4x4 mBase;
-    AddNode(pScene->mRootNode, mBase, merge_identical_vertices);
+    AddNode(pScene->mRootNode, mBase);
 
     // write vertex positions with colors, if any
     mVpMap.getKeys( vp );
@@ -333,7 +330,7 @@ void ObjExporter::WriteGeometryFile(bool noMtl, bool merge_identical_vertices) {
 }
 
 // ------------------------------------------------------------------------------------------------
-void ObjExporter::AddMesh(const aiString& name, const aiMesh* m, const aiMatrix4x4& mat, bool merge_identical_vertices) {
+void ObjExporter::AddMesh(const aiString& name, const aiMesh* m, const aiMatrix4x4& mat) {
     mMeshes.emplace_back();
     MeshInstance& mesh = mMeshes.back();
 
@@ -365,14 +362,13 @@ void ObjExporter::AddMesh(const aiString& name, const aiMesh* m, const aiMatrix4
         for(unsigned int a = 0; a < f.mNumIndices; ++a) {
             const unsigned int idx = f.mIndices[a];
 
-            const unsigned int fi = merge_identical_vertices ? 0 : idx;
             aiVector3D vert = mat * m->mVertices[idx];
 
             if ( nullptr != m->mColors[ 0 ] ) {
                 aiColor4D col4 = m->mColors[ 0 ][ idx ];
-                face.indices[a].vp = mVpMap.getIndex({vert, aiColor3D(col4.r, col4.g, col4.b), fi});
+                face.indices[a].vp = mVpMap.getIndex({vert, aiColor3D(col4.r, col4.g, col4.b)});
             } else {
-                face.indices[a].vp = mVpMap.getIndex({vert, aiColor3D(0,0,0), fi});
+                face.indices[a].vp = mVpMap.getIndex({vert, aiColor3D(0,0,0)});
             }
 
             if (m->mNormals) {
@@ -392,21 +388,21 @@ void ObjExporter::AddMesh(const aiString& name, const aiMesh* m, const aiMatrix4
 }
 
 // ------------------------------------------------------------------------------------------------
-void ObjExporter::AddNode(const aiNode* nd, const aiMatrix4x4& mParent, bool merge_identical_vertices) {
+void ObjExporter::AddNode(const aiNode* nd, const aiMatrix4x4& mParent) {
     const aiMatrix4x4& mAbs = mParent * nd->mTransformation;
 
     aiMesh *cm( nullptr );
     for(unsigned int i = 0; i < nd->mNumMeshes; ++i) {
         cm = pScene->mMeshes[nd->mMeshes[i]];
         if (nullptr != cm) {
-            AddMesh(cm->mName, pScene->mMeshes[nd->mMeshes[i]], mAbs, merge_identical_vertices);
+            AddMesh(cm->mName, pScene->mMeshes[nd->mMeshes[i]], mAbs);
         } else {
-            AddMesh(nd->mName, pScene->mMeshes[nd->mMeshes[i]], mAbs, merge_identical_vertices);
+            AddMesh(nd->mName, pScene->mMeshes[nd->mMeshes[i]], mAbs);
         }
     }
 
     for(unsigned int i = 0; i < nd->mNumChildren; ++i) {
-        AddNode(nd->mChildren[i], mAbs, merge_identical_vertices);
+        AddNode(nd->mChildren[i], mAbs);
     }
 }
 

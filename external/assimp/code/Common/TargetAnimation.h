@@ -2,7 +2,8 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
+
 
 All rights reserved.
 
@@ -118,15 +119,11 @@ private:
  * look-at target */
 class TargetAnimationHelper {
 public:
-    ///	@brief The class constructor.
     TargetAnimationHelper() :
             targetPositions(nullptr),
             objectPositions(nullptr) {
         // empty
     }
-
-    ///	@brief The class destructor.
-    ~TargetAnimationHelper() = default;
 
     // ------------------------------------------------------------------
     /** Sets the target animation channel

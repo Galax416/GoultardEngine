@@ -46,6 +46,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // no #ifdefing here, Cinema4D support is carried out in a branch of assimp
 // where it is turned on in the CMake settings.
 
+#ifndef _MSC_VER
+#   error C4D support is currently MSVC only
+#endif
+
 #include "C4DImporter.h"
 #include <memory>
 #include <assimp/IOSystem.hpp>
@@ -82,7 +86,8 @@ void GetWriterInfo(int &id, String &appname) {
 
 namespace Assimp {
     template<> const char* LogFunctions<C4DImporter>::Prefix() {
-        return "C4D: ";
+        static auto prefix = "C4D: ";
+        return prefix;
     }
 }
 
@@ -101,20 +106,25 @@ static const aiImporterDesc desc = {
 
 
 // ------------------------------------------------------------------------------------------------
-C4DImporter::C4DImporter() = default;
+C4DImporter::C4DImporter()
+: BaseImporter() {
+    // empty
+}
 
 // ------------------------------------------------------------------------------------------------
-C4DImporter::~C4DImporter() = default;
+C4DImporter::~C4DImporter() {
+    // empty
+}
 
 // ------------------------------------------------------------------------------------------------
-bool C4DImporter::CanRead( const std::string& pFile, IOSystem* pIOHandler, bool checkSig) const {
+bool C4DImporter::CanRead( const std::string& pFile, IOSystem* /*pIOHandler*/, bool /*checkSig*/) const {
     const std::string& extension = GetExtension(pFile);
     if (extension == "c4d") {
         return true;
     } else if ((!extension.length() || checkSig) && pIOHandler)   {
         // TODO
     }
-
+    
     return false;
 }
 
@@ -301,7 +311,7 @@ void C4DImporter::RecurseHierarchy(BaseObject* object, aiNode* parent) {
 
     // based on Cineware sample code
     while (object) {
-        const Int32 type = object->GetType();
+        const LONG type = object->GetType();
         const Matrix& ml = object->GetMl();
 
         aiNode* const nd = new aiNode();
@@ -364,8 +374,8 @@ aiMesh* C4DImporter::ReadMesh(BaseObject* object) {
     PolygonObject* const polyObject = dynamic_cast<PolygonObject*>(object);
     ai_assert(polyObject != nullptr);
 
-    const Int32 pointCount = polyObject->GetPointCount();
-    const Int32 polyCount = polyObject->GetPolygonCount();
+    const LONG pointCount = polyObject->GetPointCount();
+    const LONG polyCount = polyObject->GetPolygonCount();
     if(!polyObject || !pointCount) {
         LogWarn("ignoring mesh with zero vertices or faces");
         return nullptr;
@@ -387,7 +397,7 @@ aiMesh* C4DImporter::ReadMesh(BaseObject* object) {
     unsigned int vcount = 0;
 
     // first count vertices
-    for (Int32 i = 0; i < polyCount; i++)
+    for (LONG i = 0; i < polyCount; i++)
     {
         vcount += 3;
 
@@ -430,7 +440,7 @@ aiMesh* C4DImporter::ReadMesh(BaseObject* object) {
     }
 
     // copy vertices and extra channels over and populate faces
-    for (Int32 i = 0; i < polyCount; ++i, ++face) {
+    for (LONG i = 0; i < polyCount; ++i, ++face) {
         ai_assert(polys[i].a < pointCount && polys[i].a >= 0);
         const Vector& pointA = points[polys[i].a];
         verts->x = pointA.x;
@@ -507,7 +517,7 @@ aiMesh* C4DImporter::ReadMesh(BaseObject* object) {
         if (tangents_src) {
 
             for(unsigned int k = 0; k < face->mNumIndices; ++k) {
-                Int32 l;
+                LONG l;
                 switch(k) {
                 case 0:
                     l = polys[i].a;

@@ -2,7 +2,7 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
 
 All rights reserved.
 
@@ -57,8 +57,8 @@ namespace Assimp {
 */
 class ASSIMP_API SIBImporter : public BaseImporter {
 public:
-    SIBImporter() = default;
-    ~SIBImporter() override = default;
+    SIBImporter();
+    ~SIBImporter() override;
 
     // -------------------------------------------------------------------
     /** Returns whether the class can handle the format of the given file.

@@ -15,7 +15,6 @@
 #include "draco/mesh/mesh_cleanup.h"
 
 #include "draco/core/draco_test_base.h"
-#include "draco/core/draco_test_utils.h"
 #include "draco/core/vector_d.h"
 #include "draco/mesh/triangle_soup_mesh_builder.h"
 
@@ -44,7 +43,9 @@ TEST_F(MeshCleanupTest, TestDegneratedFaces) {
   ASSERT_NE(mesh, nullptr) << "Failed to build the test mesh.";
   ASSERT_EQ(mesh->num_faces(), 2) << "Wrong number of faces in the input mesh.";
   MeshCleanupOptions cleanup_options;
-  DRACO_ASSERT_OK(MeshCleanup::Cleanup(mesh.get(), cleanup_options));
+  MeshCleanup cleanup;
+  ASSERT_TRUE(cleanup(mesh.get(), cleanup_options))
+      << "Failed to cleanup the mesh.";
   ASSERT_EQ(mesh->num_faces(), 1) << "Failed to remove degenerated faces.";
 }
 
@@ -88,7 +89,9 @@ TEST_F(MeshCleanupTest, TestDegneratedFacesAndIsolatedVertices) {
       << "Wrong number of point ids in the input mesh.";
   ASSERT_EQ(mesh->attribute(int_att_id)->size(), 3);
   const MeshCleanupOptions cleanup_options;
-  DRACO_ASSERT_OK(MeshCleanup::Cleanup(mesh.get(), cleanup_options));
+  MeshCleanup cleanup;
+  ASSERT_TRUE(cleanup(mesh.get(), cleanup_options))
+      << "Failed to cleanup the mesh.";
   ASSERT_EQ(mesh->num_faces(), 1) << "Failed to remove degenerated faces.";
   ASSERT_EQ(mesh->num_points(), 3)
       << "Failed to remove isolated attribute indices.";
@@ -130,7 +133,9 @@ TEST_F(MeshCleanupTest, TestAttributes) {
   ASSERT_EQ(mesh->attribute(1)->size(), 2u)
       << "Wrong number of generic attribute entries.";
   const MeshCleanupOptions cleanup_options;
-  DRACO_ASSERT_OK(MeshCleanup::Cleanup(mesh.get(), cleanup_options));
+  MeshCleanup cleanup;
+  ASSERT_TRUE(cleanup(mesh.get(), cleanup_options))
+      << "Failed to cleanup the mesh.";
   ASSERT_EQ(mesh->num_faces(), 1) << "Failed to remove degenerated faces.";
   ASSERT_EQ(mesh->num_points(), 3)
       << "Failed to remove isolated attribute indices.";
@@ -179,7 +184,8 @@ TEST_F(MeshCleanupTest, TestDuplicateFaces) {
   ASSERT_NE(mesh, nullptr);
   ASSERT_EQ(mesh->num_faces(), 5);
   const MeshCleanupOptions cleanup_options;
-  DRACO_ASSERT_OK(MeshCleanup::Cleanup(mesh.get(), cleanup_options));
+  MeshCleanup cleanup;
+  ASSERT_TRUE(cleanup(mesh.get(), cleanup_options));
   ASSERT_EQ(mesh->num_faces(), 2);
 }
 

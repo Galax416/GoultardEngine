@@ -2,7 +2,8 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
+
 
 All rights reserved.
 
@@ -49,10 +50,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <stdio.h>
 
-#include <unordered_map>
-
 using namespace Assimp;
-
 void mydummy() {}
 
 #ifdef _MSC_VER
@@ -80,7 +78,7 @@ public:
     };
 
     typedef std::vector<unsigned int> UIntVector;
-    typedef std::unordered_map<uint64_t, Edge> EdgeMap;
+    typedef std::map<uint64_t, Edge> EdgeMap;
 
     // ---------------------------------------------------------------------------
     // Hashing function to derive an index into an #EdgeMap from two given

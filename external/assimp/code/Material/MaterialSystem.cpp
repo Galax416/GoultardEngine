@@ -2,7 +2,7 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
 
 
 All rights reserved.
@@ -51,7 +51,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <assimp/material.h>
 #include <assimp/types.h>
 #include <assimp/DefaultLogger.hpp>
-#include <memory>
 
 using namespace Assimp;
 
@@ -474,7 +473,7 @@ aiReturn aiMaterial::AddBinaryProperty(const void *pInput,
     }
 
     // Allocate a new material property
-    std::unique_ptr<aiMaterialProperty> pcNew(new aiMaterialProperty());
+    aiMaterialProperty *pcNew = new aiMaterialProperty();
 
     // .. and fill it
     pcNew->mType = pType;
@@ -490,7 +489,7 @@ aiReturn aiMaterial::AddBinaryProperty(const void *pInput,
     strcpy(pcNew->mKey.data, pKey);
 
     if (UINT_MAX != iOutIndex) {
-        mProperties[iOutIndex] = pcNew.release();
+        mProperties[iOutIndex] = pcNew;
         return AI_SUCCESS;
     }
 
@@ -503,6 +502,7 @@ aiReturn aiMaterial::AddBinaryProperty(const void *pInput,
         try {
             ppTemp = new aiMaterialProperty *[mNumAllocated];
         } catch (std::bad_alloc &) {
+            delete pcNew;
             return AI_OUTOFMEMORY;
         }
 
@@ -513,7 +513,7 @@ aiReturn aiMaterial::AddBinaryProperty(const void *pInput,
         mProperties = ppTemp;
     }
     // push back ...
-    mProperties[mNumProperties++] = pcNew.release();
+    mProperties[mNumProperties++] = pcNew;
 
     return AI_SUCCESS;
 }

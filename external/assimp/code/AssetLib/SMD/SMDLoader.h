@@ -2,7 +2,7 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
 
 All rights reserved.
 
@@ -87,10 +87,10 @@ struct Vertex {
 */
 struct Face {
     Face() AI_NO_EXCEPT :
-            iTexture(0x0) {
+            iTexture(0x0), avVertices{} {
         // empty
     }
-
+    
     //! Texture index for the face
     unsigned int iTexture;
 
@@ -162,7 +162,7 @@ struct Bone {
 class ASSIMP_API SMDImporter : public BaseImporter {
 public:
     SMDImporter();
-    ~SMDImporter() override = default;
+    ~SMDImporter() override;
 
     // -------------------------------------------------------------------
     /** Returns whether the class can handle the format of the given file.
@@ -206,7 +206,7 @@ protected:
      * the next section (or to EOF)
     */
     void ParseTrianglesSection(const char* szCurrent,
-            const char **szCurrentOut, const char *end);
+        const char** szCurrentOut);
 
     // -------------------------------------------------------------------
     /** Parse the vertex animation section in VTA files
@@ -216,7 +216,7 @@ protected:
      * the next section (or to EOF)
     */
     void ParseVASection(const char* szCurrent,
-            const char **szCurrentOu, const char *end);
+        const char** szCurrentOut);
 
     // -------------------------------------------------------------------
     /** Parse the nodes section of the SMD file
@@ -226,7 +226,7 @@ protected:
      * the next section (or to EOF)
     */
     void ParseNodesSection(const char* szCurrent,
-            const char **szCurrentOut, const char *end);
+        const char** szCurrentOut);
 
     // -------------------------------------------------------------------
     /** Parse the skeleton section of the SMD file
@@ -236,7 +236,7 @@ protected:
      * the next section (or to EOF)
     */
     void ParseSkeletonSection(const char* szCurrent,
-            const char **szCurrentOut, const char *end);
+        const char** szCurrentOut);
 
     // -------------------------------------------------------------------
     /** Parse a single triangle in the SMD file
@@ -245,7 +245,8 @@ protected:
      * \param szCurrentOut Receives the output cursor position
     */
     void ParseTriangle(const char* szCurrent,
-            const char **szCurrentOut, const char *end);
+        const char** szCurrentOut);
+
 
     // -------------------------------------------------------------------
     /** Parse a single vertex in the SMD file
@@ -255,7 +256,7 @@ protected:
      * \param vertex Vertex to be filled
     */
     void ParseVertex(const char* szCurrent,
-            const char **szCurrentOut, const char *end, SMD::Vertex &vertex,
+        const char** szCurrentOut, SMD::Vertex& vertex,
         bool bVASection = false);
 
     // -------------------------------------------------------------------
@@ -270,31 +271,32 @@ protected:
     /** Parse a line in the skeleton section
      */
     void ParseSkeletonElement(const char* szCurrent,
-            const char **szCurrentOut, const char *end, int iTime);
+        const char** szCurrentOut,int iTime);
 
     // -------------------------------------------------------------------
     /** Parse a line in the nodes section
      */
     void ParseNodeInfo(const char* szCurrent,
-            const char **szCurrentOut, const char *end);
+        const char** szCurrentOut);
+
 
     // -------------------------------------------------------------------
     /** Parse a floating-point value
      */
     bool ParseFloat(const char* szCurrent,
-            const char **szCurrentOut, const char *end, float &out);
+        const char** szCurrentOut, float& out);
 
     // -------------------------------------------------------------------
     /** Parse an unsigned integer. There may be no sign!
      */
     bool ParseUnsignedInt(const char* szCurrent,
-            const char **szCurrentOut, const char *end, unsigned int &out);
+        const char** szCurrentOut, unsigned int& out);
 
     // -------------------------------------------------------------------
     /** Parse a signed integer. Signs (+,-) are handled.
      */
     bool ParseSignedInt(const char* szCurrent,
-            const char **szCurrentOut, const char *end, int &out);
+        const char** szCurrentOut, int& out);
 
     // -------------------------------------------------------------------
     /** Fix invalid time values in the file
@@ -302,7 +304,7 @@ protected:
     void FixTimeValues();
 
     // -------------------------------------------------------------------
-    /** Add all children of a bone as sub-nodes to a node
+    /** Add all children of a bone as subnodes to a node
      * \param pcNode Parent node
      * \param iParent Parent bone index
      */
@@ -327,15 +329,17 @@ protected:
 
 
     // -------------------------------------------------------------------
-    inline bool SkipLine( const char* in, const char** out, const char *end) {
-        Assimp::SkipLine(in, out, end);
+    inline bool SkipLine( const char* in, const char** out)
+    {
+        Assimp::SkipLine(in,out);
         ++iLineNumber;
         return true;
     }
     // -------------------------------------------------------------------
-    inline bool SkipSpacesAndLineEnd(const char *in, const char **out, const char *end) {
+    inline bool SkipSpacesAndLineEnd( const char* in, const char** out)
+    {
         ++iLineNumber;
-        return Assimp::SkipSpacesAndLineEnd(in, out, end);
+        return Assimp::SkipSpacesAndLineEnd(in,out);
     }
 
 private:
@@ -345,7 +349,6 @@ private:
 
     /** Buffer to hold the loaded file */
     std::vector<char> mBuffer;
-    char *mEnd;
 
     /** Output scene to be filled
     */

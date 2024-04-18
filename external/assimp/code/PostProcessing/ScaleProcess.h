@@ -2,7 +2,7 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
 
 
 All rights reserved.
@@ -62,10 +62,11 @@ namespace Assimp {
 */
 class ASSIMP_API ScaleProcess : public BaseProcess {
 public:
-    // -------------------------------------------------------------------
-    /// The default class constructor / destructor.
+    /// The default class constructor.
     ScaleProcess();
-    ~ScaleProcess() override = default;
+
+    /// The class destructor.
+    virtual ~ScaleProcess();
 
     /// Will set the scale manually.
     void setScale( ai_real scale );
@@ -74,13 +75,13 @@ public:
     ai_real getScale() const;
 
     /// Overwritten, @see BaseProcess
-    virtual bool IsActive( unsigned int pFlags ) const override;
+    virtual bool IsActive( unsigned int pFlags ) const;
 
     /// Overwritten, @see BaseProcess
-    virtual void SetupProperties( const Importer* pImp ) override;
+    virtual void SetupProperties( const Importer* pImp );
 
     /// Overwritten, @see BaseProcess
-    virtual void Execute( aiScene* pScene ) override;
+    virtual void Execute( aiScene* pScene );
 
 private:
     void traverseNodes( aiNode *currentNode, unsigned int nested_node_id = 0 );

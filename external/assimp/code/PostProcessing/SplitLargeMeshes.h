@@ -2,7 +2,7 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
 
 All rights reserved.
 
@@ -83,15 +83,16 @@ class SplitLargeMeshesProcess_Vertex;
  * Applied BEFORE the JoinVertices-Step occurs.
  * Returns NON-UNIQUE vertices, splits by triangle number.
 */
-class ASSIMP_API SplitLargeMeshesProcess_Triangle : public BaseProcess {
+class ASSIMP_API SplitLargeMeshesProcess_Triangle : public BaseProcess
+{
     friend class SplitLargeMeshesProcess_Vertex;
 
 public:
-    // -------------------------------------------------------------------
-    /// The default class constructor / destructor.
-    SplitLargeMeshesProcess_Triangle();
-    ~SplitLargeMeshesProcess_Triangle() override = default;
 
+    SplitLargeMeshesProcess_Triangle();
+    ~SplitLargeMeshesProcess_Triangle();
+
+public:
     // -------------------------------------------------------------------
     /** Returns whether the processing step is present in the given flag.
     * @param pFlags The processing flags the importer was called with. A
@@ -99,14 +100,16 @@ public:
     * @return true if the process is present in this flag fields,
     *   false if not.
     */
-    bool IsActive( unsigned int pFlags) const override;
+    bool IsActive( unsigned int pFlags) const;
+
 
     // -------------------------------------------------------------------
     /** Called prior to ExecuteOnScene().
     * The function is a request to the process to update its configuration
     * basing on the Importer's configuration property list.
     */
-    void SetupProperties(const Importer* pImp) override;
+    virtual void SetupProperties(const Importer* pImp);
+
 
     //! Set the split limit - needed for unit testing
     inline void SetLimit(unsigned int l)
@@ -116,12 +119,14 @@ public:
     inline unsigned int GetLimit() const
         {return LIMIT;}
 
+public:
+
     // -------------------------------------------------------------------
     /** Executes the post processing step on the given imported data.
     * At the moment a process is not supposed to fail.
     * @param pScene The imported data to work at.
     */
-    void Execute( aiScene* pScene) override;
+    void Execute( aiScene* pScene);
 
     // -------------------------------------------------------------------
     //! Apply the algorithm to a given mesh
@@ -139,31 +144,36 @@ public:
     unsigned int LIMIT;
 };
 
+
 // ---------------------------------------------------------------------------
 /** Post-processing filter to split large meshes into sub-meshes
  *
  * Applied AFTER the JoinVertices-Step occurs.
  * Returns UNIQUE vertices, splits by vertex number.
 */
-class ASSIMP_API SplitLargeMeshesProcess_Vertex : public BaseProcess {
+class ASSIMP_API SplitLargeMeshesProcess_Vertex : public BaseProcess
+{
 public:
-    SplitLargeMeshesProcess_Vertex();
-    ~SplitLargeMeshesProcess_Vertex() override = default;
 
+    SplitLargeMeshesProcess_Vertex();
+    ~SplitLargeMeshesProcess_Vertex();
+
+public:
     // -------------------------------------------------------------------
     /** Returns whether the processing step is present in the given flag field.
     * @param pFlags The processing flags the importer was called with. A bitwise
     *   combination of #aiPostProcessSteps.
     * @return true if the process is present in this flag fields, false if not.
     */
-    bool IsActive( unsigned int pFlags) const override;
+    bool IsActive( unsigned int pFlags) const;
 
     // -------------------------------------------------------------------
     /** Called prior to ExecuteOnScene().
     * The function is a request to the process to update its configuration
     * basing on the Importer's configuration property list.
     */
-    void SetupProperties(const Importer* pImp) override;
+    virtual void SetupProperties(const Importer* pImp);
+
 
     //! Set the split limit - needed for unit testing
     inline void SetLimit(unsigned int l)
@@ -173,12 +183,14 @@ public:
     inline unsigned int GetLimit() const
         {return LIMIT;}
 
+public:
+
     // -------------------------------------------------------------------
     /** Executes the post processing step on the given imported data.
     * At the moment a process is not supposed to fail.
     * @param pScene The imported data to work at.
     */
-    void Execute( aiScene* pScene) override;
+    void Execute( aiScene* pScene);
 
     // -------------------------------------------------------------------
     //! Apply the algorithm to a given mesh

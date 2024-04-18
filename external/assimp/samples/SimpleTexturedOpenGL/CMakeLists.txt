@@ -21,7 +21,6 @@ INCLUDE_DIRECTORIES(
   ${OPENGL_INCLUDE_DIR}
   ${GLUT_INCLUDE_DIR}
   ${SAMPLES_SHARED_CODE_DIR}
-  ${Assimp_SOURCE_DIR}/contrib/utf8cpp/source
 )
 
 LINK_DIRECTORIES(
@@ -31,6 +30,8 @@ LINK_DIRECTORIES(
 
 ADD_EXECUTABLE( assimp_simpletexturedogl WIN32
   SimpleTexturedOpenGL/src/model_loading.cpp
+  ${SAMPLES_SHARED_CODE_DIR}/UTFConverter.cpp
+  ${SAMPLES_SHARED_CODE_DIR}/UTFConverter.h
 )
 
 TARGET_USE_COMMON_OUTPUT_DIRECTORY(assimp_simpletexturedogl)

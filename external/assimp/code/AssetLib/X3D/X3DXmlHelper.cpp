@@ -12,6 +12,7 @@ bool X3DXmlHelper::getColor3DAttribute(XmlNode &node, const char *attributeName,
         tokenize<std::string>(val, values, " ");
         if (values.size() != 3) {
             Throw_ConvertFail_Str2ArrF(node.name(), attributeName);
+            return false;
         }
         auto it = values.begin();
         color.r = stof(*it++);
@@ -29,6 +30,7 @@ bool X3DXmlHelper::getVector2DAttribute(XmlNode &node, const char *attributeName
         tokenize<std::string>(val, values, " ");
         if (values.size() != 2) {
             Throw_ConvertFail_Str2ArrF(node.name(), attributeName);
+            return false;
         }
         auto it = values.begin();
         color.x = stof(*it++);
@@ -45,6 +47,7 @@ bool X3DXmlHelper::getVector3DAttribute(XmlNode &node, const char *attributeName
         tokenize<std::string>(val, values, " ");
         if (values.size() != 3) {
             Throw_ConvertFail_Str2ArrF(node.name(), attributeName);
+            return false;
         }
         auto it = values.begin();
         color.x = stof(*it++);

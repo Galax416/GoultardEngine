@@ -3,7 +3,7 @@
 Open Asset Import Library (assimp)
 ---------------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
 
 All rights reserved.
 
@@ -145,7 +145,9 @@ float g_fLoadTime = 0.0f;
 // The loader thread loads the asset while the progress dialog displays the
 // smart progress bar
 //-------------------------------------------------------------------------------
-DWORD WINAPI LoadThreadProc(LPVOID) {
+DWORD WINAPI LoadThreadProc(LPVOID lpParameter) {
+    UNREFERENCED_PARAMETER(lpParameter);
+
     // get current time
     double fCur = (double)timeGetTime();
 
@@ -291,7 +293,7 @@ int LoadAsset() {
 
 //-------------------------------------------------------------------------------
 // Delete the loaded asset
-// The function does nothing if no asset is loaded
+// The function does nothing is no asset is loaded
 //-------------------------------------------------------------------------------
 int DeleteAsset(void) {
     if (!g_pcAsset) {
@@ -365,7 +367,7 @@ int CalculateBounds(aiNode *piNode, aiVector3D *p_avOut, const aiMatrix4x4 &piMa
 // The function calculates the boundaries of the mesh and modifies the
 // global world transformation matrix according to the aset AABB
 //-------------------------------------------------------------------------------
-int ScaleAsset() {
+int ScaleAsset(void) {
     aiVector3D aiVecs[2] = { aiVector3D(1e10f, 1e10f, 1e10f),
         aiVector3D(-1e10f, -1e10f, -1e10f) };
 
@@ -519,7 +521,8 @@ int CreateAssetData() {
             }
         } else {
             // create 16 bit index buffer
-            if (FAILED(g_piDevice->CreateIndexBuffer(2 * numIndices,
+            if (FAILED(g_piDevice->CreateIndexBuffer(2 *
+numIndices,
                         D3DUSAGE_WRITEONLY | dwUsage,
                         D3DFMT_INDEX16,
                         D3DPOOL_DEFAULT,

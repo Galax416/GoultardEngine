@@ -2,7 +2,7 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
 
 All rights reserved.
 
@@ -48,7 +48,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <assimp/BaseImporter.h>
 #include <assimp/StreamReader.h>
-
 struct aiNode;
 
 namespace Assimp {
@@ -59,7 +58,7 @@ namespace Assimp {
 class MS3DImporter : public BaseImporter {
 public:
     MS3DImporter();
-    ~MS3DImporter() override = default;
+    ~MS3DImporter() override;
 
     // -------------------------------------------------------------------
     /** Returns whether the class can handle the format of the given file.

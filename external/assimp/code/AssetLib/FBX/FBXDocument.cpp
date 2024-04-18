@@ -2,7 +2,7 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
 
 All rights reserved.
 
@@ -243,7 +243,7 @@ FileGlobalSettings::FileGlobalSettings(const Document &doc, std::shared_ptr<cons
 }
 
 // ------------------------------------------------------------------------------------------------
-Document::Document(Parser& parser, const ImportSettings& settings) :
+Document::Document(const Parser& parser, const ImportSettings& settings) :
      settings(settings), parser(parser) {
 	ASSIMP_LOG_DEBUG("Creating FBX Document");
 
@@ -265,17 +265,13 @@ Document::Document(Parser& parser, const ImportSettings& settings) :
 }
 
 // ------------------------------------------------------------------------------------------------
-Document::~Document()
-{
-	// The document does not own the memory for the following objects, but we need to call their d'tor
-	// so they can properly free memory like string members:
-	
-    for (ObjectMap::value_type &v : objects) {
-        delete_LazyObject(v.second);
+Document::~Document() {
+    for(ObjectMap::value_type& v : objects) {
+        delete v.second;
     }
 
-    for (ConnectionMap::value_type &v : src_connections) {
-        delete_Connection(v.second);
+    for(ConnectionMap::value_type& v : src_connections) {
+        delete v.second;
     }
     // |dest_connections| contain the same Connection objects as the |src_connections|
 }
@@ -360,11 +356,9 @@ void Document::ReadObjects() {
         DOMError("no Objects dictionary found");
     }
 
-    StackAllocator &allocator = parser.GetAllocator();
-
     // add a dummy entry to represent the Model::RootNode object (id 0),
     // which is only indirectly defined in the input file
-    objects[0] = new_LazyObject(0L, *eobjects, *this);
+    objects[0] = new LazyObject(0L, *eobjects, *this);
 
     const Scope& sobjects = *eobjects->Compound();
     for(const ElementMap::value_type& el : sobjects.Elements()) {
@@ -387,13 +381,11 @@ void Document::ReadObjects() {
             DOMError("encountered object with implicitly defined id 0",el.second);
         }
 
-        const auto foundObject = objects.find(id);
-        if(foundObject != objects.end()) {
+        if(objects.find(id) != objects.end()) {
             DOMWarning("encountered duplicate object id, ignoring first occurrence",el.second);
-            delete_LazyObject(foundObject->second);
         }
 
-        objects[id] = new_LazyObject(id, *el.second, *this);
+        objects[id] = new LazyObject(id, *el.second, *this);
 
         // grab all animation stacks upfront since there is no listing of them
         if(!strcmp(el.first.c_str(),"AnimationStack")) {
@@ -460,10 +452,8 @@ void Document::ReadPropertyTemplates() {
 }
 
 // ------------------------------------------------------------------------------------------------
-void Document::ReadConnections()
-{
-    StackAllocator &allocator = parser.GetAllocator();
-    const Scope &sc = parser.GetRootScope();
+void Document::ReadConnections() {
+    const Scope& sc = parser.GetRootScope();
     // read property templates from "Definitions" section
     const Element* const econns = sc["Connections"];
     if(!econns || !econns->Compound()) {
@@ -502,7 +492,7 @@ void Document::ReadConnections()
         }
 
         // add new connection
-        const Connection* const c = new_Connection(insertionOrder++,src,dest,prop,*this);
+        const Connection* const c = new Connection(insertionOrder++,src,dest,prop,*this);
         src_connections.insert(ConnectionMap::value_type(src,c));
         dest_connections.insert(ConnectionMap::value_type(dest,c));
     }

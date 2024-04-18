@@ -2,7 +2,7 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
 
 All rights reserved.
 
@@ -65,7 +65,7 @@ using namespace PLY;
 class PLYImporter : public BaseImporter {
 public:
     PLYImporter();
-    ~PLYImporter() override = default;
+    ~PLYImporter() override;
 
     // -------------------------------------------------------------------
     /** Returns whether the class can handle the format of the given file.

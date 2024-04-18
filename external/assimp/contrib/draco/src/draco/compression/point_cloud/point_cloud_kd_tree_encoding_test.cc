@@ -68,7 +68,7 @@ class PointCloudKdTreeEncodingTest : public ::testing::Test {
          ++compression_level) {
       options.SetSpeed(10 - compression_level, 10 - compression_level);
       encoder.SetPointCloud(pc);
-      DRACO_ASSERT_OK(encoder.Encode(options, &buffer));
+      ASSERT_TRUE(encoder.Encode(options, &buffer).ok());
 
       DecoderBuffer dec_buffer;
       dec_buffer.Init(buffer.data(), buffer.size());
@@ -76,7 +76,7 @@ class PointCloudKdTreeEncodingTest : public ::testing::Test {
 
       std::unique_ptr<PointCloud> out_pc(new PointCloud());
       DecoderOptions dec_options;
-      DRACO_ASSERT_OK(decoder.Decode(dec_options, &dec_buffer, out_pc.get()));
+      ASSERT_TRUE(decoder.Decode(dec_options, &dec_buffer, out_pc.get()).ok());
 
       ComparePointClouds(pc, *out_pc);
     }

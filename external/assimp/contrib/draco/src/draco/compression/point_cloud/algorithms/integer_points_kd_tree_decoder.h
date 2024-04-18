@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// TODO(b/199760123): Make this a wrapper using
-// DynamicIntegerPointsKdTreeDecoder.
+// TODO(hemmer): Make this a wrapper using DynamicIntegerPointsKdTreeDecoder.
 //
 // See integer_points_kd_tree_encoder.h for documentation.
 

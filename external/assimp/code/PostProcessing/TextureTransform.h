@@ -2,7 +2,7 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
 
 
 All rights reserved.
@@ -193,23 +193,28 @@ struct STransformVecInfo : public aiUVTransform {
 /** Helper step to compute final UV coordinate sets if there are scalings
  *  or rotations in the original data read from the file.
 */
-class TextureTransformStep : public BaseProcess {
+class TextureTransformStep : public BaseProcess
+{
 public:
-    // -------------------------------------------------------------------
-    /// The default class constructor / destructor.
+
     TextureTransformStep();
-    ~TextureTransformStep() override = default;
+    ~TextureTransformStep();
+
+public:
 
     // -------------------------------------------------------------------
-    bool IsActive( unsigned int pFlags) const override;
+    bool IsActive( unsigned int pFlags) const;
 
     // -------------------------------------------------------------------
-    void Execute( aiScene* pScene) override;
+    void Execute( aiScene* pScene);
 
     // -------------------------------------------------------------------
-    void SetupProperties(const Importer* pImp) override;
+    void SetupProperties(const Importer* pImp);
+
 
 protected:
+
+
     // -------------------------------------------------------------------
     /** Preprocess a specific UV transformation setup
      *
@@ -218,9 +223,10 @@ protected:
     void PreProcessUVTransform(STransformVecInfo& info);
 
 private:
+
     unsigned int configFlags;
 };
- 
-} // namespace Assimp
+
+}
 
 #endif //! AI_TEXTURE_TRANSFORM_H_INCLUDED

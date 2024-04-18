@@ -3,7 +3,7 @@
 Open Asset Import Library (assimp)
 ---------------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
 
 All rights reserved.
 
@@ -303,7 +303,7 @@ const aiScene* ImportModel(
 	const clock_t first = clock();
     ConsoleProgressHandler *ph = new ConsoleProgressHandler;
     globalImporter->SetProgressHandler(ph);
-
+    
 	const aiScene* scene = globalImporter->ReadFile(path,imp.ppFlags);
 
 	if (imp.showLog) {

@@ -70,10 +70,10 @@ class PredictionSchemeWrapTransformBase {
         clamped_value_[i] = predicted_val[i];
       }
     }
-    return clamped_value_.data();
+    return &clamped_value_[0];
   }
 
-  // TODO(b/199760123): Consider refactoring to avoid this dummy.
+  // TODO(hemmer): Consider refactoring to avoid this dummy.
   int quantization_bits() const {
     DRACO_DCHECK(false);
     return -1;

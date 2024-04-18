@@ -2,7 +2,7 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
 
 All rights reserved.
 
@@ -56,10 +56,10 @@ namespace Assimp {
 class D3MFImporter : public BaseImporter {
 public:
     /// @brief The default class constructor.
-    D3MFImporter() = default;
+    D3MFImporter();
 
     ///	@brief  The class destructor.
-    ~D3MFImporter() override = default;
+    ~D3MFImporter() override;
 
     /// @brief Performs the data format detection.
     /// @param pFile        The filename to check.

@@ -2,7 +2,7 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
 
 All rights reserved.
 
@@ -62,13 +62,13 @@ namespace Assimp {
 // ----------------------------------------------------------------
 // A read-only file inside a ZIP
 
-class ZipFile final : public IOStream {
+class ZipFile : public IOStream {
     friend class ZipFileInfo;
     explicit ZipFile(std::string &filename, size_t size);
 
 public:
     std::string m_Filename;
-    ~ZipFile() override = default;
+    virtual ~ZipFile();
 
     // IOStream interface
     size_t Read(void *pvBuffer, size_t pSize, size_t pCount) override;
@@ -89,8 +89,6 @@ private:
 // Wraps an existing Assimp::IOSystem for unzip
 class IOSystem2Unzip {
 public:
-    IOSystem2Unzip() = default;
-    ~IOSystem2Unzip() = default;
     static voidpf open(voidpf opaque, const char *filename, int mode);
     static voidpf opendisk(voidpf opaque, voidpf stream, uint32_t number_disk, int mode);
     static uLong read(voidpf opaque, voidpf stream, void *buf, uLong size);
@@ -102,7 +100,6 @@ public:
     static zlib_filefunc_def get(IOSystem *pIOHandler);
 };
 
-// ----------------------------------------------------------------
 voidpf IOSystem2Unzip::open(voidpf opaque, const char *filename, int mode) {
     IOSystem *io_system = reinterpret_cast<IOSystem *>(opaque);
 
@@ -122,7 +119,6 @@ voidpf IOSystem2Unzip::open(voidpf opaque, const char *filename, int mode) {
     return (voidpf)io_system->Open(filename, mode_fopen);
 }
 
-// ----------------------------------------------------------------
 voidpf IOSystem2Unzip::opendisk(voidpf opaque, voidpf stream, uint32_t number_disk, int mode) {
     ZipFile *io_stream = (ZipFile *)stream;
     voidpf ret = nullptr;
@@ -145,28 +141,24 @@ voidpf IOSystem2Unzip::opendisk(voidpf opaque, voidpf stream, uint32_t number_di
     return ret;
 }
 
-// ----------------------------------------------------------------
 uLong IOSystem2Unzip::read(voidpf /*opaque*/, voidpf stream, void *buf, uLong size) {
     IOStream *io_stream = (IOStream *)stream;
 
     return static_cast<uLong>(io_stream->Read(buf, 1, size));
 }
 
-// ----------------------------------------------------------------
 uLong IOSystem2Unzip::write(voidpf /*opaque*/, voidpf stream, const void *buf, uLong size) {
     IOStream *io_stream = (IOStream *)stream;
 
     return static_cast<uLong>(io_stream->Write(buf, 1, size));
 }
 
-// ----------------------------------------------------------------
 long IOSystem2Unzip::tell(voidpf /*opaque*/, voidpf stream) {
     IOStream *io_stream = (IOStream *)stream;
 
     return static_cast<long>(io_stream->Tell());
 }
 
-// ----------------------------------------------------------------
 long IOSystem2Unzip::seek(voidpf /*opaque*/, voidpf stream, uLong offset, int origin) {
     IOStream *io_stream = (IOStream *)stream;
 
@@ -187,7 +179,6 @@ long IOSystem2Unzip::seek(voidpf /*opaque*/, voidpf stream, uLong offset, int or
     return (io_stream->Seek(offset, assimp_origin) == aiReturn_SUCCESS ? 0 : -1);
 }
 
-// ----------------------------------------------------------------
 int IOSystem2Unzip::close(voidpf opaque, voidpf stream) {
     IOSystem *io_system = (IOSystem *)opaque;
     IOStream *io_stream = (IOStream *)stream;
@@ -197,12 +188,10 @@ int IOSystem2Unzip::close(voidpf opaque, voidpf stream) {
     return 0;
 }
 
-// ----------------------------------------------------------------
 int IOSystem2Unzip::testerror(voidpf /*opaque*/, voidpf /*stream*/) {
     return 0;
 }
 
-// ----------------------------------------------------------------
 zlib_filefunc_def IOSystem2Unzip::get(IOSystem *pIOHandler) {
     zlib_filefunc_def mapping;
 
@@ -224,10 +213,9 @@ zlib_filefunc_def IOSystem2Unzip::get(IOSystem *pIOHandler) {
 
 // ----------------------------------------------------------------
 // Info about a read-only file inside a ZIP
-class ZipFileInfo final {
+class ZipFileInfo {
 public:
     explicit ZipFileInfo(unzFile zip_handle, size_t size);
-    ~ZipFileInfo() = default;
 
     // Allocate and Extract data from the ZIP
     ZipFile *Extract(std::string &filename, unzFile zip_handle) const;
@@ -237,7 +225,6 @@ private:
     unz_file_pos_s m_ZipFilePos;
 };
 
-// ----------------------------------------------------------------
 ZipFileInfo::ZipFileInfo(unzFile zip_handle, size_t size) :
         m_Size(size) {
     ai_assert(m_Size != 0);
@@ -247,7 +234,6 @@ ZipFileInfo::ZipFileInfo(unzFile zip_handle, size_t size) :
     unzGetFilePos(zip_handle, &(m_ZipFilePos));
 }
 
-// ----------------------------------------------------------------
 ZipFile *ZipFileInfo::Extract(std::string &filename, unzFile zip_handle) const {
     // Find in the ZIP. This cannot fail
     unz_file_pos_s *filepos = const_cast<unz_file_pos_s *>(&(m_ZipFilePos));
@@ -287,14 +273,14 @@ ZipFile *ZipFileInfo::Extract(std::string &filename, unzFile zip_handle) const {
     return zip_file;
 }
 
-// ----------------------------------------------------------------
 ZipFile::ZipFile(std::string &filename, size_t size) :
         m_Filename(filename), m_Size(size) {
     ai_assert(m_Size != 0);
     m_Buffer = std::unique_ptr<uint8_t[]>(new uint8_t[m_Size]);
 }
 
-// ----------------------------------------------------------------
+ZipFile::~ZipFile() = default;
+
 size_t ZipFile::Read(void *pvBuffer, size_t pSize, size_t pCount) {
     // Should be impossible
     ai_assert(m_Buffer != nullptr);
@@ -319,12 +305,10 @@ size_t ZipFile::Read(void *pvBuffer, size_t pSize, size_t pCount) {
     return pCount;
 }
 
-// ----------------------------------------------------------------
 size_t ZipFile::FileSize() const {
     return m_Size;
 }
 
-// ----------------------------------------------------------------
 aiReturn ZipFile::Seek(size_t pOffset, aiOrigin pOrigin) {
     switch (pOrigin) {
         case aiOrigin_SET: {
@@ -350,7 +334,6 @@ aiReturn ZipFile::Seek(size_t pOffset, aiOrigin pOrigin) {
     return aiReturn_FAILURE;
 }
 
-// ----------------------------------------------------------------
 size_t ZipFile::Tell() const {
     return m_SeekPtr;
 }
@@ -382,7 +365,6 @@ private:
     ZipFileInfoMap m_ArchiveMap;
 };
 
-// ----------------------------------------------------------------
 ZipArchiveIOSystem::Implement::Implement(IOSystem *pIOHandler, const char *pFilename, const char *pMode) {
     ai_assert(strcmp(pMode, "r") == 0);
     ai_assert(pFilename != nullptr);
@@ -394,14 +376,12 @@ ZipArchiveIOSystem::Implement::Implement(IOSystem *pIOHandler, const char *pFile
     m_ZipFileHandle = unzOpen2(pFilename, &mapping);
 }
 
-// ----------------------------------------------------------------
 ZipArchiveIOSystem::Implement::~Implement() {
     if (m_ZipFileHandle != nullptr) {
         unzClose(m_ZipFileHandle);
     }
 }
 
-// ----------------------------------------------------------------
 void ZipArchiveIOSystem::Implement::MapArchive() {
     if (m_ZipFileHandle == nullptr)
         return;
@@ -428,12 +408,10 @@ void ZipArchiveIOSystem::Implement::MapArchive() {
     } while (unzGoToNextFile(m_ZipFileHandle) != UNZ_END_OF_LIST_OF_FILE);
 }
 
-// ----------------------------------------------------------------
 bool ZipArchiveIOSystem::Implement::isOpen() const {
     return (m_ZipFileHandle != nullptr);
 }
 
-// ----------------------------------------------------------------
 void ZipArchiveIOSystem::Implement::getFileList(std::vector<std::string> &rFileList) {
     MapArchive();
     rFileList.clear();
@@ -443,7 +421,6 @@ void ZipArchiveIOSystem::Implement::getFileList(std::vector<std::string> &rFileL
     }
 }
 
-// ----------------------------------------------------------------
 void ZipArchiveIOSystem::Implement::getFileListExtension(std::vector<std::string> &rFileList, const std::string &extension) {
     MapArchive();
     rFileList.clear();
@@ -454,7 +431,6 @@ void ZipArchiveIOSystem::Implement::getFileListExtension(std::vector<std::string
     }
 }
 
-// ----------------------------------------------------------------
 bool ZipArchiveIOSystem::Implement::Exists(std::string &filename) {
     MapArchive();
 
@@ -462,7 +438,6 @@ bool ZipArchiveIOSystem::Implement::Exists(std::string &filename) {
     return (it != m_ArchiveMap.end());
 }
 
-// ----------------------------------------------------------------
 IOStream *ZipArchiveIOSystem::Implement::OpenFile(std::string &filename) {
     MapArchive();
 
@@ -477,7 +452,6 @@ IOStream *ZipArchiveIOSystem::Implement::OpenFile(std::string &filename) {
     return zip_file.Extract(filename, m_ZipFileHandle);
 }
 
-// ----------------------------------------------------------------
 inline void ReplaceAll(std::string &data, const std::string &before, const std::string &after) {
     size_t pos = data.find(before);
     while (pos != std::string::npos) {
@@ -486,7 +460,6 @@ inline void ReplaceAll(std::string &data, const std::string &before, const std::
     }
 }
 
-// ----------------------------------------------------------------
 inline void ReplaceAllChar(std::string &data, const char before, const char after) {
     size_t pos = data.find(before);
     while (pos != std::string::npos) {
@@ -495,7 +468,6 @@ inline void ReplaceAllChar(std::string &data, const char before, const char afte
     }
 }
 
-// ----------------------------------------------------------------
 void ZipArchiveIOSystem::Implement::SimplifyFilename(std::string &filename) {
     ReplaceAllChar(filename, '\\', '/');
 
@@ -520,7 +492,6 @@ void ZipArchiveIOSystem::Implement::SimplifyFilename(std::string &filename) {
     }
 }
 
-// ----------------------------------------------------------------
 ZipArchiveIOSystem::ZipArchiveIOSystem(IOSystem *pIOHandler, const char *pFilename, const char *pMode) :
         pImpl(new Implement(pIOHandler, pFilename, pMode)) {
 }
@@ -531,12 +502,10 @@ ZipArchiveIOSystem::ZipArchiveIOSystem(IOSystem *pIOHandler, const std::string &
         pImpl(new Implement(pIOHandler, rFilename.c_str(), pMode)) {
 }
 
-// ----------------------------------------------------------------
 ZipArchiveIOSystem::~ZipArchiveIOSystem() {
     delete pImpl;
 }
 
-// ----------------------------------------------------------------
 bool ZipArchiveIOSystem::Exists(const char *pFilename) const {
     ai_assert(pFilename != nullptr);
 
@@ -548,13 +517,11 @@ bool ZipArchiveIOSystem::Exists(const char *pFilename) const {
     return pImpl->Exists(filename);
 }
 
-// ----------------------------------------------------------------
 // This is always '/' in a ZIP
 char ZipArchiveIOSystem::getOsSeparator() const {
     return '/';
 }
 
-// ----------------------------------------------------------------
 // Only supports Reading
 IOStream *ZipArchiveIOSystem::Open(const char *pFilename, const char *pMode) {
     ai_assert(pFilename != nullptr);
@@ -569,27 +536,22 @@ IOStream *ZipArchiveIOSystem::Open(const char *pFilename, const char *pMode) {
     return pImpl->OpenFile(filename);
 }
 
-// ----------------------------------------------------------------
 void ZipArchiveIOSystem::Close(IOStream *pFile) {
     delete pFile;
 }
 
-// ----------------------------------------------------------------
 bool ZipArchiveIOSystem::isOpen() const {
     return (pImpl->isOpen());
 }
 
-// ----------------------------------------------------------------
 void ZipArchiveIOSystem::getFileList(std::vector<std::string> &rFileList) const {
     return pImpl->getFileList(rFileList);
 }
 
-// ----------------------------------------------------------------
 void ZipArchiveIOSystem::getFileListExtension(std::vector<std::string> &rFileList, const std::string &extension) const {
     return pImpl->getFileListExtension(rFileList, extension);
 }
 
-// ----------------------------------------------------------------
 bool ZipArchiveIOSystem::isZipArchive(IOSystem *pIOHandler, const char *pFilename) {
     Implement tmp(pIOHandler, pFilename, "r");
     return tmp.isOpen();

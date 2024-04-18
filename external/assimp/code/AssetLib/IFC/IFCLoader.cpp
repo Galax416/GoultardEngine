@@ -2,7 +2,8 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
+
 
 All rights reserved.
 
@@ -39,8 +40,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ----------------------------------------------------------------------
 */
 
-/// @file  IFCLoad.cpp
-/// @brief Implementation of the Industry Foundation Classes loader.
+/** @file  IFCLoad.cpp
+ *  @brief Implementation of the Industry Foundation Classes loader.
+ */
 
 #ifndef ASSIMP_BUILD_NO_IFC_IMPORTER
 
@@ -71,7 +73,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace Assimp {
 template <>
 const char *LogFunctions<IFCImporter>::Prefix() {
-    return "IFC: ";
+    static auto prefix = "IFC: ";
+    return prefix;
 }
 } // namespace Assimp
 
@@ -90,6 +93,7 @@ using namespace Assimp::IFC;
   IfcUnitAssignment
   IfcClosedShell
   IfcDoor
+
  */
 
 namespace {
@@ -103,7 +107,7 @@ void ConvertUnit(const ::Assimp::STEP::EXPRESS::DataType &dt, ConversionData &co
 
 } // namespace
 
-static constexpr aiImporterDesc desc = {
+static const aiImporterDesc desc = {
     "Industry Foundation Classes (IFC) Importer",
     "",
     "",
@@ -115,6 +119,14 @@ static constexpr aiImporterDesc desc = {
     0,
     "ifc ifczip step stp"
 };
+
+// ------------------------------------------------------------------------------------------------
+// Constructor to be privately used by Importer
+IFCImporter::IFCImporter() = default;
+
+// ------------------------------------------------------------------------------------------------
+// Destructor, private as well
+IFCImporter::~IFCImporter() = default;
 
 // ------------------------------------------------------------------------------------------------
 // Returns whether the class can handle the format of the given file.
@@ -185,7 +197,7 @@ void IFCImporter::InternReadFile(const std::string &pFile, aiScene *pScene, IOSy
                 size_t total = 0;
                 int read = 0;
                 do {
-                    unsigned bufferSize = fileInfo.uncompressed_size < INT16_MAX ? static_cast<unsigned>(fileInfo.uncompressed_size) : INT16_MAX;
+                    int bufferSize = fileInfo.uncompressed_size < INT16_MAX ? fileInfo.uncompressed_size : INT16_MAX;
                     void *buffer = malloc(bufferSize);
                     read = unzReadCurrentFile(zip, buffer, bufferSize);
                     if (read > 0) {
@@ -245,12 +257,7 @@ void IFCImporter::InternReadFile(const std::string &pFile, aiScene *pScene, IOSy
 
     // tell the reader for which types we need to simulate STEPs reverse indices
     static const char *const inverse_indices_to_track[] = {
-        "ifcrelcontainedinspatialstructure", 
-        "ifcrelaggregates", 
-        "ifcrelvoidselement", 
-        "ifcreldefinesbyproperties", 
-        "ifcpropertyset", 
-        "ifcstyleditem"
+        "ifcrelcontainedinspatialstructure", "ifcrelaggregates", "ifcrelvoidselement", "ifcreldefinesbyproperties", "ifcpropertyset", "ifcstyleditem"
     };
 
     // feed the IFC schema into the reader and pre-parse all lines
@@ -922,4 +929,4 @@ void MakeTreeRelative(ConversionData &conv) {
 
 } // namespace
 
-#endif // ASSIMP_BUILD_NO_IFC_IMPORTER
+#endif

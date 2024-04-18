@@ -1,8 +1,8 @@
-IF(NOT EXISTS "/home/mickael/Documents/GoultardEngine/external/assimp/install_manifest.txt")
-  MESSAGE(FATAL_ERROR "Cannot find install manifest: \"/home/mickael/Documents/GoultardEngine/external/assimp/install_manifest.txt\"")
-ENDIF(NOT EXISTS "/home/mickael/Documents/GoultardEngine/external/assimp/install_manifest.txt")
+IF(NOT EXISTS "/home/galax/Desktop/Projet-Moteur-de-Jeux/external/assimp/install_manifest.txt")
+  MESSAGE(FATAL_ERROR "Cannot find install manifest: \"/home/galax/Desktop/Projet-Moteur-de-Jeux/external/assimp/install_manifest.txt\"")
+ENDIF(NOT EXISTS "/home/galax/Desktop/Projet-Moteur-de-Jeux/external/assimp/install_manifest.txt")
 
-FILE(READ "/home/mickael/Documents/GoultardEngine/external/assimp/install_manifest.txt" files)
+FILE(READ "/home/galax/Desktop/Projet-Moteur-de-Jeux/external/assimp/install_manifest.txt" files)
 STRING(REGEX REPLACE "\n" ";" files "${files}")
 FOREACH(file ${files})
   MESSAGE(STATUS "Uninstalling \"$ENV{DESTDIR}${file}\"")

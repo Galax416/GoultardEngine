@@ -28,13 +28,12 @@ std::unique_ptr<PointAttribute> AttributeTransform::InitTransformedAttribute(
     const PointAttribute &src_attribute, int num_entries) {
   const int num_components = GetTransformedNumComponents(src_attribute);
   const DataType dt = GetTransformedDataType(src_attribute);
-  GeometryAttribute ga;
-  ga.Init(src_attribute.attribute_type(), nullptr, num_components, dt, false,
+  GeometryAttribute va;
+  va.Init(src_attribute.attribute_type(), nullptr, num_components, dt, false,
           num_components * DataTypeLength(dt), 0);
-  std::unique_ptr<PointAttribute> transformed_attribute(new PointAttribute(ga));
+  std::unique_ptr<PointAttribute> transformed_attribute(new PointAttribute(va));
   transformed_attribute->Reset(num_entries);
   transformed_attribute->SetIdentityMapping();
-  transformed_attribute->set_unique_id(src_attribute.unique_id());
   return transformed_attribute;
 }
 

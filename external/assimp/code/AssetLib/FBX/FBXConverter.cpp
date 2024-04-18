@@ -2,7 +2,7 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
 
 All rights reserved.
 
@@ -55,7 +55,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <assimp/MathFunctions.h>
 #include <assimp/StringComparison.h>
+
 #include <assimp/scene.h>
+
 #include <assimp/CreateAnimMesh.h>
 #include <assimp/StringUtils.h>
 #include <assimp/commonMetaData.h>
@@ -76,53 +78,6 @@ using namespace Util;
 
 #define CONVERT_FBX_TIME(time) static_cast<double>(time) / 46186158000LL
 
-static void correctRootTransform(const aiScene *scene) {
-    if (scene == nullptr) {
-        return;
-    }
-
-    if (scene->mMetaData == nullptr) {
-        return;
-    }
-
-    int32_t UpAxis = 1, UpAxisSign = 1, FrontAxis = 2, FrontAxisSign = 1, CoordAxis = 0, CoordAxisSign = 1;
-    double UnitScaleFactor = 1.0;
-    for (unsigned MetadataIndex = 0; MetadataIndex < scene->mMetaData->mNumProperties; ++MetadataIndex) {
-        if (strcmp(scene->mMetaData->mKeys[MetadataIndex].C_Str(), "UpAxis") == 0) {
-            scene->mMetaData->Get<int32_t>(MetadataIndex, UpAxis);
-        }
-        if (strcmp(scene->mMetaData->mKeys[MetadataIndex].C_Str(), "UpAxisSign") == 0) {
-            scene->mMetaData->Get<int32_t>(MetadataIndex, UpAxisSign);
-        }
-        if (strcmp(scene->mMetaData->mKeys[MetadataIndex].C_Str(), "FrontAxis") == 0) {
-            scene->mMetaData->Get<int32_t>(MetadataIndex, FrontAxis);
-        }
-        if (strcmp(scene->mMetaData->mKeys[MetadataIndex].C_Str(), "FrontAxisSign") == 0) {
-            scene->mMetaData->Get<int32_t>(MetadataIndex, FrontAxisSign);
-        }
-        if (strcmp(scene->mMetaData->mKeys[MetadataIndex].C_Str(), "CoordAxis") == 0) {
-            scene->mMetaData->Get<int32_t>(MetadataIndex, CoordAxis);
-        }
-        if (strcmp(scene->mMetaData->mKeys[MetadataIndex].C_Str(), "CoordAxisSign") == 0) {
-            scene->mMetaData->Get<int32_t>(MetadataIndex, CoordAxisSign);
-        }
-        if (strcmp(scene->mMetaData->mKeys[MetadataIndex].C_Str(), "UnitScaleFactor") == 0) {
-            scene->mMetaData->Get<double>(MetadataIndex, UnitScaleFactor);
-        }
-    }
-
-    aiVector3D upVec, forwardVec, rightVec;
-    upVec[UpAxis] = UpAxisSign * static_cast<float>(UnitScaleFactor);
-    forwardVec[FrontAxis] = FrontAxisSign * static_cast<float>(UnitScaleFactor);
-    rightVec[CoordAxis] = CoordAxisSign * (float)UnitScaleFactor;
-
-    aiMatrix4x4 mat(rightVec.x, rightVec.y, rightVec.z, 0.0f,
-                    upVec.x, upVec.y, upVec.z, 0.0f,
-                    forwardVec.x, forwardVec.y, forwardVec.z, 0.0f,
-                    0.0f, 0.0f, 0.0f, 1.0f);
-    scene->mRootNode->mTransformation *= mat;
-}
-
 FBXConverter::FBXConverter(aiScene *out, const Document &doc, bool removeEmptyBones) :
         defaultMaterialIndex(),
         mMeshes(),
@@ -138,8 +93,6 @@ FBXConverter::FBXConverter(aiScene *out, const Document &doc, bool removeEmptyBo
         mSceneOut(out),
         doc(doc),
         mRemoveEmptyBones(removeEmptyBones) {
-
-
     // animations need to be converted first since this will
     // populate the node_anim_chain_bits map, which is needed
     // to determine which nodes need to be generated.
@@ -180,8 +133,6 @@ FBXConverter::FBXConverter(aiScene *out, const Document &doc, bool removeEmptyBo
     // need not contain geometry (i.e. camera animations, raw armatures).
     if (out->mNumMeshes == 0) {
         out->mFlags |= AI_SCENE_FLAGS_INCOMPLETE;
-    } else {
-        correctRootTransform(mSceneOut);
     }
 }
 
@@ -470,32 +421,16 @@ void FBXConverter::ConvertCamera(const Camera &cam, const std::string &orig_name
 
     out_camera->mAspect = cam.AspectWidth() / cam.AspectHeight();
 
-    // NOTE: Camera mPosition, mLookAt and mUp must be set to default here.
-    // All transformations to the camera will be handled by its node in the scenegraph.
     out_camera->mPosition = aiVector3D(0.0f);
     out_camera->mLookAt = aiVector3D(1.0f, 0.0f, 0.0f);
     out_camera->mUp = aiVector3D(0.0f, 1.0f, 0.0f);
 
-    // NOTE: Some software (maya) does not put FieldOfView in FBX, so we compute
-    // mHorizontalFOV from FocalLength and FilmWidth with unit conversion.
+    out_camera->mHorizontalFOV = AI_DEG_TO_RAD(cam.FieldOfView());
 
-    // TODO: This is not a complete solution for how FBX cameras can be stored.
-    // TODO: Incorporate non-square pixel aspect ratio.
-    // TODO: FBX aperture mode might be storing vertical FOV in need of conversion with aspect ratio.
+    out_camera->mClipPlaneNear = cam.NearPlane();
+    out_camera->mClipPlaneFar = cam.FarPlane();
 
-    float fov_deg = cam.FieldOfView();
-    // If FOV not specified in file, compute using FilmWidth and FocalLength.
-    if (fov_deg == kFovUnknown) {
-        float film_width_inches = cam.FilmWidth();
-        float focal_length_mm = cam.FocalLength();
-        ASSIMP_LOG_VERBOSE_DEBUG("FBX FOV unspecified. Computing from FilmWidth (", film_width_inches, "inches) and FocalLength (", focal_length_mm, "mm).");
-        double half_fov_rad = std::atan2(film_width_inches * 25.4 * 0.5, focal_length_mm);
-        out_camera->mHorizontalFOV = static_cast<float>(half_fov_rad);
-    } else {
-        // FBX fov is full-view degrees. We want half-view radians.
-        out_camera->mHorizontalFOV = AI_DEG_TO_RAD(fov_deg) * 0.5f;
-    }
-
+    out_camera->mHorizontalFOV = AI_DEG_TO_RAD(cam.FieldOfView());
     out_camera->mClipPlaneNear = cam.NearPlane();
     out_camera->mClipPlaneFar = cam.FarPlane();
 }
@@ -624,17 +559,16 @@ void FBXConverter::GetRotationMatrix(Model::RotOrder mode, const aiVector3D &rot
     bool is_id[3] = { true, true, true };
 
     aiMatrix4x4 temp[3];
-    const auto rot = AI_DEG_TO_RAD(rotation);
-    if (std::fabs(rot.z) > angle_epsilon) {
-        aiMatrix4x4::RotationZ(rot.z, temp[2]);
+    if (std::fabs(rotation.z) > angle_epsilon) {
+        aiMatrix4x4::RotationZ(AI_DEG_TO_RAD(rotation.z), temp[2]);
         is_id[2] = false;
     }
-    if (std::fabs(rot.y) > angle_epsilon) {
-        aiMatrix4x4::RotationY(rot.y, temp[1]);
+    if (std::fabs(rotation.y) > angle_epsilon) {
+        aiMatrix4x4::RotationY(AI_DEG_TO_RAD(rotation.y), temp[1]);
         is_id[1] = false;
     }
-    if (std::fabs(rot.x) > angle_epsilon) {
-        aiMatrix4x4::RotationX(rot.x, temp[0]);
+    if (std::fabs(rotation.x) > angle_epsilon) {
+        aiMatrix4x4::RotationX(AI_DEG_TO_RAD(rotation.x), temp[0]);
         is_id[0] = false;
     }
 
@@ -706,7 +640,7 @@ void FBXConverter::GetRotationMatrix(Model::RotOrder mode, const aiVector3D &rot
 bool FBXConverter::NeedsComplexTransformationChain(const Model &model) {
     const PropertyTable &props = model.Props();
 
-    const auto zero_epsilon = Math::getEpsilon<ai_real>();
+    const auto zero_epsilon = ai_epsilon;
     const aiVector3D all_ones(1.0f, 1.0f, 1.0f);
     for (size_t i = 0; i < TransformationComp_MAXIMUM; ++i) {
         const TransformationComp comp = static_cast<TransformationComp>(i);
@@ -939,12 +873,8 @@ void FBXConverter::SetupNodeMetadata(const Model &model, aiNode &nd) {
             data->Set(index++, prop.first, interpretedBool->Value());
         } else if (const TypedProperty<int> *interpretedInt = prop.second->As<TypedProperty<int>>()) {
             data->Set(index++, prop.first, interpretedInt->Value());
-        } else if (const TypedProperty<uint32_t> *interpretedUInt = prop.second->As<TypedProperty<uint32_t>>()) {
-            data->Set(index++, prop.first, interpretedUInt->Value());
         } else if (const TypedProperty<uint64_t> *interpretedUint64 = prop.second->As<TypedProperty<uint64_t>>()) {
             data->Set(index++, prop.first, interpretedUint64->Value());
-        } else if (const TypedProperty<int64_t> *interpretedint64 = prop.second->As<TypedProperty<int64_t>>()) {
-            data->Set(index++, prop.first, interpretedint64->Value());
         } else if (const TypedProperty<float> *interpretedFloat = prop.second->As<TypedProperty<float>>()) {
             data->Set(index++, prop.first, interpretedFloat->Value());
         } else if (const TypedProperty<std::string> *interpretedString = prop.second->As<TypedProperty<std::string>>()) {
@@ -1246,23 +1176,15 @@ unsigned int FBXConverter::ConvertMeshSingleMaterial(const MeshGeometry &mesh, c
     std::vector<aiAnimMesh *> animMeshes;
     for (const BlendShape *blendShape : mesh.GetBlendShapes()) {
         for (const BlendShapeChannel *blendShapeChannel : blendShape->BlendShapeChannels()) {
-            const auto& shapeGeometries = blendShapeChannel->GetShapeGeometries();
-            for (const ShapeGeometry *shapeGeometry : shapeGeometries) {
+            const std::vector<const ShapeGeometry *> &shapeGeometries = blendShapeChannel->GetShapeGeometries();
+            for (size_t i = 0; i < shapeGeometries.size(); i++) {
                 aiAnimMesh *animMesh = aiCreateAnimMesh(out_mesh);
-                const auto &curVertices = shapeGeometry->GetVertices();
-                const auto &curNormals = shapeGeometry->GetNormals();
-                const auto &curIndices = shapeGeometry->GetIndices();
+                const ShapeGeometry *shapeGeometry = shapeGeometries.at(i);
+                const std::vector<aiVector3D> &curVertices = shapeGeometry->GetVertices();
+                const std::vector<aiVector3D> &curNormals = shapeGeometry->GetNormals();
+                const std::vector<unsigned int> &curIndices = shapeGeometry->GetIndices();
                 //losing channel name if using shapeGeometry->Name()
-                // if blendShapeChannel Name is empty or doesn't have a ".", add geoMetryName;
-                auto aniName = FixAnimMeshName(blendShapeChannel->Name());
-                auto geoMetryName = FixAnimMeshName(shapeGeometry->Name());
-                if (aniName.empty()) {
-                    aniName = geoMetryName;
-                }
-                else if (aniName.find('.') == aniName.npos) {
-                    aniName += "." + geoMetryName;
-                }
-                animMesh->mName.Set(aniName);
+                animMesh->mName.Set(FixAnimMeshName(blendShapeChannel->Name()));
                 for (size_t j = 0; j < curIndices.size(); j++) {
                     const unsigned int curIndex = curIndices.at(j);
                     aiVector3D vertex = curVertices.at(j);
@@ -1484,12 +1406,13 @@ unsigned int FBXConverter::ConvertMeshMultiMaterial(const MeshGeometry &mesh, co
     std::vector<aiAnimMesh *> animMeshes;
     for (const BlendShape *blendShape : mesh.GetBlendShapes()) {
         for (const BlendShapeChannel *blendShapeChannel : blendShape->BlendShapeChannels()) {
-            const auto& shapeGeometries = blendShapeChannel->GetShapeGeometries();
-            for (const ShapeGeometry *shapeGeometry : shapeGeometries) {
+            const std::vector<const ShapeGeometry *> &shapeGeometries = blendShapeChannel->GetShapeGeometries();
+            for (size_t i = 0; i < shapeGeometries.size(); i++) {
                 aiAnimMesh *animMesh = aiCreateAnimMesh(out_mesh);
-                const auto& curVertices = shapeGeometry->GetVertices();
-                const auto& curNormals = shapeGeometry->GetNormals();
-                const auto& curIndices = shapeGeometry->GetIndices();
+                const ShapeGeometry *shapeGeometry = shapeGeometries.at(i);
+                const std::vector<aiVector3D> &curVertices = shapeGeometry->GetVertices();
+                const std::vector<aiVector3D> &curNormals = shapeGeometry->GetNormals();
+                const std::vector<unsigned int> &curIndices = shapeGeometry->GetIndices();
                 animMesh->mName.Set(FixAnimMeshName(shapeGeometry->Name()));
                 for (size_t j = 0; j < curIndices.size(); j++) {
                     unsigned int curIndex = curIndices.at(j);
@@ -1532,9 +1455,7 @@ static void copyBoneToSkeletonBone(aiMesh *mesh, aiBone *bone, aiSkeletonBone *s
     skeletonBone->mWeights = bone->mWeights;
     skeletonBone->mOffsetMatrix = bone->mOffsetMatrix;
     skeletonBone->mMeshId = mesh;
-#ifndef ASSIMP_BUILD_NO_ARMATUREPOPULATE_PROCESS
     skeletonBone->mNode = bone->mNode;
-#endif
     skeletonBone->mParent = -1;
 }
 
@@ -1642,7 +1563,7 @@ void FBXConverter::ConvertWeights(aiMesh *out, const MeshGeometry &geo, const ai
         out->mBones = nullptr;
         out->mNumBones = 0;
         return;
-    }
+    } 
 
     out->mBones = new aiBone *[bones.size()]();
     out->mNumBones = static_cast<unsigned int>(bones.size());
@@ -1651,7 +1572,7 @@ void FBXConverter::ConvertWeights(aiMesh *out, const MeshGeometry &geo, const ai
 
 void FBXConverter::ConvertCluster(std::vector<aiBone*> &local_mesh_bones, const Cluster *cluster,
         std::vector<size_t> &out_indices, std::vector<size_t> &index_out_indices,
-        std::vector<size_t> &count_out_indices, const aiMatrix4x4 &absolute_transform,
+        std::vector<size_t> &count_out_indices, const aiMatrix4x4 & /* absolute_transform*/,
         aiNode *) {
     ai_assert(cluster != nullptr); // make sure cluster valid
 
@@ -1668,16 +1589,16 @@ void FBXConverter::ConvertCluster(std::vector<aiBone*> &local_mesh_bones, const 
         bone = new aiBone();
         bone->mName = bone_name;
 
-        //bone->mOffsetMatrix = cluster->Transform();
+        bone->mOffsetMatrix = cluster->Transform();
         // store local transform link for post processing
-        
+        /*
         bone->mOffsetMatrix = cluster->TransformLink();
         bone->mOffsetMatrix.Inverse();
 
-        const aiMatrix4x4 matrix = (aiMatrix4x4)absolute_transform;
+        aiMatrix4x4 matrix = (aiMatrix4x4)absolute_transform;
 
         bone->mOffsetMatrix = bone->mOffsetMatrix * matrix; // * mesh_offset
-        
+        */
         //
         // Now calculate the aiVertexWeights
         //
@@ -3273,6 +3194,7 @@ aiNodeAnim* FBXConverter::GenerateSimpleNodeAnim(const std::string& name,
     aiVector3D defTranslate = PropertyGet(props, "Lcl Translation", aiVector3D(0.f, 0.f, 0.f));
     aiVector3D defRotation = PropertyGet(props, "Lcl Rotation", aiVector3D(0.f, 0.f, 0.f));
     aiVector3D defScale = PropertyGet(props, "Lcl Scaling", aiVector3D(1.f, 1.f, 1.f));
+    aiQuaternion defQuat = EulerToQuaternion(defRotation, rotOrder);
 
     aiVectorKey* outTranslations = new aiVectorKey[keyCount];
     aiQuatKey* outRotations = new aiQuatKey[keyCount];
@@ -3290,7 +3212,6 @@ aiNodeAnim* FBXConverter::GenerateSimpleNodeAnim(const std::string& name,
     if (keyframeLists[TransformationComp_Rotation].size() > 0) {
         InterpolateKeys(outRotations, keytimes, keyframeLists[TransformationComp_Rotation], defRotation, maxTime, minTime, rotOrder);
     } else {
-        aiQuaternion defQuat = EulerToQuaternion(defRotation, rotOrder);
         for (size_t i = 0; i < keyCount; ++i) {
             outRotations[i].mTime = CONVERT_FBX_TIME(keytimes[i]) * anim_fps;
             outRotations[i].mValue = defQuat;
@@ -3307,7 +3228,7 @@ aiNodeAnim* FBXConverter::GenerateSimpleNodeAnim(const std::string& name,
     }
 
     bool ok = false;
-
+    
     const auto zero_epsilon = ai_epsilon;
 
     const aiVector3D& preRotation = PropertyGet<aiVector3D>(props, "PreRotation", ok);

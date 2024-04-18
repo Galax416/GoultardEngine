@@ -203,40 +203,31 @@ void ParseLine(DecoderBuffer *buffer, std::string *out_string) {
     out_string->clear();
   }
   char c;
-  int num_delims = 0;
-  char last_delim;
+  bool delim_reached = false;
   while (buffer->Peek(&c)) {
-    // Check if |c| is a delimiter symbol. We want to identify all possible
-    // delimiters that can occur on different platforms (i.e. we want to detect
-    // '\r\n', '\r', '\n').
+    // Check if |c| is a delimeter. We want to parse all delimeters until we
+    // reach a non-delimeter symbol. (E.g. we want to ignore '\r\n' at the end
+    // of the line).
     const bool is_delim = (c == '\r' || c == '\n');
 
-    if (is_delim) {
-      if (num_delims == 0) {
-        last_delim = c;
-      } else if (num_delims == 1) {
-        // We already parsed either '\r' or '\n'. Ensure the new delim symbol is
-        // '\n' and different from the previous symbol.
-        if (c == last_delim || c != '\n') {
-          return;  // Same delimiter symbol already processed.
-        }
-      } else {
-        // Too many delimiter symbols.
-        return;
-      }
-      num_delims++;
+    // If |c| is a delimeter or it is a non-delimeter symbol before any
+    // delimeter was found, we advance the buffer to the next character.
+    if (is_delim || !delim_reached) {
+      buffer->Advance(1);
     }
 
-    if (!is_delim && num_delims > 0) {
-      // We reached a non-delimiter symbol after a delimiter was already found.
+    if (is_delim) {
+      // Mark that we found a delimeter symbol.
+      delim_reached = true;
+      continue;
+    }
+    if (delim_reached) {
+      // We reached a non-delimeter symbol after a delimeter was already found.
       // Stop the parsing.
       return;
     }
-
-    buffer->Advance(1);
-
-    // We put the non-delimiter symbol into the output string.
-    if (!is_delim && out_string) {
+    // Otherwise we put the non-delimeter symbol into the output string.
+    if (out_string) {
       out_string->push_back(c);
     }
   }

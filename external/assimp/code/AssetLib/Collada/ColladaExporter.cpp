@@ -2,7 +2,7 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
 
 
 All rights reserved.
@@ -448,7 +448,7 @@ void ColladaExporter::WriteLight(size_t pIndex) {
     PushTag();
     switch (light->mType) {
     case aiLightSource_AMBIENT:
-        WriteAmbientLight(light);
+        WriteAmbienttLight(light);
         break;
     case aiLightSource_DIRECTIONAL:
         WriteDirectionalLight(light);
@@ -543,7 +543,7 @@ void ColladaExporter::WriteSpotLight(const aiLight *const light) {
     mOutput << startstr << "</spot>" << endstr;
 }
 
-void ColladaExporter::WriteAmbientLight(const aiLight *const light) {
+void ColladaExporter::WriteAmbienttLight(const aiLight *const light) {
 
     const aiColor3D &color = light->mColorAmbient;
     mOutput << startstr << "<ambient>" << endstr;

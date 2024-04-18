@@ -3,7 +3,7 @@
 Open Asset Import Library (assimp)
 ---------------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
 
 All rights reserved.
 
@@ -57,7 +57,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using namespace Assimp;
 
-static constexpr aiImporterDesc desc = {
+static const aiImporterDesc desc = {
     "3D GameStudio Heightmap (HMP) Importer",
     "",
     "",
@@ -115,9 +115,7 @@ void HMPImporter::InternReadFile(const std::string &pFile,
         throw DeadlyImportError("HMP File is too small.");
 
     // Allocate storage and copy the contents of the file to a memory buffer
-    auto deleter=[this](uint8_t* ptr){ delete[] ptr; mBuffer = nullptr; };
-    std::unique_ptr<uint8_t[], decltype(deleter)> buffer(new uint8_t[fileSize], deleter);
-    mBuffer = buffer.get();
+    mBuffer = new uint8_t[fileSize];
     file->Read((void *)mBuffer, 1, fileSize);
     iFileSize = (unsigned int)fileSize;
 
@@ -145,6 +143,9 @@ void HMPImporter::InternReadFile(const std::string &pFile,
         // Print the magic word to the logger
         std::string szBuffer = ai_str_toprintable((const char *)&iMagic, sizeof(iMagic));
 
+        delete[] mBuffer;
+        mBuffer = nullptr;
+
         // We're definitely unable to load this file
         throw DeadlyImportError("Unknown HMP subformat ", pFile,
                                 ". Magic word (", szBuffer, ") is not known");
@@ -152,6 +153,9 @@ void HMPImporter::InternReadFile(const std::string &pFile,
 
     // Set the AI_SCENE_FLAGS_TERRAIN bit
     pScene->mFlags |= AI_SCENE_FLAGS_TERRAIN;
+
+    delete[] mBuffer;
+    mBuffer = nullptr;
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -323,7 +327,7 @@ void HMPImporter::CreateMaterial(const unsigned char *szCurrent,
         ReadFirstSkin(pcHeader->numskins, szCurrent, &szCurrent);
         *szCurrentOut = szCurrent;
         return;
-    }
+    } 
 
     // generate a default material
     const int iMode = (int)aiShadingMode_Gouraud;
@@ -441,11 +445,11 @@ void HMPImporter::ReadFirstSkin(unsigned int iNumSkins, const unsigned char *szC
     szCursor += sizeof(uint32_t);
 
     // allocate an output material
-    std::unique_ptr<aiMaterial> pcMat(new aiMaterial());
+    aiMaterial *pcMat = new aiMaterial();
 
     // read the skin, this works exactly as for MDL7
     ParseSkinLump_3DGS_MDL7(szCursor, &szCursor,
-            pcMat.get(), iType, iWidth, iHeight);
+            pcMat, iType, iWidth, iHeight);
 
     // now we need to skip any other skins ...
     for (unsigned int i = 1; i < iNumSkins; ++i) {
@@ -464,7 +468,7 @@ void HMPImporter::ReadFirstSkin(unsigned int iNumSkins, const unsigned char *szC
     // setup the material ...
     pScene->mNumMaterials = 1;
     pScene->mMaterials = new aiMaterial *[1];
-    pScene->mMaterials[0] = pcMat.release();
+    pScene->mMaterials[0] = pcMat;
 
     *szCursorOut = szCursor;
 }
@@ -480,11 +484,11 @@ void HMPImporter::GenerateTextureCoords(const unsigned int width, const unsigned
     if (uv == nullptr) {
         return;
     }
-
+    
     if (height == 0.0f || width == 0.0) {
         return;
     }
-
+    
     const float fY = (1.0f / height) + (1.0f / height) / height;
     const float fX = (1.0f / width) + (1.0f / width) / width;
 

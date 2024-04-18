@@ -59,25 +59,18 @@ bool MetadataDecoder::DecodeGeometryMetadata(DecoderBuffer *in_buffer,
 }
 
 bool MetadataDecoder::DecodeMetadata(Metadata *metadata) {
-  // Limit metadata nesting depth to avoid stack overflow in destructor.
-  constexpr int kMaxSubmetadataLevel = 1000;
-
-  struct MetadataTuple {
+  struct MetadataPair {
     Metadata *parent_metadata;
     Metadata *decoded_metadata;
-    int level;
   };
-  std::vector<MetadataTuple> metadata_stack;
-  metadata_stack.push_back({nullptr, metadata, 0});
+  std::vector<MetadataPair> metadata_stack;
+  metadata_stack.push_back({nullptr, metadata});
   while (!metadata_stack.empty()) {
-    const MetadataTuple mp = metadata_stack.back();
+    const MetadataPair mp = metadata_stack.back();
     metadata_stack.pop_back();
     metadata = mp.decoded_metadata;
 
     if (mp.parent_metadata != nullptr) {
-      if (mp.level > kMaxSubmetadataLevel) {
-        return false;
-      }
       std::string sub_metadata_name;
       if (!DecodeName(&sub_metadata_name)) {
         return false;
@@ -112,8 +105,7 @@ bool MetadataDecoder::DecodeMetadata(Metadata *metadata) {
       return false;
     }
     for (uint32_t i = 0; i < num_sub_metadata; ++i) {
-      metadata_stack.push_back(
-          {metadata, nullptr, mp.parent_metadata ? mp.level + 1 : mp.level});
+      metadata_stack.push_back({metadata, nullptr});
     }
   }
   return true;
@@ -129,9 +121,6 @@ bool MetadataDecoder::DecodeEntry(Metadata *metadata) {
     return false;
   }
   if (data_size == 0) {
-    return false;
-  }
-  if (data_size > buffer_->remaining_size()) {
     return false;
   }
   std::vector<uint8_t> entry_value(data_size);

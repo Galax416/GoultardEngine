@@ -2,7 +2,7 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
 
 All rights reserved.
 
@@ -137,6 +137,20 @@ Material::Material(uint64_t id, const Element& element, const Document& doc, con
 
 // ------------------------------------------------------------------------------------------------
 Material::~Material() = default;
+
+    aiVector2D uvTrans;
+    aiVector2D uvScaling;
+    ai_real    uvRotation;
+
+    std::string type;
+    std::string relativeFileName;
+    std::string fileName;
+    std::string alphaSource;
+    std::shared_ptr<const PropertyTable> props;
+
+    unsigned int crop[4]{};
+
+    const Video* media;
 
 // ------------------------------------------------------------------------------------------------
 Texture::Texture(uint64_t id, const Element& element, const Document& doc, const std::string& name) :
@@ -367,9 +381,7 @@ Video::Video(uint64_t id, const Element &element, const Document &doc, const std
 }
 
 Video::~Video() {
-    if (contentLength > 0) {
-        delete[] content;
-    }
+    delete[] content;
 }
 
 } //!FBX

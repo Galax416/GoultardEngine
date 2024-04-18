@@ -10,6 +10,9 @@ add_definitions(
 	-DGLEW_STATIC
 	-D_CRT_SECURE_NO_WARNINGS
 )
+### Assimp ###
+
+add_subdirectory (assimp)
 
 ### GLFW ###
 
@@ -18,7 +21,7 @@ add_subdirectory (glfw-3.1.2)
 include_directories(
 	glfw-3.1.2/include/GLFW/
 	glew-1.13.0/include/
-	assim/include/assimp/
+	assimp/include/assimp/
 )
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -27,12 +30,14 @@ set(OPENGL_LIBRARY
 	-lGL -lGLU -lXrandr -lXext -lX11 -lrt
 	${CMAKE_DL_LIBS}
 	${GLFW_LIBRARIES}
+	assimp
 )
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 set(OPENGL_LIBRARY
 	${OPENGL_LIBRARY}
 	${CMAKE_DL_LIBS}
 	${GLFW_LIBRARIES}
+	assimp
 )
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 

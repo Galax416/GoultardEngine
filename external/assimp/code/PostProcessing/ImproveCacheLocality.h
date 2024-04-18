@@ -2,7 +2,7 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
 
 
 All rights reserved.
@@ -51,7 +51,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 struct aiMesh;
 
-namespace Assimp {
+namespace Assimp
+{
 
 // ---------------------------------------------------------------------------
 /** The ImproveCacheLocalityProcess reorders all faces for improved vertex
@@ -60,24 +61,26 @@ namespace Assimp {
  *
  *  @note This step expects triagulated input data.
  */
-class ImproveCacheLocalityProcess : public BaseProcess {
+class ImproveCacheLocalityProcess : public BaseProcess
+{
 public:
-    // -------------------------------------------------------------------
-    /// The default class constructor / destructor.
+
     ImproveCacheLocalityProcess();
-    ~ImproveCacheLocalityProcess() override = default;
+    ~ImproveCacheLocalityProcess();
+
+public:
 
     // -------------------------------------------------------------------
     // Check whether the pp step is active
-    bool IsActive( unsigned int pFlags) const override;
+    bool IsActive( unsigned int pFlags) const;
 
     // -------------------------------------------------------------------
     // Executes the pp step on a given scene
-    void Execute( aiScene* pScene) override;
+    void Execute( aiScene* pScene);
 
     // -------------------------------------------------------------------
     // Configures the pp step
-    void SetupProperties(const Importer* pImp) override;
+    void SetupProperties(const Importer* pImp);
 
 protected:
     // -------------------------------------------------------------------

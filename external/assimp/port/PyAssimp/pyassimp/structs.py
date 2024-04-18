@@ -748,18 +748,13 @@ class Mesh(Structure):
             #   - Vertex animations refer to meshes by their names.
             ("mName", String),
 
-            # The number of attachment meshes. 
-            # Currently known to work with loaders:
-            #  - Collada
-            #  - gltf
+            # The number of attachment meshes. Note! Currently only works with Collada loader.
             ("mNumAnimMeshes", c_uint),
 
             # Attachment meshes for this mesh, for vertex-based animation.
             # Attachment meshes carry replacement data for some of the
             # mesh'es vertex components (usually positions, normals).
-            # Currently known to work with loaders:
-            #  - Collada
-            #  - gltf
+            # Note! Currently only works with Collada loader.
             ("mAnimMeshes", POINTER(POINTER(AnimMesh))),
 
             # Method of morphing when animeshes are specified.

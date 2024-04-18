@@ -2,7 +2,7 @@
 Open Asset Import Library (assimp)
 ---------------------------------------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
 
 
 All rights reserved.
@@ -48,7 +48,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <assimp/DefaultLogger.hpp>
 
-#include "zlib.h"
+#ifdef ASSIMP_BUILD_NO_OWN_ZLIB
+#include <zlib.h>
+#else
+#include "../contrib/zlib/zlib.h"
+#endif
 
 #include <assimp/DefaultIOSystem.h>
 #include <assimp/StringComparison.h>
@@ -61,7 +65,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sstream>
 #include <vector>
 
-static constexpr aiImporterDesc desc = {
+static const aiImporterDesc desc = {
     "Quake III BSP Importer",
     "",
     "",
@@ -135,18 +139,14 @@ static void normalizePathName(const std::string &rPath, std::string &normalizedP
 // ------------------------------------------------------------------------------------------------
 //  Constructor.
 Q3BSPFileImporter::Q3BSPFileImporter() :
-        m_pCurrentMesh(nullptr), m_pCurrentFace(nullptr) {
+        m_pCurrentMesh(nullptr), m_pCurrentFace(nullptr), m_MaterialLookupMap(), mTextures() {
     // empty
 }
 
 // ------------------------------------------------------------------------------------------------
 //  Destructor.
 Q3BSPFileImporter::~Q3BSPFileImporter() {
-    clear();
-}
-
-// ------------------------------------------------------------------------------------------------
-void Q3BSPFileImporter::clear() {
+    // Clear face-to-material map
     for (FaceMap::iterator it = m_MaterialLookupMap.begin(); it != m_MaterialLookupMap.end(); ++it) {
         const std::string &matName = it->first;
         if (!matName.empty()) {
@@ -173,7 +173,6 @@ const aiImporterDesc *Q3BSPFileImporter::GetInfo() const {
 // ------------------------------------------------------------------------------------------------
 //  Import method.
 void Q3BSPFileImporter::InternReadFile(const std::string &rFile, aiScene *scene, IOSystem *ioHandler) {
-    clear();
     ZipArchiveIOSystem Archive(ioHandler, rFile);
     if (!Archive.isOpen()) {
         throw DeadlyImportError("Failed to open file ", rFile, ".");
@@ -395,10 +394,7 @@ void Q3BSPFileImporter::createTriangleTopology(const Q3BSP::Q3BSPModel *pModel, 
                 m_pCurrentFace->mIndices = new unsigned int[3];
                 m_pCurrentFace->mIndices[idx] = vertIdx;
             }
-		} else {
-			m_pCurrentFace->mIndices[idx] = vertIdx;
-		}
-
+        }
 
         pMesh->mVertices[vertIdx].Set(pVertex->vPosition.x, pVertex->vPosition.y, pVertex->vPosition.z);
         pMesh->mNormals[vertIdx].Set(pVertex->vNormal.x, pVertex->vNormal.y, pVertex->vNormal.z);

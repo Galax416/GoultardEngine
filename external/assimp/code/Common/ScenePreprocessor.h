@@ -2,7 +2,8 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
+
 
 All rights reserved.
 
@@ -55,7 +56,7 @@ class ScenePreprocessorTest;
 namespace Assimp {
 
 // ----------------------------------------------------------------------------------
-/** ScenePreprocessor: Pre-process a scene before any post-processing
+/** ScenePreprocessor: Preprocess a scene before any post-processing
  *  steps are executed.
  *
  *  The step computes data that needn't necessarily be provided by the
@@ -77,9 +78,6 @@ public:
      */
     ScenePreprocessor(aiScene *_scene) :
             scene(_scene) {}
-
-    /// @brief The class destructor.
-    ~ScenePreprocessor() = default;
 
     // ----------------------------------------------------------------
     /** Assign a (new) scene to the object.

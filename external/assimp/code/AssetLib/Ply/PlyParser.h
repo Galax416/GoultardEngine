@@ -2,7 +2,7 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
 
 All rights reserved.
 
@@ -296,7 +296,9 @@ class PropertyInstance
 public:
 
     //! Default constructor
-    PropertyInstance() AI_NO_EXCEPT = default;
+    PropertyInstance() AI_NO_EXCEPT {
+        // empty
+    }
 
     union ValueUnion
     {
@@ -324,7 +326,7 @@ public:
 
     // -------------------------------------------------------------------
     //! Parse a property instance
-    static bool ParseInstance(const char* &pCur, const char *end,
+    static bool ParseInstance(const char* &pCur,
         const Property* prop, PropertyInstance* p_pcOut);
 
     // -------------------------------------------------------------------
@@ -357,14 +359,17 @@ public:
 class ElementInstance {
 public:
     //! Default constructor
-    ElementInstance() AI_NO_EXCEPT = default;
+    ElementInstance()  AI_NO_EXCEPT
+    : alProperties() {
+        // empty
+    }
 
     //! List of all parsed properties
     std::vector< PropertyInstance > alProperties;
 
     // -------------------------------------------------------------------
     //! Parse an element instance
-    static bool ParseInstance(const char *&pCur, const char *end,
+    static bool ParseInstance(const char* &pCur,
         const Element* pcElement, ElementInstance* p_pcOut);
 
     // -------------------------------------------------------------------
@@ -381,7 +386,10 @@ class ElementInstanceList
 public:
 
     //! Default constructor
-    ElementInstanceList() AI_NO_EXCEPT = default;
+    ElementInstanceList() AI_NO_EXCEPT
+    : alInstances() {
+        // empty
+    }
 
     //! List of all element instances
     std::vector< ElementInstance > alInstances;
@@ -405,7 +413,11 @@ class DOM
 public:
 
     //! Default constructor
-    DOM() AI_NO_EXCEPT = default;
+    DOM() AI_NO_EXCEPT
+    : alElements()
+    , alElementData() {
+
+    }
 
 
     //! Contains all elements of the file format

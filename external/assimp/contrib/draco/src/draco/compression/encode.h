@@ -129,6 +129,7 @@ class Encoder
   // call of EncodePointCloudToBuffer or EncodeMeshToBuffer is going to fail.
   void SetEncodingMethod(int encoding_method);
 
+ protected:
   // Creates encoder options for the expert encoder used during the actual
   // encoding.
   EncoderOptions CreateExpertEncoderOptions(const PointCloud &pc) const;

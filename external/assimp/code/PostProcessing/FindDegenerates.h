@@ -2,7 +2,7 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
 
 
 All rights reserved.
@@ -59,19 +59,19 @@ namespace Assimp    {
 class ASSIMP_API FindDegeneratesProcess : public BaseProcess {
 public:
     FindDegeneratesProcess();
-    ~FindDegeneratesProcess() override = default;
+    ~FindDegeneratesProcess();
 
     // -------------------------------------------------------------------
     // Check whether step is active
-    bool IsActive( unsigned int pFlags) const override;
+    bool IsActive( unsigned int pFlags) const;
 
     // -------------------------------------------------------------------
     // Execute step on a given scene
-    void Execute( aiScene* pScene) override;
+    void Execute( aiScene* pScene);
 
     // -------------------------------------------------------------------
     // Setup import settings
-    void SetupProperties(const Importer* pImp) override;
+    void SetupProperties(const Importer* pImp);
 
     // -------------------------------------------------------------------
     // Execute step on a given mesh
@@ -105,19 +105,23 @@ private:
     bool mConfigCheckAreaOfTriangle;
 };
 
-inline void FindDegeneratesProcess::EnableInstantRemoval(bool enabled) {
+inline
+void FindDegeneratesProcess::EnableInstantRemoval(bool enabled) {
     mConfigRemoveDegenerates = enabled;
 }
 
-inline bool FindDegeneratesProcess::IsInstantRemoval() const {
+inline
+bool FindDegeneratesProcess::IsInstantRemoval() const {
     return mConfigRemoveDegenerates;
 }
 
-inline void FindDegeneratesProcess::EnableAreaCheck( bool enabled ) {
+inline
+void FindDegeneratesProcess::EnableAreaCheck( bool enabled ) {
     mConfigCheckAreaOfTriangle = enabled;
 }
 
-inline bool FindDegeneratesProcess::isAreaCheckEnabled() const {
+inline
+bool FindDegeneratesProcess::isAreaCheckEnabled() const {
     return mConfigCheckAreaOfTriangle;
 }
 

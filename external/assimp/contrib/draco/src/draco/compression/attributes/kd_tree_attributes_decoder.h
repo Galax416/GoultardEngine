@@ -31,10 +31,6 @@ class KdTreeAttributesDecoder : public AttributesDecoder {
   bool TransformAttributesToOriginalFormat() override;
 
  private:
-  template <int level_t, typename OutIteratorT>
-  bool DecodePoints(int total_dimensionality, int num_expected_points,
-                    DecoderBuffer *in_buffer, OutIteratorT *out_iterator);
-
   template <typename SignedDataTypeT>
   bool TransformAttributeBackToSignedType(PointAttribute *att,
                                           int num_processed_signed_components);

@@ -2,7 +2,7 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
 
 
 All rights reserved.
@@ -55,8 +55,8 @@ namespace Assimp {
 */
 class ASSIMP_API_WINONLY DropFaceNormalsProcess : public BaseProcess {
 public:
-    DropFaceNormalsProcess() = default;
-    ~DropFaceNormalsProcess() override = default;
+    DropFaceNormalsProcess();
+    ~DropFaceNormalsProcess();
 
     // -------------------------------------------------------------------
     /** Returns whether the processing step is present in the given flag field.
@@ -64,14 +64,15 @@ public:
     *   combination of #aiPostProcessSteps.
     * @return true if the process is present in this flag fields, false if not.
     */
-    bool IsActive( unsigned int pFlags) const override;
+    bool IsActive( unsigned int pFlags) const;
 
     // -------------------------------------------------------------------
     /** Executes the post processing step on the given imported data.
     * At the moment a process is not supposed to fail.
     * @param pScene The imported data to work at.
     */
-    void Execute( aiScene* pScene) override;
+    void Execute( aiScene* pScene);
+
 
 private:
     bool DropMeshFaceNormals(aiMesh* pcMesh);

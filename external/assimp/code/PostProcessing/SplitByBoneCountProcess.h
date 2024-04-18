@@ -2,7 +2,8 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
+
 
 All rights reserved.
 
@@ -50,7 +51,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <assimp/mesh.h>
 #include <assimp/scene.h>
 
-namespace Assimp {
+namespace Assimp
+{
+
 
 /** Postprocessing filter to split meshes with many bones into submeshes
  * so that each submesh has a certain max bone count.
@@ -58,33 +61,34 @@ namespace Assimp {
  * Applied BEFORE the JoinVertices-Step occurs.
  * Returns NON-UNIQUE vertices, splits by bone count.
 */
-class SplitByBoneCountProcess : public BaseProcess {
+class SplitByBoneCountProcess : public BaseProcess
+{
 public:
-    // -------------------------------------------------------------------
-    /// The default class constructor / destructor.
+
     SplitByBoneCountProcess();
-    ~SplitByBoneCountProcess() override = default;
+    ~SplitByBoneCountProcess();
 
-    /// @brief Returns whether the processing step is present in the given flag.
-    /// @param pFlags The processing flags the importer was called with. A
-    ///        bitwise combination of #aiPostProcessSteps.
-    /// @return true if the process is present in this flag fields, false if not.
-    bool IsActive( unsigned int pFlags) const override;
+public:
+    /** Returns whether the processing step is present in the given flag.
+    * @param pFlags The processing flags the importer was called with. A
+    *   bitwise combination of #aiPostProcessSteps.
+    * @return true if the process is present in this flag fields,
+    *   false if not.
+    */
+    bool IsActive( unsigned int pFlags) const;
 
-    /// @brief Called prior to ExecuteOnScene().
-    /// The function is a request to the process to update its configuration
-    /// basing on the Importer's configuration property list.
-    virtual void SetupProperties(const Importer* pImp) override;
-
-    /// @brief Will return the maximal number of bones.
-    /// @return The maximal number of bones.
-    size_t getMaxNumberOfBones() const;
+    /** Called prior to ExecuteOnScene().
+    * The function is a request to the process to update its configuration
+    * basing on the Importer's configuration property list.
+    */
+    virtual void SetupProperties(const Importer* pImp);
 
 protected:
-    /// Executes the post processing step on the given imported data.
-    /// At the moment a process is not supposed to fail.
-    /// @param pScene The imported data to work at.
-    void Execute( aiScene* pScene) override;
+    /** Executes the post processing step on the given imported data.
+    * At the moment a process is not supposed to fail.
+    * @param pScene The imported data to work at.
+    */
+    void Execute( aiScene* pScene);
 
     /// Splits the given mesh by bone count.
     /// @param pMesh the Mesh to split. Is not changed at all, but might be superfluous in case it was split.
@@ -94,18 +98,13 @@ protected:
     /// Recursively updates the node's mesh list to account for the changed mesh list
     void UpdateNode( aiNode* pNode) const;
 
-private:
+public:
     /// Max bone count. Splitting occurs if a mesh has more than that number of bones.
     size_t mMaxBoneCount;
 
     /// Per mesh index: Array of indices of the new submeshes.
-    using IndexArray = std::vector<unsigned int>;
-    std::vector<IndexArray> mSubMeshIndices;
+    std::vector< std::vector<unsigned int> > mSubMeshIndices;
 };
-
-inline size_t SplitByBoneCountProcess::getMaxNumberOfBones() const {
-    return mMaxBoneCount;
-}
 
 } // end of namespace Assimp
 

@@ -15,8 +15,7 @@
 #ifndef DRACO_CORE_MACROS_H_
 #define DRACO_CORE_MACROS_H_
 
-#include <cassert>
-
+#include "assert.h"
 #include "draco/draco_features.h"
 
 #ifdef ANDROID_LOGGING
@@ -38,7 +37,7 @@ namespace draco {
 #define DISALLOW_COPY_AND_ASSIGN(TypeName) \
   TypeName(const TypeName &) = delete;     \
   void operator=(const TypeName &) = delete;
-#endif  // DISALLOW_COPY_AND_ASSIGN
+#endif
 
 #ifndef FALLTHROUGH_INTENDED
 #if defined(__clang__) && defined(__has_warning)
@@ -47,7 +46,7 @@ namespace draco {
 #endif
 #elif defined(__GNUC__) && __GNUC__ >= 7
 #define FALLTHROUGH_INTENDED [[gnu::fallthrough]]
-#endif  // FALLTHROUGH_INTENDED
+#endif
 
 // If FALLTHROUGH_INTENDED is still not defined, define it.
 #ifndef FALLTHROUGH_INTENDED
@@ -55,7 +54,7 @@ namespace draco {
   do {                       \
   } while (0)
 #endif
-#endif  // FALLTHROUGH_INTENDED
+#endif
 
 #ifndef LOG
 #define LOG(...) std::cout
@@ -85,15 +84,11 @@ namespace draco {
 #define DRACO_DCHECK_LE(a, b)
 #define DRACO_DCHECK_LT(a, b)
 #define DRACO_DCHECK_NOTNULL(x)
-#endif  // DRACO_DEBUG
+#endif
 
 // Helper macros for concatenating macro values.
 #define DRACO_MACROS_IMPL_CONCAT_INNER_(x, y) x##y
 #define DRACO_MACROS_IMPL_CONCAT_(x, y) DRACO_MACROS_IMPL_CONCAT_INNER_(x, y)
-
-#define DRACO_MACROS_IMPL_CONCAT_INNER_3_(x, y, z) x##y##z
-#define DRACO_MACROS_IMPL_CONCAT_3_(x, y, z) \
-  DRACO_MACROS_IMPL_CONCAT_INNER_3_(x, y, z)
 
 // Expand the n-th argument of the macro. Used to select an argument based on
 // the number of entries in a variadic macro argument. Example usage:
@@ -105,9 +100,9 @@ namespace draco {
 // #define VARIADIC_MACRO(...)
 //   DRACO_SELECT_NTH_FROM_3(__VA_ARGS__, FUNC_3, FUNC_2, FUNC_1) __VA_ARGS__
 //
-#define DRACO_SELECT_NTH_FROM_2(_1, _2, NAME, ...) NAME
-#define DRACO_SELECT_NTH_FROM_3(_1, _2, _3, NAME, ...) NAME
-#define DRACO_SELECT_NTH_FROM_4(_1, _2, _3, _4, NAME, ...) NAME
+#define DRACO_SELECT_NTH_FROM_2(_1, _2, NAME) NAME
+#define DRACO_SELECT_NTH_FROM_3(_1, _2, _3, NAME) NAME
+#define DRACO_SELECT_NTH_FROM_4(_1, _2, _3, _4, NAME) NAME
 
 // Macro that converts the Draco bit-stream into one uint16_t number.
 // Useful mostly when checking version numbers.

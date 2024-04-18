@@ -2,7 +2,7 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
 
 
 All rights reserved.
@@ -62,19 +62,19 @@ namespace Assimp {
 class ASSIMP_API EmbedTexturesProcess : public BaseProcess {
 public:
     /// The default class constructor.
-    EmbedTexturesProcess() = default;
+    EmbedTexturesProcess();
 
     /// The class destructor.
-    ~EmbedTexturesProcess() override = default;
+    virtual ~EmbedTexturesProcess();
 
     /// Overwritten, @see BaseProcess
-    bool IsActive(unsigned int pFlags) const override;
+    virtual bool IsActive(unsigned int pFlags) const;
 
     /// Overwritten, @see BaseProcess
-    void SetupProperties(const Importer* pImp) override;
+    virtual void SetupProperties(const Importer* pImp);
 
     /// Overwritten, @see BaseProcess
-    virtual void Execute(aiScene* pScene) override;
+    virtual void Execute(aiScene* pScene);
 
 private:
     // Resolve the path and add the file content to the scene as a texture.

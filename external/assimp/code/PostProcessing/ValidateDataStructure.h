@@ -2,7 +2,7 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
 
 
 All rights reserved.
@@ -69,20 +69,22 @@ namespace Assimp    {
 /** Validates the whole ASSIMP scene data structure for correctness.
  *  ImportErrorException is thrown of the scene is corrupt.*/
 // --------------------------------------------------------------------------------------
-class ValidateDSProcess : public BaseProcess {
+class ValidateDSProcess : public BaseProcess
+{
+public:
+
+    ValidateDSProcess();
+    ~ValidateDSProcess();
+
 public:
     // -------------------------------------------------------------------
-    /// The default class constructor / destructor.
-    ValidateDSProcess();
-    ~ValidateDSProcess() override = default;
+    bool IsActive( unsigned int pFlags) const;
 
     // -------------------------------------------------------------------
-    bool IsActive( unsigned int pFlags) const override;
-
-    // -------------------------------------------------------------------
-    void Execute( aiScene* pScene) override;
+    void Execute( aiScene* pScene);
 
 protected:
+
     // -------------------------------------------------------------------
     /** Report a validation error. This will throw an exception,
      *  control won't return.

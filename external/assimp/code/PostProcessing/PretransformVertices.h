@@ -2,7 +2,7 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
 
 
 All rights reserved.
@@ -68,10 +68,8 @@ namespace Assimp {
 */
 class ASSIMP_API PretransformVertices : public BaseProcess {
 public:
-    // -------------------------------------------------------------------
-    /// The default class constructor / destructor.
 	PretransformVertices();
-	~PretransformVertices() override = default;
+	~PretransformVertices();
 
 	// -------------------------------------------------------------------
 	// Check whether step is active
@@ -90,7 +88,7 @@ public:
      *  @param keep    true for keep configuration.
      */
 	void KeepHierarchy(bool keep) {
-		mConfigKeepHierarchy = keep;
+		configKeepHierarchy = keep;
 	}
 
 	// -------------------------------------------------------------------
@@ -98,7 +96,7 @@ public:
      *  @return ...
      */
 	bool IsHierarchyKept() const {
-		return mConfigKeepHierarchy;
+		return configKeepHierarchy;
 	}
 
 private:
@@ -108,7 +106,7 @@ private:
 
 	// -------------------------------------------------------------------
 	// Get a bitwise combination identifying the vertex format of a mesh
-	//unsigned int GetMeshVFormat(aiMesh *pcMesh) const;
+	unsigned int GetMeshVFormat(aiMesh *pcMesh) const;
 
 	// -------------------------------------------------------------------
 	// Count the number of vertices in the whole scene and a given
@@ -131,8 +129,8 @@ private:
 	// -------------------------------------------------------------------
 	// Get a list of all vertex formats that occur for a given material
 	// The output list contains duplicate elements
-	/*void GetVFormatList(const aiScene *pcScene, unsigned int iMat,
-			std::list<unsigned int> &aiOut) const;*/
+	void GetVFormatList(const aiScene *pcScene, unsigned int iMat,
+			std::list<unsigned int> &aiOut) const;
 
 	// -------------------------------------------------------------------
 	// Compute the absolute transformation matrices of each node
@@ -156,10 +154,10 @@ private:
 	void BuildMeshRefCountArray(const aiNode *nd, unsigned int *refs) const;
 
 	//! Configuration option: keep scene hierarchy as long as possible
-	bool mConfigKeepHierarchy;
-	bool mConfigNormalize;
-	bool mConfigTransform;
-	aiMatrix4x4 mConfigTransformation;
+	bool configKeepHierarchy;
+	bool configNormalize;
+	bool configTransform;
+	aiMatrix4x4 configTransformation;
 	bool mConfigPointCloud;
 };
 

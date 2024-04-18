@@ -2,7 +2,7 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
 
 All rights reserved.
 
@@ -50,7 +50,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <assimp/version.h>
 #include <assimp/IOStream.hpp>
 
-#include "zlib.h"
+#ifdef ASSIMP_BUILD_NO_OWN_ZLIB
+#include <zlib.h>
+#else
+#include "../contrib/zlib/zlib.h"
+#endif
 
 #include <ctime>
 
@@ -287,15 +291,15 @@ public:
     size_t Read(void * /*pvBuffer*/, size_t /*pSize*/, size_t /*pCount*/) override {
         return 0;
     }
-
+    
     aiReturn Seek(size_t /*pOffset*/, aiOrigin /*pOrigin*/) override {
         return aiReturn_FAILURE;
     }
-
+    
     size_t Tell() const override {
         return cursor;
     }
-
+    
     void Flush() override {
         // not implemented
     }

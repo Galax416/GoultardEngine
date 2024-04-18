@@ -2,7 +2,7 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2024, assimp team
+Copyright (c) 2006-2022, assimp team
 
 
 All rights reserved.
@@ -74,10 +74,8 @@ namespace Assimp {
 */
 class ASSIMP_API LimitBoneWeightsProcess : public BaseProcess {
 public:
-    // -------------------------------------------------------------------
-    /// The default class constructor / destructor.
     LimitBoneWeightsProcess();
-    ~LimitBoneWeightsProcess() override = default;
+    ~LimitBoneWeightsProcess();
 
     // -------------------------------------------------------------------
     /** Returns whether the processing step is present in the given flag.
@@ -86,27 +84,27 @@ public:
     * @return true if the process is present in this flag fields,
     *   false if not.
     */
-    bool IsActive( unsigned int pFlags) const override;
+    bool IsActive( unsigned int pFlags) const;
 
     // -------------------------------------------------------------------
     /** Called prior to ExecuteOnScene().
     * The function is a request to the process to update its configuration
     * basing on the Importer's configuration property list.
     */
-    void SetupProperties(const Importer* pImp) override;
-
-    // -------------------------------------------------------------------
-    /** Executes the post processing step on the given imported data.
-    * At the moment a process is not supposed to fail.
-    * @param pScene The imported data to work at.
-    */
-    void Execute( aiScene* pScene) override;
+    void SetupProperties(const Importer* pImp);
 
     // -------------------------------------------------------------------
     /** Limits the bone weight count for all vertices in the given mesh.
     * @param pMesh The mesh to process.
     */
     void ProcessMesh( aiMesh* pMesh);
+
+    // -------------------------------------------------------------------
+    /** Executes the post processing step on the given imported data.
+    * At the moment a process is not supposed to fail.
+    * @param pScene The imported data to work at.
+    */
+    void Execute( aiScene* pScene);
 
     // -------------------------------------------------------------------
     /** Describes a bone weight on a vertex */
@@ -133,7 +131,6 @@ public:
 
     /** Maximum number of bones influencing any single vertex. */
     unsigned int mMaxWeights;
-    bool mRemoveEmptyBones;
 };
 
 } // end of namespace Assimp
