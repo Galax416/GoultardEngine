@@ -1,6 +1,28 @@
-#ifndef SHADER_HPP
-#define SHADER_HPP
+#pragma once
 
-GLuint LoadShaders(const char * vertex_file_path,const char * fragment_file_path);
+#include <stdio.h>
+#include <string>
+#include <vector>
+#include <iostream>
+#include <fstream>
+#include <algorithm>
+#include <sstream>
+using namespace std;
 
-#endif
+#include <stdlib.h>
+#include <string.h>
+
+#include <GL/glew.h>
+
+#include "shader.hpp"
+
+class Shader {
+	public:
+    // The program ID
+    GLuint ID;
+    // Constructor reads and builds the shader
+	Shader(const char * vertex_file_path,const char * fragment_file_path);
+
+    // Use the program
+    void Use();
+};

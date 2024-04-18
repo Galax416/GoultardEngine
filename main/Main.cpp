@@ -1,3 +1,5 @@
+#pragma once
+
 // Include standard headers
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,6 +25,8 @@ using namespace glm;
 #include <common/objloader.hpp>
 #include <common/vboindexer.hpp>
 #include <common/camera.hpp>
+#include <common/Entity.hpp>
+#include <common/Model.hpp>
 
 void processInput(GLFWwindow *window);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods); // Fix les input trop rapide
@@ -111,36 +115,22 @@ int main( void )
     glBindVertexArray(VertexArrayID);
 
     // Create and compile our GLSL program from the shaders
-    GLuint programID = LoadShaders( "vertex_shader.glsl", "fragment_shader.glsl" );
+    Shader MainShader( "vertex_shader.glsl", "fragment_shader.glsl" );
+    MainShader.Use();
 
-    /*****************TODO***********************/
-    // Get a handle for our "Model View Projection" matrices uniforms
+    Entity Slayer("../data/model/slayer/slayer.gltf", MainShader);
+    Slayer.transform.setLocalScale(glm::vec3(0.1f, 0.1f, 0.1f));
+    Slayer.updateSelfAndChild();
 
-    /****************************************/
-    std::vector<unsigned short> indices; //Triangles concaténés dans une liste
-    std::vector<std::vector<unsigned short> > triangles;
-    std::vector<glm::vec3> indexed_vertices;
+    Entity kiki("../data/model/kiki/scene.gltf", MainShader);
+    kiki.transform.setLocalScale(glm::vec3(0.1f, 0.1f, 0.1f));
+    kiki.updateSelfAndChild();
 
-    //Chargement du fichier de maillage
-    std::string filename("suzanne.off");
-    loadOFF(filename, indexed_vertices, indices, triangles );
-
-    // Load it into a VBO
-
-    GLuint vertexbuffer;
-    glGenBuffers(1, &vertexbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-    glBufferData(GL_ARRAY_BUFFER, indexed_vertices.size() * sizeof(glm::vec3), &indexed_vertices[0], GL_STATIC_DRAW);
-
-    // Generate a buffer for the indices as well
-    GLuint elementbuffer;
-    glGenBuffers(1, &elementbuffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned short), &indices[0] , GL_STATIC_DRAW);
+    Slayer.bindVBO(MainShader.ID);
+    kiki.bindVBO(MainShader.ID);
 
     // Get a handle for our "LightPosition" uniform
-    glUseProgram(programID);
-    GLuint LightID = glGetUniformLocation(programID, "LightPosition_worldspace");
+    GLuint LightID = glGetUniformLocation(MainShader.ID, "LightPosition_worldspace");
 
     // Pressing only one time
     glfwSetKeyCallback(window, key_callback);
@@ -176,7 +166,10 @@ int main( void )
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Use our shader
-        glUseProgram(programID);
+        MainShader.Use();
+
+        Slayer.Draw();
+        kiki.Draw();
 
 
         /*****************TODO***********************/
@@ -191,39 +184,11 @@ int main( void )
 
         // Send our transformation to the currently bound shader,
         // in the "Model View Projection" to the shader uniforms
-        glUniformMatrix4fv(glGetUniformLocation(programID, "Model"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
-        glUniformMatrix4fv(glGetUniformLocation(programID, "View"), 1, GL_FALSE, glm::value_ptr(viewMatrix));
-        glUniformMatrix4fv(glGetUniformLocation(programID, "Projection"), 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+        glUniformMatrix4fv(glGetUniformLocation(MainShader.ID, "Model"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
+        glUniformMatrix4fv(glGetUniformLocation(MainShader.ID, "View"), 1, GL_FALSE, glm::value_ptr(viewMatrix));
+        glUniformMatrix4fv(glGetUniformLocation(MainShader.ID, "Projection"), 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
         /****************************************/
-
-
-
-
-        // 1rst attribute buffer : vertices
-        glEnableVertexAttribArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-        glVertexAttribPointer(
-                    0,                  // attribute
-                    3,                  // size
-                    GL_FLOAT,           // type
-                    GL_FALSE,           // normalized?
-                    0,                  // stride
-                    (void*)0            // array buffer offset
-                    );
-
-        // Index buffer
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
-
-        // Draw the triangles !
-        glDrawElements(
-                    GL_TRIANGLES,      // mode
-                    indices.size(),    // count
-                    GL_UNSIGNED_SHORT,   // type
-                    (void*)0           // element array buffer offset
-                    );
-
-        glDisableVertexAttribArray(0);
 
         // Swap buffers
         glfwSwapBuffers(window);
@@ -233,10 +198,7 @@ int main( void )
     while( glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
            glfwWindowShouldClose(window) == 0 );
 
-    // Cleanup VBO and shader
-    glDeleteBuffers(1, &vertexbuffer);
-    glDeleteBuffers(1, &elementbuffer);
-    glDeleteProgram(programID);
+    glDeleteProgram(MainShader.ID);
     glDeleteVertexArrays(1, &VertexArrayID);
 
     // Close OpenGL window and terminate GLFW
@@ -254,7 +216,7 @@ void processInput(GLFWwindow *window)
         glfwSetWindowShouldClose(window, true);
 
     //Camera zoom in and out
-    camera_libre.setCameraSpeed(2.5 * deltaTime);
+    camera_libre.setCameraSpeed(50.5 * deltaTime);
 
     // ZQSD
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) camera_libre.moveFoward();

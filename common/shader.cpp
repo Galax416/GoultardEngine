@@ -1,20 +1,6 @@
-#include <stdio.h>
-#include <string>
-#include <vector>
-#include <iostream>
-#include <fstream>
-#include <algorithm>
-#include <sstream>
-using namespace std;
-
-#include <stdlib.h>
-#include <string.h>
-
-#include <GL/glew.h>
-
 #include "shader.hpp"
 
-GLuint LoadShaders(const char * vertex_file_path,const char * fragment_file_path){
+Shader::Shader(const char * vertex_file_path,const char * fragment_file_path){
 
 	// Create the shaders
 	GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
@@ -31,7 +17,6 @@ GLuint LoadShaders(const char * vertex_file_path,const char * fragment_file_path
 	}else{
 		printf("Impossible to open %s. Are you in the right directory ? Don't forget to read the FAQ !\n", vertex_file_path);
 		getchar();
-		return 0;
 	}
 
 	// Read the Fragment Shader code from the file
@@ -105,7 +90,12 @@ GLuint LoadShaders(const char * vertex_file_path,const char * fragment_file_path
 	glDeleteShader(VertexShaderID);
 	glDeleteShader(FragmentShaderID);
 
-	return ProgramID;
+	ID = ProgramID;
+
+}
+
+void Shader::Use() { 
+    glUseProgram(ID); 
 }
 
 

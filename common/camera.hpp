@@ -43,7 +43,7 @@ private:
     float fovAngle = 45.0;
     float aspectRatio = 4/3;
     float nearPlane = 0.1f;
-    float farPlane = 100.0f;
+    float farPlane = 10000.0f;
     
     float cameraSpeed = 2.5f;
 

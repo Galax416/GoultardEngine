@@ -1,11 +1,14 @@
+#pragma once
+
 #include <glm/glm.hpp> //glm::mat4
 #include <list> //std::list
 #include <array> //std::array
 #include <memory> //std::unique_ptr
 #include <glm/gtc/matrix_transform.hpp> //glm::translate, glm::rotate, glm::scale
 #include <GL/glew.h> //GLuint
-#include  "Mesh.hpp" //Mesh
+#include "Model.hpp"
 #include "Transform.hpp" //Transform
+#include <common/shader.hpp>
 
 
 class Entity {
@@ -15,19 +18,20 @@ public:
 	Entity* parent;
 
 	// Constructors
-	Entity() : parent(nullptr){}
-	Entity(std::string filename) : mesh(filename), parent(nullptr) {} // Entity with geometry
-	Entity(std::vector<unsigned short>& indices, std::vector<glm::vec3>& indexed_vertices, std::vector<glm::vec2>& indexed_uvs) 
-	: mesh(indices, indexed_vertices, indexed_uvs), parent(nullptr) {} // Entity with geometry
+	Entity(Shader shader) : model(""), shader(shader), parent(nullptr){}
+	Entity(std::string filename, Shader shader) : model(filename), shader(shader) ,parent(nullptr) {} // Entity with geometry
 
 	// Geometry
-	Mesh mesh;
+	Model model;
 
 	// Model Matrix
 	Transform transform;
 
 	// ID
 	GLuint modelLocation;
+
+	// Shader
+	Shader shader;
 
 	void addChild(Entity& child) {
 		child.parent = this;
@@ -57,16 +61,15 @@ public:
 		}
 	}
 
-	void render() {
+	void Draw() {
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, &transform.getModelMatrix()[0][0]); // Model Matrix
-		mesh.render(); // Render geometry
+		model.Draw(shader); // draw geometry
 		for (auto&& child : children) {
-			child->render();
+			child->Draw();
 		}
 	}
 
 	void bindVBO(GLuint programID) {
-		mesh.bindVBO(programID);
 		this->modelLocation = glGetUniformLocation(programID, "Model");
 		for (auto&& child : children) {
 			child->bindVBO(programID);
@@ -74,7 +77,6 @@ public:
 	}
 
 	void unbindVBO() {
-		mesh.unbindVBO();
 		for (auto&& child : children) {
 			child->unbindVBO();
 		}
