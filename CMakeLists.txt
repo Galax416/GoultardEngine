@@ -60,7 +60,11 @@ add_executable(main
         main/Main.cpp
 	common/shader.cpp
 	common/shader.hpp
-	common/camera.hpp
+	common/Input.hpp
+	common/Camera.cpp
+	common/Camera.hpp
+	common/texture.cpp
+	common/texture.hpp
 	common/stb_image.cpp
 	common/stb_image.hpp
 	common/objloader.cpp
@@ -73,8 +77,8 @@ add_executable(main
 	common/Model.hpp
 	common/Mesh.cpp
 	common/Mesh.hpp
-
-
+	common/Skybox.hpp
+	common/Skybox.cpp
 	
         main/vertex_shader.glsl
         main/fragment_shader.glsl

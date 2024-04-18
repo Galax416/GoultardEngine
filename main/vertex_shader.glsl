@@ -8,8 +8,7 @@ layout (location = 2) in vec2 aTexCoords;
 // Output data ; will be interpolated for each fragment.
 out vec2 TexCoords;
 
-//TODO create uniform transformations matrices Model View Projection
-// Values that stay constant for the whole mesh.
+
 uniform mat4 Model;
 uniform mat4 View;
 uniform mat4 Projection;

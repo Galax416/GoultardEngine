@@ -9,6 +9,7 @@
 #include "Model.hpp"
 #include "Transform.hpp" //Transform
 #include <common/shader.hpp>
+#include "Camera.hpp"
 
 
 class Entity {
@@ -28,7 +29,7 @@ public:
 	Transform transform;
 
 	// ID
-	GLuint modelLocation;
+	GLuint program_scene;
 
 	// Shader
 	Shader shader;
@@ -61,16 +62,25 @@ public:
 		}
 	}
 
-	void Draw() {
-		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, &transform.getModelMatrix()[0][0]); // Model Matrix
-		model.Draw(shader); // draw geometry
+
+	void render(Camera &_camera) {
+		glUseProgram(program_scene);
+
+        glUniformMatrix4fv(glGetUniformLocation(program_scene, "View"), 1, GL_FALSE, &_camera.getViewMatrix()[0][0]);
+        glUniformMatrix4fv(glGetUniformLocation(program_scene, "Projection"), 1, GL_FALSE, & _camera.getProjectionMatrix()[0][0]);
+		
+		glUniformMatrix4fv(glGetUniformLocation(program_scene, "Model"), 1, GL_FALSE, &transform.getModelMatrix()[0][0]); // Model Matrix
+		
+		// Draw Mesh
+		model.Draw(shader); // Render geometry
+
 		for (auto&& child : children) {
-			child->Draw();
+			child->render(_camera);
 		}
 	}
 
 	void bindVBO(GLuint programID) {
-		this->modelLocation = glGetUniformLocation(programID, "Model");
+		this->program_scene = programID;
 		for (auto&& child : children) {
 			child->bindVBO(programID);
 		}
