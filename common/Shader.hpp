@@ -14,13 +14,12 @@ using namespace std;
 
 #include <GL/glew.h>
 
-#include "shader.hpp"
-
 class Shader {
 	public:
     // The program ID
     GLuint ID;
     // Constructor reads and builds the shader
+    Shader();
 	Shader(const char * vertex_file_path,const char * fragment_file_path);
 
     // Use the program

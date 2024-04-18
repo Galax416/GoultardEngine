@@ -1,5 +1,6 @@
 #include <common/Model.hpp>
 
+
 Model::Model(string const &path, bool gamma) : gammaCorrection(gamma){
     loadModel(path);
 }
@@ -10,6 +11,7 @@ void Model::Draw(Shader &shader) {
 }
 
 void Model::loadModel(string const &path) {
+    if (path == "") return; // No model to load
     // read file via ASSIMP
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
@@ -195,3 +197,28 @@ unsigned int TextureFromFile(const char *path, const string &directory, bool gam
 
     return textureID;
 }
+
+static GLuint loadTexture2DFromFilePath(const std::string& path) {
+	GLuint texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	int width = 0;
+	int height = 0;
+	int channels = 3;
+	unsigned char* data = stbi_load(path.c_str(), &width, &height, &channels, 3);
+	if (!data) {
+		stbi_image_free(data);
+		throw std::runtime_error("Failed to load texture: " + path);
+	}
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	stbi_image_free(data);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	return texture;
+}
+

@@ -20,8 +20,7 @@ GLFWwindow* window;
 
 using namespace glm;
 
-#include <common/shader.hpp>
-#include <common/objloader.hpp>
+#include <common/Shader.hpp>
 #include <common/vboindexer.hpp>
 #include <common/Model.hpp>
 #include <common/Camera.hpp>
@@ -61,27 +60,24 @@ int main( void )
     Shader MainShader( "vertex_shader.glsl", "fragment_shader.glsl" );
     MainShader.Use();
 
-    Entity scene;
+    Entity scene(MainShader);
 
     Entity Slayer("../data/model/slayer/slayer.gltf", MainShader);
     Slayer.transform.setLocalScale(glm::vec3(0.1f, 0.1f, 0.1f));
 
-    Entity kiki("../data/model/kiki/scene.gltf", MainShader);
-    kiki.transform.setLocalScale(glm::vec3(0.1f, 0.1f, 0.1f));
+    Entity kiki("../data/AnimatedCube.gltf", MainShader);
+    // kiki.transform.setLocalScale(glm::vec3(0.1f, 0.1f, 0.1f));
 
     scene.addChild(Slayer);
     scene.addChild(kiki);
     
     scene.updateSelfAndChild();
 
-    Slayer.bindVBO(MainShader.ID);
-    kiki.bindVBO(MainShader.ID);
-
     // Get a handle for our "LightPosition" uniform
     GLuint LightID = glGetUniformLocation(MainShader.ID, "LightPosition_worldspace");
     // Chargement de la Skybox
     Skybox skybox;
-    skybox.init();
+    skybox.init(Shader("../main/vertexSky.glsl", "../main/fragmentSky.glsl"));
 
     scene.bindVBO(MainShader.ID);
    
@@ -116,17 +112,18 @@ int main( void )
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Use our shader
-        MainShader.Use();
 
-        Slayer.Draw();
-        kiki.Draw();
         // Update
         camera_libre.update(deltaTime, window);
         scene.updateSelfAndChild();
 
+        MainShader.Use();
+        glUniformMatrix4fv(glGetUniformLocation(MainShader.ID, "View"), 1, GL_FALSE, &camera_libre.getViewMatrix()[0][0]);
+        glUniformMatrix4fv(glGetUniformLocation(MainShader.ID, "Projection"), 1, GL_FALSE, & camera_libre.getProjectionMatrix()[0][0]);
+		
         // Render
         skybox.render(camera_libre);
-        scene.render(camera_libre);
+        scene.render();
 
         // Swap buffers
         glfwSwapBuffers(window);
@@ -225,6 +222,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         wireMode = !wireMode;
         if(wireMode) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         else glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+
+    if (key == GLFW_KEY_C && action == GLFW_PRESS) {
+        
     }
 }
 

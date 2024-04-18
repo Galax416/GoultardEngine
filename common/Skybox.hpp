@@ -1,12 +1,17 @@
-#ifndef SKYBOX_HPP
-#define SKYBOX_HPP
+#pragma once
 
 #include <GL/glew.h>
 #include <GL/glut.h>
 #include <glm/glm.hpp>
 
-#include "Camera.hpp"
+#include <common/Camera.hpp>
+#include <common/Model.hpp>
+#include <common/Shader.hpp>
 
+#include <vector>
+#include <string>
+
+GLuint loadCubeMapTexture(std::vector<std::string> faces);
 
 class Skybox
 {
@@ -19,11 +24,7 @@ private:
     float m_dimSkybox{ 1000.0f };
     
 public:
-    void init();
+    void init(Shader _shader);
     void render(Camera &_camera);
     void clear();
 };
-
-
-
-#endif

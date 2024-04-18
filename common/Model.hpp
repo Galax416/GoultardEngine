@@ -1,4 +1,5 @@
 #pragma once
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -15,9 +16,13 @@
 #include <iostream>
 #include <map>
 #include <vector>
+
 using namespace std;
 
 unsigned int TextureFromFile(const char *path, const string &directory, bool gamma);
+static GLuint loadTexture2DFromFilePath(const std::string& path);
+
+
 
 class Model {
 

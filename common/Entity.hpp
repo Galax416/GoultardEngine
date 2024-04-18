@@ -2,14 +2,13 @@
 
 #include <glm/glm.hpp> //glm::mat4
 #include <list> //std::list
-#include <array> //std::array
-#include <memory> //std::unique_ptr
 #include <glm/gtc/matrix_transform.hpp> //glm::translate, glm::rotate, glm::scale
 #include <GL/glew.h> //GLuint
-#include "Model.hpp"
-#include "Transform.hpp" //Transform
-#include <common/shader.hpp>
-#include "Camera.hpp"
+
+#include <common/Model.hpp>
+#include <common/Transform.hpp>
+#include <common/Shader.hpp>
+#include <common/Camera.hpp>
 
 
 class Entity {
@@ -63,19 +62,15 @@ public:
 	}
 
 
-	void render(Camera &_camera) {
+	void render() {
 		glUseProgram(program_scene);
-
-        glUniformMatrix4fv(glGetUniformLocation(program_scene, "View"), 1, GL_FALSE, &_camera.getViewMatrix()[0][0]);
-        glUniformMatrix4fv(glGetUniformLocation(program_scene, "Projection"), 1, GL_FALSE, & _camera.getProjectionMatrix()[0][0]);
-		
 		glUniformMatrix4fv(glGetUniformLocation(program_scene, "Model"), 1, GL_FALSE, &transform.getModelMatrix()[0][0]); // Model Matrix
 		
 		// Draw Mesh
 		model.Draw(shader); // Render geometry
 
 		for (auto&& child : children) {
-			child->render(_camera);
+			child->render();
 		}
 	}
 

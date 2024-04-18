@@ -1,6 +1,6 @@
 #pragma once
 
-#include "shader.hpp"
+#include <common/Shader.hpp>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -36,11 +36,11 @@ struct Texture {
 
 class Mesh {
 public:
-    // mesh Data
+    // Mesh Data
     vector<Vertex>       vertices;
     vector<unsigned int> indices;
     vector<Texture>      textures;
-    unsigned int VAO;
+    GLuint VAO;
 
     // constructor
 	Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures);
@@ -49,7 +49,7 @@ public:
 
 private:
     // render data 
-    unsigned int VBO, EBO;
+    GLuint VBO, EBO;
 
     // initializes all the buffer objects/arrays
     void setupMesh();

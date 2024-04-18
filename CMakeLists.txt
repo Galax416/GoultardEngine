@@ -58,17 +58,13 @@ add_definitions(
 
 add_executable(main
         main/Main.cpp
-	common/shader.cpp
-	common/shader.hpp
+	common/Shader.cpp
+	common/Shader.hpp
 	common/Input.hpp
 	common/Camera.cpp
 	common/Camera.hpp
-	common/texture.cpp
-	common/texture.hpp
 	common/stb_image.cpp
 	common/stb_image.hpp
-	common/objloader.cpp
-	common/objloader.hpp
 	common/vboindexer.cpp
 	common/vboindexer.hpp
 	common/Transform.hpp

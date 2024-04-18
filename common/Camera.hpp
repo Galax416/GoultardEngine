@@ -1,5 +1,4 @@
-#ifndef CAMERA_HPP
-#define CAMERA_HPP
+#pragma once
 
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -61,5 +60,3 @@ private:
     glm::mat4 m_projectionMatrix;
 
 };
-
-#endif
