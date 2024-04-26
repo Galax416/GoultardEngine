@@ -59,8 +59,10 @@ int main( void )
     Shader MainShader( "vertex_shader.glsl", "fragment_shader.glsl" );
     MainShader.Use();
 
+    Camera FreeCam;
+    FreeCam.init();
+
     Camera FpsCamera;
-    FpsCamera.init();
 
     Entity scene(MainShader);
 
@@ -110,6 +112,8 @@ int main( void )
         // input
         // -----
         processInput(window);
+        //Slayer.transform.setLocalPosition(Slayer.camera.getPosition());
+        //Slayer.camera.setPosition(Slayer.transform.getLocalPosition());
 
         // Clear the screen
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -117,11 +121,12 @@ int main( void )
         // Use our shader
 
         // Update
+        MainShader.Use();
         Slayer.camera.update(deltaTime, window);
+        Slayer.updateInput(deltaTime, window);
         scene.updateSelfAndChild();
 
-        MainShader.Use();
-        glUniformMatrix4fv(glGetUniformLocation(MainShader.ID, "Model"), 1, GL_FALSE, &Slayer.transform.getModelMatrix()[0][0]);
+        FreeCam.update(deltaTime, window);
         glUniformMatrix4fv(glGetUniformLocation(MainShader.ID, "View"), 1, GL_FALSE, &Slayer.camera.getViewMatrix()[0][0]);
         glUniformMatrix4fv(glGetUniformLocation(MainShader.ID, "Projection"), 1, GL_FALSE, &Slayer.camera.getProjectionMatrix()[0][0]);
 		

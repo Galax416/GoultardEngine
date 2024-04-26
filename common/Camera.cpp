@@ -152,7 +152,7 @@ void Camera::updateInput(float _deltaTime, GLFWwindow* _window)
 
 void Camera::update(float _deltaTime, GLFWwindow* _window)
 {
-    updateInput(_deltaTime, _window);
+    //updateInput(_deltaTime, _window);
 
     // Update la rotation
 	m_rotation = glm::quat(glm::radians(m_eulerAngle));
