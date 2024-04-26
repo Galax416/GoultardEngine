@@ -42,6 +42,8 @@ float zoom = 1.;
 //wire mode 
 bool wireMode = false;
 
+bool inFreeCam = false;
+
 bool globalInit();
 void windowSetup();
 
@@ -61,21 +63,27 @@ int main( void )
 
     Camera FreeCam;
     FreeCam.init();
+    FreeCam.setEditionMode(true);
 
     Camera FpsCamera;
 
     Entity scene(MainShader);
 
     Player Slayer("../data/model/slayer/slayer.gltf", MainShader, FpsCamera);
-    //Slayer.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
+
+    Entity ar181("../data/model/plasma_rifle/scene.gltf", MainShader);
+    ar181.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
+    ar181.transform.setLocalRotation(glm::vec3(-90.0f, 1.0f, 1.0f));
+    ar181.transform.setLocalPosition(glm::vec3(-20.0f, 70.0f, 60.0f));
 
     Entity map("../data/model/map/scene.gltf", MainShader);
     map.transform.setLocalRotation(glm::vec3(-90.0f, 0.0f, 0.0f));
     map.transform.setLocalPosition(glm::vec3(800.0f, 0.0f, 0.0f));
 
     scene.addChild(Slayer);
-    scene.addChild(map);
-    
+    //scene.addChild(map);
+    Slayer.addChild(ar181);
+
     scene.updateSelfAndChild();
 
     // Get a handle for our "LightPosition" uniform
@@ -125,10 +133,12 @@ int main( void )
         Slayer.camera.update(deltaTime, window);
         Slayer.updateInput(deltaTime, window);
         scene.updateSelfAndChild();
-
         FreeCam.update(deltaTime, window);
-        glUniformMatrix4fv(glGetUniformLocation(MainShader.ID, "View"), 1, GL_FALSE, &Slayer.camera.getViewMatrix()[0][0]);
-        glUniformMatrix4fv(glGetUniformLocation(MainShader.ID, "Projection"), 1, GL_FALSE, &Slayer.camera.getProjectionMatrix()[0][0]);
+
+        //if (Slayer.camera.getEditionMode()) {
+            glUniformMatrix4fv(glGetUniformLocation(MainShader.ID, "View"), 1, GL_FALSE, &Slayer.camera.getViewMatrix()[0][0]);
+            glUniformMatrix4fv(glGetUniformLocation(MainShader.ID, "Projection"), 1, GL_FALSE, &Slayer.camera.getProjectionMatrix()[0][0]);
+        //}
 		
         // Render
         skybox.render(Slayer.camera);
@@ -231,10 +241,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         wireMode = !wireMode;
         if(wireMode) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         else glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    }
-
-    if (key == GLFW_KEY_C && action == GLFW_PRESS) {
-        
     }
 }
 

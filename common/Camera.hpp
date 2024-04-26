@@ -37,6 +37,7 @@ public:
 	glm::mat4 getViewMatrix() const {return m_viewMatrix;}
 	glm::mat4 getProjectionMatrix() const {return m_projectionMatrix;}
     glm::vec3 getPosition() const {return m_position;}
+    bool getEditionMode() const {return m_isEditionMode;}
 
     void setPosition(glm::vec3 _position) { m_position = _position; }
     void setRotation(glm::quat _rotation) { m_rotation = _rotation; }

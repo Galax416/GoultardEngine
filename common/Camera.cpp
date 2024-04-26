@@ -3,14 +3,14 @@
 void Camera::init()
 {
     m_fovDegree = 45.0f;
-    m_translationSpeed = 50.5f;
+    m_translationSpeed = 50.0f;
 	m_rotationSpeed = 0.1f;
-    m_position = glm::vec3(0.f, 0.f, 2.f);
+    m_position = glm::vec3(0.f, 0.f, 0.f);
 	m_eulerAngle = glm::vec3(0.f, 0.f, 0.f);
 	m_rotation = glm::quat{};
 	m_front = glm::normalize(glm::vec3(glm::toMat4(m_rotation)[2]));
 
-    m_isEditionMode = true;
+    m_isEditionMode = false;
 }
 
 void Camera::computeView(glm::mat4& _outProjectionMatrix, glm::mat4& _outviewMatrix, glm::vec3& _position, glm::quat _rotation, float _fovDegree)
@@ -86,20 +86,16 @@ float Camera::interpolate(float ratio, InterpolationType type)
     }
 }
 
-void Camera::updateInput(float _deltaTime, GLFWwindow* _window)
-{   
-    float cameraTranslationSpeed = m_translationSpeed * _deltaTime;
-	float cameraRotationSpeed = m_rotationSpeed * _deltaTime;
-
-
-    if (m_isEditionMode) // Mode édition (Camera Libre)
-    { 
+void Camera::updateInput(float _deltaTime, GLFWwindow* _window) {   
+	if (m_isEditionMode) {
+		float cameraTranslationSpeed = m_translationSpeed * _deltaTime;
+		float cameraRotationSpeed = m_rotationSpeed * _deltaTime;
 
 		// Vérifie si le bouton gauche de la souris est enfoncé
-        bool isMouseLeftPressed = glfwGetMouseButton(_window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+		bool isMouseLeftPressed = glfwGetMouseButton(_window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
 
-        // Active ou désactive le mode de capture de la souris en fonction du clic gauche
-        glfwSetInputMode(_window, GLFW_CURSOR, isMouseLeftPressed ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+		// Active ou désactive le mode de capture de la souris en fonction du clic gauche
+		glfwSetInputMode(_window, GLFW_CURSOR, isMouseLeftPressed ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
 
 
 		// Capture les mouvements de la souris
@@ -115,12 +111,12 @@ void Camera::updateInput(float _deltaTime, GLFWwindow* _window)
 		lastMouseY = mouseY;
 
 		if (isMouseLeftPressed) {
-            // Modification des angles de rotation de la caméra en fonction du mouvement de la souris
-            m_eulerAngle.y -= (float)(deltaX) * m_rotationSpeed;
-            m_eulerAngle.y = clipAngle180(m_eulerAngle.y); // Limite l'angle de yaw entre -180 et 180 degrés
-            m_eulerAngle.x -= (float)(deltaY) * m_rotationSpeed;
-            m_eulerAngle.x = glm::clamp(m_eulerAngle.x, -90.0f, 90.0f); // Limite l'angle de pitch entre -90 et 90 degrés
-        }
+			// Modification des angles de rotation de la caméra en fonction du mouvement de la souris
+			m_eulerAngle.y -= (float)(deltaX) * m_rotationSpeed;
+			m_eulerAngle.y = clipAngle180(m_eulerAngle.y); // Limite l'angle de yaw entre -180 et 180 degrés
+			m_eulerAngle.x -= (float)(deltaY) * m_rotationSpeed;
+			m_eulerAngle.x = glm::clamp(m_eulerAngle.x, -90.0f, 90.0f); // Limite l'angle de pitch entre -90 et 90 degrés
+		}
 
 
 		// ZQSD
@@ -138,7 +134,7 @@ void Camera::updateInput(float _deltaTime, GLFWwindow* _window)
 		}
 
 		// !!!!!!!!!!!!!!!!! A revoir en dessous !!!!!!!!!!!!!!!!!!
-		
+
 		// Modification de la hauteur de la caméra avec les touches A et E
 		if (glfwGetKey(_window, GLFW_KEY_SPACE) == GLFW_PRESS) {
 			m_position.y += cameraTranslationSpeed;
@@ -146,13 +142,13 @@ void Camera::updateInput(float _deltaTime, GLFWwindow* _window)
 		if (glfwGetKey(_window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
 			m_position.y -= cameraTranslationSpeed;
 		}
+	}
 
-    }
 }
 
-void Camera::update(float _deltaTime, GLFWwindow* _window)
-{
-    //updateInput(_deltaTime, _window);
+void Camera::update(float _deltaTime, GLFWwindow* _window) {
+
+    if(m_isEditionMode) updateInput(_deltaTime, _window);
 
     // Update la rotation
 	m_rotation = glm::quat(glm::radians(m_eulerAngle));
