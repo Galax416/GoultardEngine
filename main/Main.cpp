@@ -25,6 +25,7 @@ using namespace glm;
 #include <common/Entity.hpp>
 #include <common/Skybox.hpp>
 #include <common/Input.hpp>
+#include <common/Player.hpp>
 
 // settings
 const unsigned int SCR_WIDTH = 800;
@@ -58,16 +59,20 @@ int main( void )
     Shader MainShader( "vertex_shader.glsl", "fragment_shader.glsl" );
     MainShader.Use();
 
+    Camera FpsCamera;
+    FpsCamera.init();
+
     Entity scene(MainShader);
 
-    Entity Slayer("../data/model/slayer/slayer.gltf", MainShader);
-    Slayer.transform.setLocalScale(glm::vec3(0.1f, 0.1f, 0.1f));
+    Player Slayer("../data/model/slayer/slayer.gltf", MainShader, FpsCamera);
+    //Slayer.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
 
-    Entity kiki("../data/AnimatedCube.gltf", MainShader);
-    // kiki.transform.setLocalScale(glm::vec3(0.1f, 0.1f, 0.1f));
+    Entity map("../data/model/map/scene.gltf", MainShader);
+    map.transform.setLocalRotation(glm::vec3(-90.0f, 0.0f, 0.0f));
+    map.transform.setLocalPosition(glm::vec3(800.0f, 0.0f, 0.0f));
 
     scene.addChild(Slayer);
-    scene.addChild(kiki);
+    scene.addChild(map);
     
     scene.updateSelfAndChild();
 
@@ -80,8 +85,8 @@ int main( void )
     scene.bindVBO(MainShader.ID);
    
     // Init Camera
-    Camera camera_libre;
-    camera_libre.init();
+    //Camera camera_libre;
+    //camera_libre.init();
 
     // Pressing only one time
     glfwSetKeyCallback(window, key_callback);
@@ -112,15 +117,16 @@ int main( void )
         // Use our shader
 
         // Update
-        camera_libre.update(deltaTime, window);
+        Slayer.camera.update(deltaTime, window);
         scene.updateSelfAndChild();
 
         MainShader.Use();
-        glUniformMatrix4fv(glGetUniformLocation(MainShader.ID, "View"), 1, GL_FALSE, &camera_libre.getViewMatrix()[0][0]);
-        glUniformMatrix4fv(glGetUniformLocation(MainShader.ID, "Projection"), 1, GL_FALSE, & camera_libre.getProjectionMatrix()[0][0]);
+        glUniformMatrix4fv(glGetUniformLocation(MainShader.ID, "Model"), 1, GL_FALSE, &Slayer.transform.getModelMatrix()[0][0]);
+        glUniformMatrix4fv(glGetUniformLocation(MainShader.ID, "View"), 1, GL_FALSE, &Slayer.camera.getViewMatrix()[0][0]);
+        glUniformMatrix4fv(glGetUniformLocation(MainShader.ID, "Projection"), 1, GL_FALSE, &Slayer.camera.getProjectionMatrix()[0][0]);
 		
         // Render
-        skybox.render(camera_libre);
+        skybox.render(Slayer.camera);
         scene.render();
 
         // Swap buffers

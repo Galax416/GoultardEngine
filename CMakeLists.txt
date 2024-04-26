@@ -69,6 +69,7 @@ add_executable(main
 	common/vboindexer.hpp
 	common/Transform.hpp
 	common/Entity.hpp
+	common/Player.cpp
 	common/Model.cpp
 	common/Model.hpp
 	common/Mesh.cpp

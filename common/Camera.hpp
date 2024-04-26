@@ -29,6 +29,7 @@ public:
     void update(float _deltaTime, GLFWwindow* _window);
     void updateInput(float _deltaTime, GLFWwindow* _window);
     void computeView(glm::mat4& _outProjectionMatrix, glm::mat4& _outviewMatrix, glm::vec3& _position, glm::quat _rotation, float _fovDegree);
+    void setEditionMode(bool _isEditionMode) { m_isEditionMode = _isEditionMode; }
 
 	glm::quat getRotation() const {return m_rotation;}
 	glm::mat4 getViewMatrix() const {return m_viewMatrix;}

@@ -1,0 +1,11 @@
+Model Information:
+* title:	Doom II - MAP01: Entryway
+* source:	https://sketchfab.com/3d-models/doom-ii-map01-entryway-326af8ee3e814812993e9cc15732234c
+* author:	vrchris (https://sketchfab.com/vrchris)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Doom II - MAP01: Entryway" (https://sketchfab.com/3d-models/doom-ii-map01-entryway-326af8ee3e814812993e9cc15732234c) by vrchris (https://sketchfab.com/vrchris) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
