@@ -1,6 +1,6 @@
 #include <common/Player.hpp>
 
-Player::Player(std::string filename, Shader shader, Camera camera) : Entity(filename, shader) {
+Player::Player(std::string filename, Shader shader, Camera camera) : Entity(filename, shader), weapon(shader) {
     camera.setEditionMode(false);
     this->camera = camera;
 	this->camera.init();
@@ -54,6 +54,10 @@ void Player::updateInput(float _deltaTime, GLFWwindow* _window) {
 			pos += glm::normalize(glm::cross(camera.getFront(), VEC_UP)) * cameraTranslationSpeed;
 		}
 
+		if (glfwGetKey(_window, GLFW_KEY_E) == GLFW_PRESS) {
+			weapon.shoot(transform.getLocalPosition(), camera.getFront(), 100.0f, 2.0f);
+		}
+
 		updatePlayer(pos, eulerAngle);
 }
 
@@ -73,8 +77,22 @@ void Player::updatePlayer(glm::vec3 pos, glm::vec3 eulerAngle) {
 	transform.setLocalRotation(glm::vec3(0.0f, eulerAngle.y, 0.0f)); // Only Y axis for the player model
 	transform.setLocalPosition(pos);
 
+	glm::vec3 weaponOffset(-20.0f, 70.0f, 60.0f); // offset from the player position
 	for (auto&& child : children) {
 		// Send X & Z axis for the child
+		child->transform.setLocalPosition(weaponOffset);
 		child->transform.setLocalRotation(glm::vec3(eulerAngle.x - 90.0f, 0.0f, eulerAngle.z));
+
 	}
+}
+
+void Player::initHUD(GLuint shaderID) {
+	initText2D("../data/font/Holstein.tga", shaderID);
+}
+
+void Player::DrawHUD() {
+	// Print the health
+	char text[256];
+	sprintf(text, "Health: %d", m_health);
+	printText2D(text, 100, 500, 60);
 }

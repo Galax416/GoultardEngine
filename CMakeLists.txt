@@ -37,6 +37,7 @@ include_directories(
 	external/glm-0.9.7.1/
 	external/glew-1.13.0/include/
 	external/assimp/include/
+	external/freetype-2.13.2/include/
 	.
 )
 
@@ -57,28 +58,43 @@ add_definitions(
 
 
 add_executable(main
-        main/Main.cpp
-	common/Shader.cpp
+    main/Main.cpp
+
 	common/Shader.hpp
+	common/Shader.cpp
+
 	common/Input.hpp
+
 	common/Camera.cpp
 	common/Camera.hpp
+
 	common/stb_image.cpp
 	common/stb_image.hpp
+
+	common/text2D.hpp
+	common/text2D.cpp
+
 	common/vboindexer.cpp
 	common/vboindexer.hpp
+
 	common/Transform.hpp
 	common/Entity.hpp
+
+	common/Player.hpp
 	common/Player.cpp
+
 	common/Model.cpp
 	common/Model.hpp
+
 	common/Mesh.cpp
 	common/Mesh.hpp
+
 	common/Skybox.hpp
 	common/Skybox.cpp
 	
-        main/vertex_shader.glsl
-        main/fragment_shader.glsl
+	common/Weapon.hpp
+	common/Weapon.cpp
+
 )
 target_link_libraries(main
 	${ALL_LIBS}

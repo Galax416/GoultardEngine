@@ -19,7 +19,6 @@ class Shader {
     // The program ID
     GLuint ID;
     // Constructor reads and builds the shader
-    Shader();
 	Shader(const char * vertex_file_path,const char * fragment_file_path);
 
     // Use the program

@@ -26,6 +26,7 @@ using namespace glm;
 #include <common/Skybox.hpp>
 #include <common/Input.hpp>
 #include <common/Player.hpp>
+#include <common/Weapon.hpp>
 
 // settings
 const unsigned int SCR_WIDTH = 800;
@@ -58,7 +59,7 @@ int main( void )
     }
 
     // Create and compile our GLSL program from the shaders
-    Shader MainShader( "vertex_shader.glsl", "fragment_shader.glsl" );
+    Shader MainShader( "../shader/vertex_shader.glsl", "../shader/fragment_shader.glsl" );
     MainShader.Use();
 
     Camera FreeCam;
@@ -70,11 +71,12 @@ int main( void )
     Entity scene(MainShader);
 
     Player Slayer("../data/model/slayer/slayer.gltf", MainShader, FpsCamera);
+    //Shader HUDShader("../shader/vertexText.glsl", "../shader/fragmentText.glsl");
+    //Slayer.initHUD(HUDShader.ID);
 
-    Entity ar181("../data/model/plasma_rifle/scene.gltf", MainShader);
+    Weapon ar181("../data/model/plasma_rifle/scene.gltf", MainShader);
     ar181.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
     ar181.transform.setLocalRotation(glm::vec3(-90.0f, 1.0f, 1.0f));
-    ar181.transform.setLocalPosition(glm::vec3(-20.0f, 70.0f, 60.0f));
 
     Entity map("../data/model/map/scene.gltf", MainShader);
     map.transform.setLocalRotation(glm::vec3(-90.0f, 0.0f, 0.0f));
@@ -83,6 +85,7 @@ int main( void )
     scene.addChild(Slayer);
     //scene.addChild(map);
     Slayer.addChild(ar181);
+    Slayer.setWeapon(ar181);
 
     scene.updateSelfAndChild();
 
@@ -90,10 +93,10 @@ int main( void )
     GLuint LightID = glGetUniformLocation(MainShader.ID, "LightPosition_worldspace");
     // Chargement de la Skybox
     Skybox skybox;
-    skybox.init(Shader("../main/vertexSky.glsl", "../main/fragmentSky.glsl"));
+    skybox.init(Shader("../shader/vertexSky.glsl", "../shader/fragmentSky.glsl"));
 
     scene.bindVBO(MainShader.ID);
-   
+
     // Init Camera
     //Camera camera_libre;
     //camera_libre.init();
@@ -120,18 +123,27 @@ int main( void )
         // input
         // -----
         processInput(window);
-        //Slayer.transform.setLocalPosition(Slayer.camera.getPosition());
-        //Slayer.camera.setPosition(Slayer.transform.getLocalPosition());
 
         // Clear the screen
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Use our shader
 
-        // Update
+        // -- Update --
         MainShader.Use();
+
+        // Player
         Slayer.camera.update(deltaTime, window);
         Slayer.updateInput(deltaTime, window);
+
+        // HUD
+        //Slayer.DrawHUD();
+
+        // Weapon
+        Slayer.weapon.updateBullets(deltaTime);
+        Slayer.weapon.drawBullets();
+
+        // Scene
         scene.updateSelfAndChild();
         FreeCam.update(deltaTime, window);
 

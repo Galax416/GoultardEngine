@@ -1,39 +1,28 @@
-#include <vector>
-#include <cstring>
-
-#include <GL/glew.h>
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-using namespace glm;
-
-#include "Shader.hpp"
-#include "texture.hpp"
-
-#include "text2D.hpp"
+#include <common/text2D.hpp>
 
 unsigned int Text2DTextureID;
 unsigned int Text2DVertexBufferID;
+GLuint Text2DShaderID;
 unsigned int Text2DUVBufferID;
-unsigned int Text2DShaderID;
 unsigned int Text2DUniformID;
 
-void initText2D(const char * texturePath){
+void initText2D(const char * texturePath, GLuint shaderID){
 
 	// Initialize texture
-	Text2DTextureID = loadDDS(texturePath);
+	Text2DTextureID = loadTGA_glfw(texturePath);
 
 	// Initialize VBO
 	glGenBuffers(1, &Text2DVertexBufferID);
 	glGenBuffers(1, &Text2DUVBufferID);
 
 	// Initialize Shader
-	Text2DShaderID = LoadShaders( "TextVertexShader.vertexshader", "TextVertexShader.fragmentshader" );
+	Text2DShaderID = shaderID;
 
 	// Initialize uniforms' IDs
-	Text2DUniformID = glGetUniformLocation( Text2DShaderID, "myTextureSampler" );
+	Text2DUniformID = glGetUniformLocation( shaderID, "myTextureSampler" );
 
 }
+
 
 void printText2D(const char * text, int x, int y, int size){
 
@@ -61,10 +50,10 @@ void printText2D(const char * text, int x, int y, int size){
 		float uv_x = (character%16)/16.0f;
 		float uv_y = (character/16)/16.0f;
 
-		glm::vec2 uv_up_left    = glm::vec2( uv_x           , uv_y );
-		glm::vec2 uv_up_right   = glm::vec2( uv_x+1.0f/16.0f, uv_y );
-		glm::vec2 uv_down_right = glm::vec2( uv_x+1.0f/16.0f, (uv_y + 1.0f/16.0f) );
-		glm::vec2 uv_down_left  = glm::vec2( uv_x           , (uv_y + 1.0f/16.0f) );
+		glm::vec2 uv_up_left    = glm::vec2( uv_x           , 1.0f - uv_y );
+		glm::vec2 uv_up_right   = glm::vec2( uv_x+1.0f/16.0f, 1.0f - uv_y );
+		glm::vec2 uv_down_right = glm::vec2( uv_x+1.0f/16.0f, 1.0f - (uv_y + 1.0f/16.0f) );
+		glm::vec2 uv_down_left  = glm::vec2( uv_x           , 1.0f - (uv_y + 1.0f/16.0f) );
 		UVs.push_back(uv_up_left   );
 		UVs.push_back(uv_down_left );
 		UVs.push_back(uv_up_right  );
@@ -84,7 +73,7 @@ void printText2D(const char * text, int x, int y, int size){
 	// Bind texture
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, Text2DTextureID);
-	// Set our "myTextureSampler" sampler to use Texture Unit 0
+	// Set our "myTextureSampler" sampler to user Texture Unit 0
 	glUniform1i(Text2DUniformID, 0);
 
 	// 1rst attribute buffer : vertices
@@ -121,4 +110,36 @@ void cleanupText2D(){
 
 	// Delete shader
 	glDeleteProgram(Text2DShaderID);
+}
+
+GLuint loadTGA_glfw(const char *imagepath) {
+
+    // Create one OpenGL texture
+    GLuint textureID;
+    glGenTextures(1, &textureID);
+
+    // "Bind" the newly created texture : all future texture functions will modify this texture
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
+    // Load image using STB Image
+    int width, height, channels;
+    unsigned char *image = stbi_load(imagepath, &width, &height, &channels, STBI_rgb_alpha);
+    if (!image) {
+        fprintf(stderr, "Failed to load texture %s\n", imagepath);
+        return 0;
+    }
+
+    // Upload image data to OpenGL texture
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+    stbi_image_free(image);
+
+    // Set texture parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    // Return the ID of the texture we just created
+    return textureID;
 }
