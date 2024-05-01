@@ -2,34 +2,32 @@
 
 #include <common/Entity.hpp>
 #include <common/Model.hpp>
+#include <common/Bullet.hpp>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
-
-struct Bullet {
-    glm::vec3 position;
-    glm::vec3 direction;
-    float speed;
-    float lifeTime;
-    bool isAlive;
-};
 
 class Weapon : public Entity {
 
 private:
     float reloadTime{ 0.5f };
+    float lastReloadTime{ 0.0f };
     float fireRate{ 0.2f };
     float lastShootTime{ 0.0f };
     int ammo{ 30 };
     int maxAmmo{ 30 };
-    std::vector<Bullet> bullets;
+
+    std::vector<Bullet*> bullets; // Bullets fired by the weapon
+    std::string bulletPath; // Path to the bullet model
 
 public:
-    Weapon(std::string filename, Shader shader);
-    Weapon(Shader shader);
+    Weapon(std::string filename, Shader *shader); // Constructor no bullet
+    Weapon(std::string filename, Shader *shader, std::string bulletPath); // Constructor with bullet
+    Weapon(Shader *shader);
 
     void shoot(glm::vec3 position, glm::vec3 direction, float speed, float lifeTime);
-    void drawBullets();
     void updateBullets(float deltaTime);
+
+    void reload();
 
     // reloadTime
     float getReloadTime() const {return reloadTime;}

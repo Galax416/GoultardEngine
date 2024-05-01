@@ -1,0 +1,11 @@
+Model Information:
+* title:	Lapua Magnum Ammo cal. .338
+* source:	https://sketchfab.com/3d-models/lapua-magnum-ammo-cal-338-8a89de4292674fbe847c8ab3c06a7215
+* author:	Yevhen Avramenko (https://sketchfab.com/naprimerjenya)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Lapua Magnum Ammo cal. .338" (https://sketchfab.com/3d-models/lapua-magnum-ammo-cal-338-8a89de4292674fbe847c8ab3c06a7215) by Yevhen Avramenko (https://sketchfab.com/naprimerjenya) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

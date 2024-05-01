@@ -1,6 +1,6 @@
 #include <common/Player.hpp>
 
-Player::Player(std::string filename, Shader shader, Camera camera) : Entity(filename, shader), weapon(shader) {
+Player::Player(std::string filename, Shader *shader, Camera camera) : Entity(filename, shader), weapon(shader) {
     camera.setEditionMode(false);
     this->camera = camera;
 	this->camera.init();
@@ -54,11 +54,16 @@ void Player::updateInput(float _deltaTime, GLFWwindow* _window) {
 			pos += glm::normalize(glm::cross(camera.getFront(), VEC_UP)) * cameraTranslationSpeed;
 		}
 
+		updatePlayer(pos, eulerAngle);
+
+		// Weapon
 		if (glfwGetKey(_window, GLFW_KEY_E) == GLFW_PRESS) {
-			weapon.shoot(transform.getLocalPosition(), camera.getFront(), 100.0f, 2.0f);
+			weapon.shoot(weapon.transform.getLocalPosition(), camera.getFront(), 20.0f, 2.0f);
+		}
+		if(glfwGetKey(_window, GLFW_KEY_R) == GLFW_PRESS) {
+			weapon.reload();
 		}
 
-		updatePlayer(pos, eulerAngle);
 }
 
 void Player::updatePlayer(glm::vec3 pos, glm::vec3 eulerAngle) {
@@ -82,7 +87,6 @@ void Player::updatePlayer(glm::vec3 pos, glm::vec3 eulerAngle) {
 		// Send X & Z axis for the child
 		child->transform.setLocalPosition(weaponOffset);
 		child->transform.setLocalRotation(glm::vec3(eulerAngle.x - 90.0f, 0.0f, eulerAngle.z));
-
 	}
 }
 

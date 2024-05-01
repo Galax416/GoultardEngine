@@ -60,7 +60,7 @@ int main( void )
 
     // Create and compile our GLSL program from the shaders
     Shader MainShader( "../shader/vertex_shader.glsl", "../shader/fragment_shader.glsl" );
-    MainShader.Use();
+    MainShader.use();
 
     Camera FreeCam;
     FreeCam.init();
@@ -68,34 +68,32 @@ int main( void )
 
     Camera FpsCamera;
 
-    Entity scene(MainShader);
+    Entity scene(&MainShader);
 
-    Player Slayer("../data/model/slayer/slayer.gltf", MainShader, FpsCamera);
+    Player Slayer("../data/model/slayer/slayer.gltf", &MainShader, FpsCamera);
     //Shader HUDShader("../shader/vertexText.glsl", "../shader/fragmentText.glsl");
     //Slayer.initHUD(HUDShader.ID);
 
-    Weapon ar181("../data/model/plasma_rifle/scene.gltf", MainShader);
+    Weapon ar181("../data/model/plasma_rifle/scene.gltf", &MainShader, "../data/model/cal338/scene.gltf");
     ar181.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
     ar181.transform.setLocalRotation(glm::vec3(-90.0f, 1.0f, 1.0f));
 
-    Entity map("../data/model/map/scene.gltf", MainShader);
+    Entity map("../data/model/map/scene.gltf", &MainShader);
     map.transform.setLocalRotation(glm::vec3(-90.0f, 0.0f, 0.0f));
     map.transform.setLocalPosition(glm::vec3(800.0f, 0.0f, 0.0f));
 
     scene.addChild(Slayer);
-    //scene.addChild(map);
+    scene.addChild(map);
     Slayer.addChild(ar181);
     Slayer.setWeapon(ar181);
 
     scene.updateSelfAndChild();
 
     // Get a handle for our "LightPosition" uniform
-    GLuint LightID = glGetUniformLocation(MainShader.ID, "LightPosition_worldspace");
+    GLuint LightID = glGetUniformLocation(MainShader.getID(), "LightPosition_worldspace");
     // Chargement de la Skybox
     Skybox skybox;
     skybox.init(Shader("../shader/vertexSky.glsl", "../shader/fragmentSky.glsl"));
-
-    scene.bindVBO(MainShader.ID);
 
     // Init Camera
     //Camera camera_libre;
@@ -130,7 +128,7 @@ int main( void )
         // Use our shader
 
         // -- Update --
-        MainShader.Use();
+        MainShader.use();
 
         // Player
         Slayer.camera.update(deltaTime, window);
@@ -141,15 +139,14 @@ int main( void )
 
         // Weapon
         Slayer.weapon.updateBullets(deltaTime);
-        Slayer.weapon.drawBullets();
 
         // Scene
         scene.updateSelfAndChild();
         FreeCam.update(deltaTime, window);
 
         //if (Slayer.camera.getEditionMode()) {
-            glUniformMatrix4fv(glGetUniformLocation(MainShader.ID, "View"), 1, GL_FALSE, &Slayer.camera.getViewMatrix()[0][0]);
-            glUniformMatrix4fv(glGetUniformLocation(MainShader.ID, "Projection"), 1, GL_FALSE, &Slayer.camera.getProjectionMatrix()[0][0]);
+            glUniformMatrix4fv(glGetUniformLocation(MainShader.getID(), "View"), 1, GL_FALSE, &Slayer.camera.getViewMatrix()[0][0]);
+            glUniformMatrix4fv(glGetUniformLocation(MainShader.getID(), "Projection"), 1, GL_FALSE, &Slayer.camera.getProjectionMatrix()[0][0]);
         //}
 		
         // Render
@@ -164,9 +161,8 @@ int main( void )
     while( glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
            glfwWindowShouldClose(window) == 0 );
 
-    glDeleteProgram(MainShader.ID);
+    glDeleteProgram(MainShader.getID());
     // Cleanup VBO and shader
-    scene.unbindVBO();
     skybox.clear();
 
     // Close OpenGL window and terminate GLFW

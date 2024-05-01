@@ -18,8 +18,8 @@ public:
 	Entity* parent;
 
 	// Constructors
-	Entity(Shader shader) : model(""), shader(shader), parent(nullptr){}
-	Entity(std::string filename, Shader shader) : model(filename), shader(shader) ,parent(nullptr) {} // Entity with geometry
+	Entity(Shader *shader) : model(""), shader(shader), parent(nullptr){}
+	Entity(std::string filename, Shader *shader) : model(filename), shader(shader) ,parent(nullptr) {} // Entity with geometry
 
 	// Geometry
 	Model model;
@@ -27,11 +27,8 @@ public:
 	// Model Matrix
 	Transform transform;
 
-	// ID
-	GLuint program_scene;
-
 	// Shader
-	Shader shader;
+	Shader* shader;
 
 	void addChild(Entity& child) {
 		child.parent = this;
@@ -63,27 +60,14 @@ public:
 
 
 	void render() {
-		glUseProgram(program_scene);
-		glUniformMatrix4fv(glGetUniformLocation(program_scene, "Model"), 1, GL_FALSE, &transform.getModelMatrix()[0][0]); // Model Matrix
+		shader->use();
+		glUniformMatrix4fv(glGetUniformLocation(shader->getID(), "Model"), 1, GL_FALSE, &transform.getModelMatrix()[0][0]); // Model Matrix
 		
 		// Draw Mesh
 		model.Draw(shader); // Render geometry
 
 		for (auto&& child : children) {
 			child->render();
-		}
-	}
-
-	void bindVBO(GLuint programID) {
-		this->program_scene = programID;
-		for (auto&& child : children) {
-			child->bindVBO(programID);
-		}
-	}
-
-	void unbindVBO() {
-		for (auto&& child : children) {
-			child->unbindVBO();
 		}
 	}
 };

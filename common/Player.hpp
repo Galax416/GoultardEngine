@@ -18,7 +18,7 @@ public:
     Camera camera;
     Weapon weapon; // Weapon used 
 
-    Player(std::string filename, Shader shader, Camera camera);
+    Player(std::string filename, Shader *shader, Camera camera);
 
     void updateInput(float deltaTime, GLFWwindow* window);
     void updatePlayer(glm::vec3 pos, glm::vec3 eulerAngle);

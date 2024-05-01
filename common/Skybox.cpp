@@ -1,7 +1,7 @@
 #include <common/Skybox.hpp>
 
 void Skybox::init(Shader _shader) {
-	m_program_SkyBox = _shader.ID;
+	m_program_SkyBox = _shader.getID();
 
     std::vector<std::string> faces = {
 		"../data/skybox/right.jpg",

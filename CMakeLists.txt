@@ -91,9 +91,13 @@ add_executable(main
 
 	common/Skybox.hpp
 	common/Skybox.cpp
+
+	common/Bullet.hpp
+	common/Bullet.cpp
 	
 	common/Weapon.hpp
 	common/Weapon.cpp
+
 
 )
 target_link_libraries(main
