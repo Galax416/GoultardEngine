@@ -38,8 +38,18 @@ public:
 
     // draws the model, and thus all its meshes
     void Draw(Shader *shader);
+
+    // get all meshes
+    vector<Mesh> getAllMeshes() { return meshes; }
+
+    // get the doundingBox of the model
+    AABB getBoundingBox() { return boundingBox; }
     
 private:
+    // AABB Model
+    AABB boundingBox;
+    void computeBoundingBox();
+
     // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
     void loadModel(string const &path);
 

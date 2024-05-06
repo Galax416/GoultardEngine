@@ -11,8 +11,10 @@ class Player : public Entity {
 private:
     float m_translationSpeed{ 50.0f };
     float m_rotationSpeed{ 0.1f };
-    bool isCameraUsed{ true };
     int m_health{ 100 };
+
+    glm::vec3 m_lastValidPosition;
+    glm::vec3 m_normalCollision;
 
 public:
     Camera camera;
@@ -20,8 +22,13 @@ public:
 
     Player(std::string filename, Shader *shader, Camera camera);
 
-    void updateInput(float deltaTime, GLFWwindow* window);
-    void updatePlayer(glm::vec3 pos, glm::vec3 eulerAngle);
+    void updateInput(bool isColliding=false, float deltaTime=0.0f, GLFWwindow* window=nullptr);
+    void updatePlayer(bool isColliding=false, glm::vec3 pos=glm::vec3(0.0f), glm::vec3 eulerAngle=glm::vec3(0.0f));
+
+    void setNormalCollision(glm::vec3 n) { m_normalCollision = n; }
+
+    bool CheckCollisionWithEntity(Entity &entity);
+    bool CheckCollisionWithSingleEntity(Entity &entity);
 
     void setWeapon(Weapon weapon) { this->weapon = weapon; };
 

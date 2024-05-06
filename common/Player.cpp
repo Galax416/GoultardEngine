@@ -9,64 +9,61 @@ Player::Player(std::string filename, Shader *shader, Camera camera) : Entity(fil
 	this->camera.setEditionMode(false);
 }
 
-void Player::updateInput(float _deltaTime, GLFWwindow* _window) {   
-		float cameraTranslationSpeed = m_translationSpeed * _deltaTime;
-		float cameraRotationSpeed = m_rotationSpeed * _deltaTime;
+void Player::updateInput(bool isColliding, float _deltaTime, GLFWwindow* _window) {   
+	float playerTranslationSpeed = m_translationSpeed * _deltaTime;
+	float playerRotationSpeed = m_rotationSpeed * _deltaTime;
 
-		bool isMouseLeftPressed = glfwGetMouseButton(_window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
-		// Enable/disable the mouse cursor
-		glfwSetInputMode(_window, GLFW_CURSOR, isMouseLeftPressed ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+	glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	// Get the mouse position
+	double mouseX, mouseY;
+	glfwGetCursorPos(_window, &mouseX, &mouseY);
 
-		// Get the mouse position
-		double mouseX, mouseY;
-		glfwGetCursorPos(_window, &mouseX, &mouseY);
+	// Compute the mouse movement
+	static double lastMouseX = mouseX;
+	static double lastMouseY = mouseY;
+	double deltaX = mouseX - lastMouseX;
+	double deltaY = mouseY - lastMouseY;
+	lastMouseX = mouseX;
+	lastMouseY = mouseY;
 
-		// Compute the mouse movement
-		static double lastMouseX = mouseX;
-		static double lastMouseY = mouseY;
-		double deltaX = mouseX - lastMouseX;
-		double deltaY = mouseY - lastMouseY;
-		lastMouseX = mouseX;
-		lastMouseY = mouseY;
+	// Compute the new rotation angles
+	glm::vec3 eulerAngle = camera.getRotationEuler();
 
-		// Compute the new rotation angles
-		glm::vec3 eulerAngle = camera.getRotationEuler();
-		if (isMouseLeftPressed) {
-			eulerAngle.y -= (float)(deltaX) * m_rotationSpeed;
-			eulerAngle.y = Camera::clipAngle180(eulerAngle.y); // Clamp the yaw angle between -180 and 180 degrees
-			eulerAngle.x += (float)(deltaY) * m_rotationSpeed;
-			eulerAngle.x = glm::clamp(eulerAngle.x, -89.9f, 89.9f); // Clamp the pitch angle between -90 and 90 degrees
-		}
+	eulerAngle.y -= (float)(deltaX) * m_rotationSpeed;
+	eulerAngle.y = Camera::clipAngle180(eulerAngle.y); // Clamp the yaw angle between -180 and 180 degrees
+	eulerAngle.x += (float)(deltaY) * m_rotationSpeed;
+	eulerAngle.x = glm::clamp(eulerAngle.x, -89.9f, 89.9f); // Clamp the pitch angle between -90 and 90 degrees
 
 
-		// ZQSD movement
-		glm::vec3 pos = transform.getLocalPosition();
-		if (glfwGetKey(_window, GLFW_KEY_W) == GLFW_PRESS) {
-			pos += camera.getFront() * cameraTranslationSpeed;
-		}
-		if (glfwGetKey(_window, GLFW_KEY_S) == GLFW_PRESS) {
-			pos -= camera.getFront() * cameraTranslationSpeed;
-		}
-		if (glfwGetKey(_window, GLFW_KEY_A) == GLFW_PRESS) {
-			pos -= glm::normalize(glm::cross(camera.getFront(), VEC_UP)) * cameraTranslationSpeed;
-		}
-		if (glfwGetKey(_window, GLFW_KEY_D) == GLFW_PRESS) {
-			pos += glm::normalize(glm::cross(camera.getFront(), VEC_UP)) * cameraTranslationSpeed;
-		}
+	// ZQSD movement
+	glm::vec3 pos = transform.getLocalPosition();
+	this->m_lastValidPosition = pos;
+	if (glfwGetKey(_window, GLFW_KEY_W) == GLFW_PRESS) {
+		pos += glm::normalize(Camera::projectVectorOnPlan(camera.getFront(), VEC_UP)) * playerTranslationSpeed;
+	}
+	if (glfwGetKey(_window, GLFW_KEY_S) == GLFW_PRESS) {
+		pos -= glm::normalize(Camera::projectVectorOnPlan(camera.getFront(), VEC_UP)) * playerTranslationSpeed;
+	}
+	if (glfwGetKey(_window, GLFW_KEY_A) == GLFW_PRESS) {
+		pos -= glm::normalize(Camera::projectVectorOnPlan(glm::normalize(glm::cross(camera.getFront(), VEC_UP)), VEC_UP)) * playerTranslationSpeed;
+	}
+	if (glfwGetKey(_window, GLFW_KEY_D) == GLFW_PRESS) {
+		pos += glm::normalize(Camera::projectVectorOnPlan(glm::normalize(glm::cross(camera.getFront(), VEC_UP)), VEC_UP)) * playerTranslationSpeed;
+	}
 
-		updatePlayer(pos, eulerAngle);
+	updatePlayer(isColliding, pos, eulerAngle);
 
-		// Weapon
-		if (glfwGetKey(_window, GLFW_KEY_E) == GLFW_PRESS) {
-			weapon.shoot(weapon.transform.getLocalPosition(), camera.getFront(), 20.0f, 2.0f);
-		}
-		if(glfwGetKey(_window, GLFW_KEY_R) == GLFW_PRESS) {
-			weapon.reload();
-		}
+	// Weapon
+	if (glfwGetKey(_window, GLFW_KEY_E) == GLFW_PRESS) {
+		weapon.shoot(weapon.transform.getLocalPosition(), camera.getFront(), 20.0f, 2.0f);
+	}
+	if(glfwGetKey(_window, GLFW_KEY_R) == GLFW_PRESS) {
+		weapon.reload();
+	}
 
 }
 
-void Player::updatePlayer(glm::vec3 pos, glm::vec3 eulerAngle) {
+void Player::updatePlayer(bool isColliding, glm::vec3 pos, glm::vec3 eulerAngle) {
 
 	// Compute the camera position
     glm::vec3 cameraOffset(0.f, 83.f, 15.f); // offset from the player position
@@ -75,12 +72,20 @@ void Player::updatePlayer(glm::vec3 pos, glm::vec3 eulerAngle) {
     glm::vec3 finalCameraPosition = pos + rotatedOffset;
 
 	// Update the camera position and rotation
-    camera.setPosition(finalCameraPosition);
     camera.setRotation(eulerAngle);
+	transform.setLocalRotation(glm::vec3(0.0f, eulerAngle.y, 0.0f));
+	
+	// std::cout << m_collisionDetected << std::endl;
+	if (isColliding) {
+		transform.setLocalPosition(m_lastValidPosition - m_normalCollision);
+		camera.setPosition(m_lastValidPosition - m_normalCollision +  rotatedOffset);
 
-	// Update the player position and rotation
-	transform.setLocalRotation(glm::vec3(0.0f, eulerAngle.y, 0.0f)); // Only Y axis for the player model
-	transform.setLocalPosition(pos);
+	}
+	else {
+		transform.setLocalPosition(pos);
+		camera.setPosition(pos + rotatedOffset);
+
+	}
 
 	glm::vec3 weaponOffset(-20.0f, 70.0f, 60.0f); // offset from the player position
 	for (auto&& child : children) {
@@ -89,6 +94,39 @@ void Player::updatePlayer(glm::vec3 pos, glm::vec3 eulerAngle) {
 		child->transform.setLocalRotation(glm::vec3(eulerAngle.x - 90.0f, 0.0f, eulerAngle.z));
 	}
 }
+
+bool Player::CheckCollisionWithEntity(Entity &other) {
+	// Check collision with other
+	if (CheckCollisionWithSingleEntity(other))
+		return true;
+
+	// And check collision with this child
+	for (Entity* child : other.children) {
+		if (CheckCollisionWithEntity(*child))
+			return true;
+	}
+
+	return false;
+}
+
+bool Player::CheckCollisionWithSingleEntity(Entity &entity) { // AABB - AABB Collision
+	AABB playerAABB = this->model.getBoundingBox();
+	AABB entityAABB = entity.model.getBoundingBox();
+
+	// Update bounding box
+	playerAABB.updateBoundingBox(this->transform.getModelMatrix());
+	entityAABB.updateBoundingBox(entity.transform.getModelMatrix());
+
+
+	if (playerAABB.intersects(entityAABB)) {
+		// Collision detected
+		m_normalCollision = - playerAABB.getNormalCollision(entityAABB) * 0.1f;
+		return true;
+	}
+	// No collision detected
+	return false;
+}
+
 
 void Player::initHUD(GLuint shaderID) {
 	initText2D("../data/font/Holstein.tga", shaderID);
