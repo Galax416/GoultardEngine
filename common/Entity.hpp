@@ -70,4 +70,30 @@ public:
 			child->render();
 		}
 	}
+
+	bool CheckCollisionWithEntity(Entity &other) {
+		// Check collision with other
+		if (CheckCollisionWithSingleEntity(other))
+			return true;
+
+		// And check collision with other child
+		for (auto&& child : other.children) {
+			if (CheckCollisionWithEntity(*child))
+				return true;
+		}
+
+		return false;
+	}
+
+	bool CheckCollisionWithSingleEntity(Entity &other) { // AABB - AABB Collision
+		AABB entityAABB = this->model.getBoundingBox();
+		AABB otherAABB = other.model.getBoundingBox();
+
+		// Update bounding box
+		entityAABB.updateBoundingBox(this->transform.getModelMatrix());
+		otherAABB.updateBoundingBox(other.transform.getModelMatrix());
+
+		return entityAABB.intersects(otherAABB);
+
+	}
 };

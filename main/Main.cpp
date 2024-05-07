@@ -43,7 +43,8 @@ float zoom = 1.;
 //wire mode 
 bool wireMode = false;
 
-bool inFreeCam = false;
+// edit mode
+bool isEditMode = false;
 
 bool globalInit();
 void windowSetup();
@@ -71,6 +72,7 @@ int main( void )
     Entity scene(&MainShader);
 
     Player Slayer("../data/model/slayer/slayer.gltf", &MainShader, FpsCamera);
+    Slayer.transform.setLocalPosition(glm::vec3(0, 20, 0));
     //Shader HUDShader("../shader/vertexText.glsl", "../shader/fragmentText.glsl");
     //Slayer.initHUD(HUDShader.ID);
 
@@ -78,9 +80,20 @@ int main( void )
     ar181.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
     ar181.transform.setLocalRotation(glm::vec3(-90.0f, 1.0f, 1.0f));
 
-    Entity map("../data/model/map/scene.gltf", &MainShader);
-    map.transform.setLocalRotation(glm::vec3(-90.0f, 0.0f, 0.0f));
-    map.transform.setLocalPosition(glm::vec3(800.0f, 0.0f, 0.0f));
+    Entity map(&MainShader); // Test collision
+    Entity map2("../data/model/cube/Cube.gltf", &MainShader);
+    Entity map3("../data/model/cube/Cube.gltf", &MainShader);
+    Entity map4("../data/model/cube/Cube.gltf", &MainShader);
+
+    map2.transform.setLocalScale(glm::vec3(200, 200, 10));
+    map2.transform.setLocalPosition(glm::vec3(0, 0, -200));
+    map3.transform.setLocalScale(glm::vec3(200, 200, 10));
+    map3.transform.setLocalPosition(glm::vec3(0, 0, 200));
+    map4.transform.setLocalScale(glm::vec3(200, 10, 200));
+
+    map.addChild(map2);
+    map.addChild(map3);
+    map.addChild(map4);
 
     Entity Demon("../data/model/silver_bullet/scene.gltf", &MainShader);
     Demon.transform.setLocalScale(glm::vec3(10.15f, 10.15f, 10.15f));
@@ -96,13 +109,11 @@ int main( void )
 
     // Get a handle for our "LightPosition" uniform
     GLuint LightID = glGetUniformLocation(MainShader.getID(), "LightPosition_worldspace");
+    
     // Chargement de la Skybox
     Skybox skybox;
     skybox.init(Shader("../shader/vertexSky.glsl", "../shader/fragmentSky.glsl"));
 
-    // Init Camera
-    //Camera camera_libre;
-    //camera_libre.init();
 
     // Pressing only one time
     glfwSetKeyCallback(window, key_callback);
@@ -134,25 +145,35 @@ int main( void )
 
         // -- Update --
         MainShader.use();
+        
+        Camera currentCamera;
 
-        // Player
-        Slayer.camera.update(deltaTime, window);
-        Slayer.updateInput(deltaTime, window);
+        if (isEditMode) {
 
-        // HUD
-        //Slayer.DrawHUD();
+            FreeCam.update(deltaTime, window);
 
-        // Weapon
-        Slayer.weapon->updateBullets(deltaTime);
+            currentCamera = FreeCam;
+        } else {
+            // Player
+            Slayer.camera.update(deltaTime, window);
+
+            bool isColliding = Slayer.CheckCollisionWithEntity(map);
+            Slayer.updateInput(isColliding, deltaTime, window);
+
+            currentCamera = Slayer.camera;
+            
+            // HUD
+            //Slayer.DrawHUD();
+
+            // Weapon
+            Slayer.weapon->updateBullets(deltaTime);
+        }
 
         // Scene
         scene.updateSelfAndChild();
-        FreeCam.update(deltaTime, window);
 
-        //if (Slayer.camera.getEditionMode()) {
-            glUniformMatrix4fv(glGetUniformLocation(MainShader.getID(), "View"), 1, GL_FALSE, &Slayer.camera.getViewMatrix()[0][0]);
-            glUniformMatrix4fv(glGetUniformLocation(MainShader.getID(), "Projection"), 1, GL_FALSE, &Slayer.camera.getProjectionMatrix()[0][0]);
-        //}
+        glUniformMatrix4fv(glGetUniformLocation(MainShader.getID(), "View"), 1, GL_FALSE, &currentCamera.getViewMatrix()[0][0]);
+        glUniformMatrix4fv(glGetUniformLocation(MainShader.getID(), "Projection"), 1, GL_FALSE, &currentCamera.getProjectionMatrix()[0][0]);
 		
         // Render
         skybox.render(Slayer.camera);
@@ -167,6 +188,7 @@ int main( void )
            glfwWindowShouldClose(window) == 0 );
 
     glDeleteProgram(MainShader.getID());
+    
     // Cleanup VBO and shader
     skybox.clear();
 
@@ -254,6 +276,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         wireMode = !wireMode;
         if(wireMode) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         else glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+
+    if (key == GLFW_KEY_C && action == GLFW_PRESS) {
+        isEditMode = !isEditMode;
     }
 }
 

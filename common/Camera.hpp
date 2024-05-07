@@ -44,12 +44,12 @@ public:
     void setRotation(glm::vec3 _eulerAngle) { m_eulerAngle = _eulerAngle; }
 
     static float clipAngle180(float angle);
+    static glm::vec3 projectVectorOnPlan(glm::vec3 vector, glm::vec3 normalPlan);
 
 
 protected:
 
     // Utils
-    glm::vec3 projectVectorOnPlan(glm::vec3 vector, glm::vec3 normalPlan);
     float interpolate(float ratio, InterpolationType type);
     glm::vec3 quatToEuler(glm::quat _quat);
 

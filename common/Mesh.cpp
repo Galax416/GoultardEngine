@@ -7,6 +7,7 @@ Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture
 
     // now that we have all the required data, set the vertex buffers and its attribute pointers.
     setupMesh();
+    this->boundingBox.computeBoundingBox(vertices);
 }
 
 void Mesh::Draw(Shader &shader) {
@@ -88,3 +89,56 @@ void Mesh::setupMesh() {
     glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, m_Weights));
     glBindVertexArray(0);
 }
+
+void Mesh::drawCollisionBox(Shader &shader) {
+    // Sauvegarde de l'état OpenGL
+    glPushAttrib(GL_LINE_BIT);
+    glLineWidth(4.0f); // Épaisseur des lignes
+
+    // Utilisation du shader approprié
+    shader.use();
+
+    // Création des données de la boîte de collision
+    glm::vec3 boxVertices[8];
+    boxVertices[0] = boundingBox.boxMin;
+    boxVertices[1] = glm::vec3(boundingBox.boxMin.x, boundingBox.boxMin.y, boundingBox.boxMax.z);
+    boxVertices[2] = glm::vec3(boundingBox.boxMax.x, boundingBox.boxMin.y, boundingBox.boxMax.z);
+    boxVertices[3] = glm::vec3(boundingBox.boxMax.x, boundingBox.boxMin.y, boundingBox.boxMin.z);
+    boxVertices[4] = glm::vec3(boundingBox.boxMin.x, boundingBox.boxMax.y, boundingBox.boxMin.z);
+    boxVertices[5] = glm::vec3(boundingBox.boxMin.x, boundingBox.boxMax.y, boundingBox.boxMax.z);
+    boxVertices[6] = boundingBox.boxMax;
+    boxVertices[7] = glm::vec3(boundingBox.boxMax.x, boundingBox.boxMax.y, boundingBox.boxMin.z);
+
+    // Indices pour dessiner les lignes
+    GLuint boxIndices[] = {
+        0, 1, 1, 2, 2, 3, 3, 0,
+        4, 5, 5, 6, 6, 7, 7, 4,
+        0, 4, 1, 5, 2, 6, 3, 7
+    };
+
+    // Création des buffers
+    GLuint VBO, VAO, EBO;
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+
+    // Liaison des buffers
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(boxVertices), &boxVertices[0], GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(boxIndices), &boxIndices[0], GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+
+    // Dessin de la boîte de collision
+    glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, 0);
+
+    // Nettoyage
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    // Restauration de l'état OpenGL
+    glPopAttrib();
+}
+

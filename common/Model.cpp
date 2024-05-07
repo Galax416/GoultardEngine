@@ -3,11 +3,21 @@
 
 Model::Model(string const &path, bool gamma) : gammaCorrection(gamma){
     loadModel(path);
+    computeBoundingBox();
+}
+
+void Model::computeBoundingBox() {
+    for (const Mesh& mesh : meshes) {
+        AABB meshAABB = mesh.getBoundingBox();
+        boundingBox.expand(meshAABB); // Update the total bounding box by expanding it to include the current mesh's box
+    }
 }
 
 void Model::Draw(Shader *shader) {
-    for(unsigned int i = 0; i < meshes.size(); i++)
+    for(unsigned int i = 0; i < meshes.size(); i++) {
         meshes[i].Draw(*shader);
+        meshes[i].drawCollisionBox(*shader);
+    }
 }
 
 void Model::loadModel(string const &path) {
