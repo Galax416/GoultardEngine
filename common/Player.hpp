@@ -6,6 +6,10 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
+static glm::vec3 cameraOffset(0.f, 83.f, 15.f); // offset from the player position
+static glm::vec3 weaponOffset(-20.0f, 70.0f, 60.0f); // offset from the player position
+static glm::vec3 bulletOffset = weaponOffset - cameraOffset; // offset from the camera position
+
 class Player : public Entity {
 
 private:
@@ -16,14 +20,14 @@ private:
 
 public:
     Camera camera;
-    Weapon weapon; // Weapon used 
+    Weapon* weapon;
 
     Player(std::string filename, Shader *shader, Camera camera);
 
     void updateInput(float deltaTime, GLFWwindow* window);
     void updatePlayer(glm::vec3 pos, glm::vec3 eulerAngle);
 
-    void setWeapon(Weapon weapon) { this->weapon = weapon; };
+    void setWeapon(Weapon* weapon) { this->weapon = weapon; }
 
     void setHealth(int health) { m_health = health;};
     int getHealth() const { return m_health;} ;

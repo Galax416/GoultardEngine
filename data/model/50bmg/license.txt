@@ -1,0 +1,11 @@
+Model Information:
+* title:	.50 BMG
+* source:	https://sketchfab.com/3d-models/50-bmg-4d209027d79f42638aae49da08a09967
+* author:	JaumWF (https://sketchfab.com/JaumWF)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on ".50 BMG" (https://sketchfab.com/3d-models/50-bmg-4d209027d79f42638aae49da08a09967) by JaumWF (https://sketchfab.com/JaumWF) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

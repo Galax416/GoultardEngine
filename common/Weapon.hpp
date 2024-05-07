@@ -17,14 +17,16 @@ private:
     int maxAmmo{ 30 };
 
     std::vector<Bullet*> bullets; // Bullets fired by the weapon
-    std::string bulletPath; // Path to the bullet model
+    Model bulletModel; // Model of the bullet
 
 public:
     Weapon(std::string filename, Shader *shader); // Constructor no bullet
     Weapon(std::string filename, Shader *shader, std::string bulletPath); // Constructor with bullet
     Weapon(Shader *shader);
 
-    void shoot(glm::vec3 position, glm::vec3 direction, float speed, float lifeTime);
+    void addChild(Bullet& child);
+
+    void shoot(glm::vec3 position, glm::vec3 direction, glm::vec3 rotation, glm::vec3 offset, float speed, float lifeTime);
     void updateBullets(float deltaTime);
 
     void reload();

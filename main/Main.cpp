@@ -29,8 +29,8 @@ using namespace glm;
 #include <common/Weapon.hpp>
 
 // settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH = 1080;
+const unsigned int SCR_HEIGHT = 720;
 
 // timing
 float deltaTime = 0.0f;	// time between current frame and last frame
@@ -74,7 +74,7 @@ int main( void )
     //Shader HUDShader("../shader/vertexText.glsl", "../shader/fragmentText.glsl");
     //Slayer.initHUD(HUDShader.ID);
 
-    Weapon ar181("../data/model/plasma_rifle/scene.gltf", &MainShader, "../data/model/cal338/scene.gltf");
+    Weapon ar181("../data/model/plasma_rifle/scene.gltf", &MainShader, "../data/model/50bmg/scene.gltf");
     ar181.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
     ar181.transform.setLocalRotation(glm::vec3(-90.0f, 1.0f, 1.0f));
 
@@ -82,10 +82,15 @@ int main( void )
     map.transform.setLocalRotation(glm::vec3(-90.0f, 0.0f, 0.0f));
     map.transform.setLocalPosition(glm::vec3(800.0f, 0.0f, 0.0f));
 
+    Entity Demon("../data/model/silver_bullet/scene.gltf", &MainShader);
+    Demon.transform.setLocalScale(glm::vec3(10.15f, 10.15f, 10.15f));
+    Demon.transform.setLocalPosition(glm::vec3(50.0f, 50.0f, 100.0f));
+
     scene.addChild(Slayer);
     scene.addChild(map);
+    //scene.addChild(Demon);
     Slayer.addChild(ar181);
-    Slayer.setWeapon(ar181);
+    Slayer.setWeapon(&ar181);
 
     scene.updateSelfAndChild();
 
@@ -138,7 +143,7 @@ int main( void )
         //Slayer.DrawHUD();
 
         // Weapon
-        Slayer.weapon.updateBullets(deltaTime);
+        Slayer.weapon->updateBullets(deltaTime);
 
         // Scene
         scene.updateSelfAndChild();
@@ -189,7 +194,7 @@ bool globalInit()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Open a window and create its OpenGL context
-    window = glfwCreateWindow( 1024, 768, "GoultardEngine", NULL, NULL);
+    window = glfwCreateWindow( SCR_WIDTH, SCR_HEIGHT, "GoultardEngine", NULL, NULL);
     if( window == NULL ){
         fprintf( stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n" );
         getchar();

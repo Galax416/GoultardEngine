@@ -6,17 +6,23 @@ class Bullet : public Entity {
 
 private:
     glm::vec3 direction;
+    glm::vec3 rotation;
     float speed;
     float lifeTime;
     bool Alive;
 
+    Model *model;
+
 public:
-    Bullet(std::string filename, Shader *shader);
+    Bullet(Model *model, Shader *shader);
     void update(float deltaTime);
     void render();
 
     glm::vec3 getDirection() const { return direction; }
     void setDirection(const glm::vec3& newDirection) { direction = newDirection; }
+
+    glm::vec3 getRotation() const { return rotation; }
+    void setRotation(const glm::vec3& newRotation) { rotation = newRotation; }
 
     float getSpeed() const { return speed; }
     void setSpeed(float newSpeed) { speed = newSpeed; }

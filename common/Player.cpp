@@ -1,6 +1,6 @@
 #include <common/Player.hpp>
 
-Player::Player(std::string filename, Shader *shader, Camera camera) : Entity(filename, shader), weapon(shader) {
+Player::Player(std::string filename, Shader *shader, Camera camera) : Entity(filename, shader) {
     camera.setEditionMode(false);
     this->camera = camera;
 	this->camera.init();
@@ -57,11 +57,12 @@ void Player::updateInput(float _deltaTime, GLFWwindow* _window) {
 		updatePlayer(pos, eulerAngle);
 
 		// Weapon
-		if (glfwGetKey(_window, GLFW_KEY_E) == GLFW_PRESS) {
-			weapon.shoot(weapon.transform.getLocalPosition(), camera.getFront(), 20.0f, 2.0f);
+		if (glfwGetKey(_window, GLFW_KEY_E) == GLFW_PRESS) { 
+			glm::vec3 position = transform.getLocalPosition() + weapon->transform.getLocalPosition(); // weapon position
+			weapon->shoot(camera.getPosition(), camera.getFront(), camera.getRotationEuler(), bulletOffset, 1000.0f, 2.0f);
 		}
 		if(glfwGetKey(_window, GLFW_KEY_R) == GLFW_PRESS) {
-			weapon.reload();
+			weapon->reload();
 		}
 
 }
@@ -69,8 +70,7 @@ void Player::updateInput(float _deltaTime, GLFWwindow* _window) {
 void Player::updatePlayer(glm::vec3 pos, glm::vec3 eulerAngle) {
 
 	// Compute the camera position
-    glm::vec3 cameraOffset(0.f, 83.f, 15.f); // offset from the player position
-    glm::quat rotationQuat = glm::angleAxis(glm::radians(eulerAngle.y), glm::vec3(0.0f, 1.0f, 0.0f)); // rotate around the Y axis
+    glm::quat rotationQuat = glm::angleAxis(glm::radians(eulerAngle.y), VEC_UP); // rotate around the Y axis
     glm::vec3 rotatedOffset = rotationQuat * cameraOffset;
     glm::vec3 finalCameraPosition = pos + rotatedOffset;
 
@@ -82,11 +82,12 @@ void Player::updatePlayer(glm::vec3 pos, glm::vec3 eulerAngle) {
 	transform.setLocalRotation(glm::vec3(0.0f, eulerAngle.y, 0.0f)); // Only Y axis for the player model
 	transform.setLocalPosition(pos);
 
-	glm::vec3 weaponOffset(-20.0f, 70.0f, 60.0f); // offset from the player position
 	for (auto&& child : children) {
-		// Send X & Z axis for the child
-		child->transform.setLocalPosition(weaponOffset);
-		child->transform.setLocalRotation(glm::vec3(eulerAngle.x - 90.0f, 0.0f, eulerAngle.z));
+		// Rotate weapon around both X and Y axes
+        child->transform.setLocalRotation(glm::vec3(eulerAngle.x - 90.0f, 0.0f, eulerAngle.z));
+		// Set the weapon position
+        child->transform.setLocalPosition(weaponOffset);
+
 	}
 }
 
