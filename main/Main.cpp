@@ -29,8 +29,8 @@ using namespace glm;
 #include <common/Weapon.hpp>
 
 // settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH = 1080;
+const unsigned int SCR_HEIGHT = 720;
 
 // timing
 float deltaTime = 0.0f;	// time between current frame and last frame
@@ -72,6 +72,7 @@ int main( void )
     Entity scene(&MainShader);
 
     Player Slayer("../data/model/slayer/slayer.gltf", &MainShader, FpsCamera);
+    Slayer.transform.setLocalPosition(glm::vec3(0, 20, 0));
     //Shader HUDShader("../shader/vertexText.glsl", "../shader/fragmentText.glsl");
     //Slayer.initHUD(HUDShader.ID);
 
@@ -79,7 +80,7 @@ int main( void )
     ar181.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
     ar181.transform.setLocalRotation(glm::vec3(-90.0f, 1.0f, 1.0f));
 
-    Entity map("../data/model/cube/Cube.gltf", &MainShader); // Test collision
+    Entity map(&MainShader); // Test collision
     Entity map2("../data/model/cube/Cube.gltf", &MainShader);
     Entity map3("../data/model/cube/Cube.gltf", &MainShader);
     Entity map4("../data/model/cube/Cube.gltf", &MainShader);
@@ -213,7 +214,7 @@ bool globalInit()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Open a window and create its OpenGL context
-    window = glfwCreateWindow( 1024, 768, "GoultardEngine", NULL, NULL);
+    window = glfwCreateWindow( SCR_WIDTH, SCR_HEIGHT, "GoultardEngine", NULL, NULL);
     if( window == NULL ){
         fprintf( stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n" );
         getchar();

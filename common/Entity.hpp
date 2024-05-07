@@ -76,8 +76,8 @@ public:
 		if (CheckCollisionWithSingleEntity(other))
 			return true;
 
-		// And check collision with this child
-		for (Entity* child : other.children) {
+		// And check collision with other child
+		for (auto&& child : other.children) {
 			if (CheckCollisionWithEntity(*child))
 				return true;
 		}

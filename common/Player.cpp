@@ -75,7 +75,7 @@ void Player::updatePlayer(bool isColliding, glm::vec3 pos, glm::vec3 eulerAngle)
     camera.setRotation(eulerAngle);
 	transform.setLocalRotation(glm::vec3(0.0f, eulerAngle.y, 0.0f));
 	
-	// std::cout << m_collisionDetected << std::endl;
+	std::cout << isColliding << std::endl;
 	if (isColliding) {
 		transform.setLocalPosition(m_lastValidPosition - m_normalCollision);
 		camera.setPosition(m_lastValidPosition - m_normalCollision +  rotatedOffset);
@@ -100,8 +100,8 @@ bool Player::CheckCollisionWithEntity(Entity &other) {
 	if (CheckCollisionWithSingleEntity(other))
 		return true;
 
-	// And check collision with this child
-	for (Entity* child : other.children) {
+	// And check collision with other child
+	for (auto&& child : other.children) {
 		if (CheckCollisionWithEntity(*child))
 			return true;
 	}
@@ -111,7 +111,11 @@ bool Player::CheckCollisionWithEntity(Entity &other) {
 
 bool Player::CheckCollisionWithSingleEntity(Entity &entity) { // AABB - AABB Collision
 	AABB playerAABB = this->model.getBoundingBox();
+	for (auto&& child : this->children) {
+		playerAABB.expand(child->model.getBoundingBox());
+	}
 	AABB entityAABB = entity.model.getBoundingBox();
+	if (entityAABB.boxMax == glm::vec3(-std::numeric_limits<float>::infinity()) || entityAABB.boxMin == glm::vec3(std::numeric_limits<float>::infinity())) return false;
 
 	// Update bounding box
 	playerAABB.updateBoundingBox(this->transform.getModelMatrix());
