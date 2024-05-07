@@ -29,9 +29,9 @@ void Player::updateInput(bool isColliding, float _deltaTime, GLFWwindow* _window
 	// Compute the new rotation angles
 	glm::vec3 eulerAngle = camera.getRotationEuler();
 
-	eulerAngle.y -= (float)(deltaX) * m_rotationSpeed;
+	eulerAngle.y -= (float)(deltaX) * playerRotationSpeed;
 	eulerAngle.y = Camera::clipAngle180(eulerAngle.y); // Clamp the yaw angle between -180 and 180 degrees
-	eulerAngle.x += (float)(deltaY) * m_rotationSpeed;
+	eulerAngle.x += (float)(deltaY) * playerRotationSpeed;
 	eulerAngle.x = glm::clamp(eulerAngle.x, -89.9f, 89.9f); // Clamp the pitch angle between -90 and 90 degrees
 
 
@@ -112,14 +112,16 @@ bool Player::CheckCollisionWithEntity(Entity &other) {
 
 bool Player::CheckCollisionWithSingleEntity(Entity &entity) { // AABB - AABB Collision
 	AABB playerAABB = this->model.getBoundingBox();
-	for (auto&& child : this->children) {
-		playerAABB.expand(child->model.getBoundingBox());
-	}
 	AABB entityAABB = entity.model.getBoundingBox();
 	if (entityAABB.boxMax == glm::vec3(-std::numeric_limits<float>::infinity()) || entityAABB.boxMin == glm::vec3(std::numeric_limits<float>::infinity())) return false;
 
 	// Update bounding box
-	playerAABB.updateBoundingBox(this->transform.getModelMatrix());
+	for (auto&& child : this->children) {
+		AABB chidlAABB = child->model.getBoundingBox();
+		chidlAABB.updateBoundingBox(child->transform.getModelMatrix());
+		playerAABB.updateBoundingBox(this->transform.getModelMatrix());
+		playerAABB.expand(chidlAABB);
+	}
 	entityAABB.updateBoundingBox(entity.transform.getModelMatrix());
 
 

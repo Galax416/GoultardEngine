@@ -13,8 +13,8 @@ static glm::vec3 bulletOffset = weaponOffset - cameraOffset; // offset from the 
 class Player : public Entity {
 
 private:
-    float m_translationSpeed{ 50.0f };
-    float m_rotationSpeed{ 0.1f };
+    float m_translationSpeed{ 150.0f };
+    float m_rotationSpeed{ 2.5f };
     int m_health{ 100 };
 
     glm::vec3 m_lastValidPosition;
