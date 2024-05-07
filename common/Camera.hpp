@@ -19,7 +19,7 @@ enum InterpolationType {
 
 static glm::vec3 VEC_ZERO{ 0.f,0.f,0.f };
 static glm::vec3 VEC_UP{ 0.f,1.f,0.f };
-static glm::vec3 VEC_FRONT{ 0.f,0.f,-1.f };
+static glm::vec3 VEC_FRONT{ 0.f,0.f,1.f };
 static glm::vec3 VEC_RIGHT{ 1.f,0.f,0.f };
 
 class Camera {
@@ -29,17 +29,27 @@ public:
     void update(float _deltaTime, GLFWwindow* _window);
     void updateInput(float _deltaTime, GLFWwindow* _window);
     void computeView(glm::mat4& _outProjectionMatrix, glm::mat4& _outviewMatrix, glm::vec3& _position, glm::quat _rotation, float _fovDegree);
+    void setEditionMode(bool _isEditionMode) { m_isEditionMode = _isEditionMode; }
 
 	glm::quat getRotation() const {return m_rotation;}
+    glm::vec3 getRotationEuler() const {return m_eulerAngle;}
+    glm::vec3 getFront() const {return m_front;}
 	glm::mat4 getViewMatrix() const {return m_viewMatrix;}
 	glm::mat4 getProjectionMatrix() const {return m_projectionMatrix;}
+    glm::vec3 getPosition() const {return m_position;}
+    bool getEditionMode() const {return m_isEditionMode;}
+
+    void setPosition(glm::vec3 _position) { m_position = _position; }
+    void setRotation(glm::quat _rotation) { m_rotation = _rotation; }
+    void setRotation(glm::vec3 _eulerAngle) { m_eulerAngle = _eulerAngle; }
+
+    static float clipAngle180(float angle);
 
 
-private:
+protected:
 
     // Utils
     glm::vec3 projectVectorOnPlan(glm::vec3 vector, glm::vec3 normalPlan);
-    float clipAngle180(float angle);
     float interpolate(float ratio, InterpolationType type);
     glm::vec3 quatToEuler(glm::quat _quat);
 

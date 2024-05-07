@@ -25,10 +25,12 @@ using namespace glm;
 #include <common/Entity.hpp>
 #include <common/Skybox.hpp>
 #include <common/Input.hpp>
+#include <common/Player.hpp>
+#include <common/Weapon.hpp>
 
 // settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH = 1080;
+const unsigned int SCR_HEIGHT = 720;
 
 // timing
 float deltaTime = 0.0f;	// time between current frame and last frame
@@ -40,6 +42,8 @@ float zoom = 1.;
 
 //wire mode 
 bool wireMode = false;
+
+bool inFreeCam = false;
 
 bool globalInit();
 void windowSetup();
@@ -55,33 +59,50 @@ int main( void )
     }
 
     // Create and compile our GLSL program from the shaders
-    Shader MainShader( "vertex_shader.glsl", "fragment_shader.glsl" );
-    MainShader.Use();
+    Shader MainShader( "../shader/vertex_shader.glsl", "../shader/fragment_shader.glsl" );
+    MainShader.use();
 
-    Entity scene(MainShader);
+    Camera FreeCam;
+    FreeCam.init();
+    FreeCam.setEditionMode(true);
 
-    Entity Slayer("../data/model/slayer/slayer.gltf", MainShader);
-    Slayer.transform.setLocalScale(glm::vec3(0.1f, 0.1f, 0.1f));
+    Camera FpsCamera;
 
-    Entity kiki("../data/AnimatedCube.gltf", MainShader);
-    // kiki.transform.setLocalScale(glm::vec3(0.1f, 0.1f, 0.1f));
+    Entity scene(&MainShader);
+
+    Player Slayer("../data/model/slayer/slayer.gltf", &MainShader, FpsCamera);
+    //Shader HUDShader("../shader/vertexText.glsl", "../shader/fragmentText.glsl");
+    //Slayer.initHUD(HUDShader.ID);
+
+    Weapon ar181("../data/model/plasma_rifle/scene.gltf", &MainShader, "../data/model/50bmg/scene.gltf");
+    ar181.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
+    ar181.transform.setLocalRotation(glm::vec3(-90.0f, 1.0f, 1.0f));
+
+    Entity map("../data/model/map/scene.gltf", &MainShader);
+    map.transform.setLocalRotation(glm::vec3(-90.0f, 0.0f, 0.0f));
+    map.transform.setLocalPosition(glm::vec3(800.0f, 0.0f, 0.0f));
+
+    Entity Demon("../data/model/silver_bullet/scene.gltf", &MainShader);
+    Demon.transform.setLocalScale(glm::vec3(10.15f, 10.15f, 10.15f));
+    Demon.transform.setLocalPosition(glm::vec3(50.0f, 50.0f, 100.0f));
 
     scene.addChild(Slayer);
-    scene.addChild(kiki);
-    
+    scene.addChild(map);
+    //scene.addChild(Demon);
+    Slayer.addChild(ar181);
+    Slayer.setWeapon(&ar181);
+
     scene.updateSelfAndChild();
 
     // Get a handle for our "LightPosition" uniform
-    GLuint LightID = glGetUniformLocation(MainShader.ID, "LightPosition_worldspace");
+    GLuint LightID = glGetUniformLocation(MainShader.getID(), "LightPosition_worldspace");
     // Chargement de la Skybox
     Skybox skybox;
-    skybox.init(Shader("../main/vertexSky.glsl", "../main/fragmentSky.glsl"));
+    skybox.init(Shader("../shader/vertexSky.glsl", "../shader/fragmentSky.glsl"));
 
-    scene.bindVBO(MainShader.ID);
-   
     // Init Camera
-    Camera camera_libre;
-    camera_libre.init();
+    //Camera camera_libre;
+    //camera_libre.init();
 
     // Pressing only one time
     glfwSetKeyCallback(window, key_callback);
@@ -111,16 +132,30 @@ int main( void )
 
         // Use our shader
 
-        // Update
-        camera_libre.update(deltaTime, window);
-        scene.updateSelfAndChild();
+        // -- Update --
+        MainShader.use();
 
-        MainShader.Use();
-        glUniformMatrix4fv(glGetUniformLocation(MainShader.ID, "View"), 1, GL_FALSE, &camera_libre.getViewMatrix()[0][0]);
-        glUniformMatrix4fv(glGetUniformLocation(MainShader.ID, "Projection"), 1, GL_FALSE, & camera_libre.getProjectionMatrix()[0][0]);
+        // Player
+        Slayer.camera.update(deltaTime, window);
+        Slayer.updateInput(deltaTime, window);
+
+        // HUD
+        //Slayer.DrawHUD();
+
+        // Weapon
+        Slayer.weapon->updateBullets(deltaTime);
+
+        // Scene
+        scene.updateSelfAndChild();
+        FreeCam.update(deltaTime, window);
+
+        //if (Slayer.camera.getEditionMode()) {
+            glUniformMatrix4fv(glGetUniformLocation(MainShader.getID(), "View"), 1, GL_FALSE, &Slayer.camera.getViewMatrix()[0][0]);
+            glUniformMatrix4fv(glGetUniformLocation(MainShader.getID(), "Projection"), 1, GL_FALSE, &Slayer.camera.getProjectionMatrix()[0][0]);
+        //}
 		
         // Render
-        skybox.render(camera_libre);
+        skybox.render(Slayer.camera);
         scene.render();
 
         // Swap buffers
@@ -131,9 +166,8 @@ int main( void )
     while( glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
            glfwWindowShouldClose(window) == 0 );
 
-    glDeleteProgram(MainShader.ID);
+    glDeleteProgram(MainShader.getID());
     // Cleanup VBO and shader
-    scene.unbindVBO();
     skybox.clear();
 
     // Close OpenGL window and terminate GLFW
@@ -160,7 +194,7 @@ bool globalInit()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Open a window and create its OpenGL context
-    window = glfwCreateWindow( 1024, 768, "GoultardEngine", NULL, NULL);
+    window = glfwCreateWindow( SCR_WIDTH, SCR_HEIGHT, "GoultardEngine", NULL, NULL);
     if( window == NULL ){
         fprintf( stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n" );
         getchar();
@@ -220,10 +254,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         wireMode = !wireMode;
         if(wireMode) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         else glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    }
-
-    if (key == GLFW_KEY_C && action == GLFW_PRESS) {
-        
     }
 }
 
