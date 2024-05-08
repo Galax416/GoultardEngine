@@ -37,7 +37,6 @@ include_directories(
 	external/glm-0.9.7.1/
 	external/glew-1.13.0/include/
 	external/assimp/include/
-	external/freetype-2.13.2/include/
 	.
 )
 
@@ -98,6 +97,8 @@ add_executable(main
 	common/Weapon.hpp
 	common/Weapon.cpp
 
+	common/Monster.hpp
+	common/Monster.cpp
 
 )
 target_link_libraries(main

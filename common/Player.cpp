@@ -75,7 +75,6 @@ void Player::updatePlayer(bool isColliding, glm::vec3 pos, glm::vec3 eulerAngle)
     camera.setRotation(eulerAngle);
 	transform.setLocalRotation(glm::vec3(0.0f, eulerAngle.y, 0.0f));
 	
-	std::cout << isColliding << std::endl;
 	if (isColliding) {
 		transform.setLocalPosition(m_lastValidPosition - m_normalCollision);
 		camera.setPosition(m_lastValidPosition - m_normalCollision +  rotatedOffset);

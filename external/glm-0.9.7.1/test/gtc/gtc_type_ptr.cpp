@@ -1,37 +1,10 @@
-///////////////////////////////////////////////////////////////////////////////////
-/// OpenGL Mathematics (glm.g-truc.net)
-///
-/// Copyright (c) 2005 - 2015 G-Truc Creation (www.g-truc.net)
-/// Permission is hereby granted, free of charge, to any person obtaining a copy
-/// of this software and associated documentation files (the "Software"), to deal
-/// in the Software without restriction, including without limitation the rights
-/// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-/// copies of the Software, and to permit persons to whom the Software is
-/// furnished to do so, subject to the following conditions:
-/// 
-/// The above copyright notice and this permission notice shall be included in
-/// all copies or substantial portions of the Software.
-/// 
-/// Restrictions:
-///		By making use of the Software for military purposes, you choose to make
-///		a Bunny unhappy.
-/// 
-/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-/// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-/// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-/// THE SOFTWARE.
-///
-/// @file test/gtc/gtc_type_ptr.cpp
-/// @date 2010-09-16 / 2014-11-25
-/// @author Christophe Riccio
-///////////////////////////////////////////////////////////////////////////////////
-
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/vec1.hpp>
+#include <glm/gtc/constants.hpp>
+#include <glm/ext/vector_relational.hpp>
+#include <glm/ext/matrix_relational.hpp>
 
-int test_value_ptr_vec()
+static int test_value_ptr_vec()
 {
 	int Error = 0;
 
@@ -70,7 +43,7 @@ int test_value_ptr_vec()
 	return Error;
 }
 
-int test_value_ptr_vec_const()
+static int test_value_ptr_vec_const()
 {
 	int Error = 0;
 
@@ -109,7 +82,7 @@ int test_value_ptr_vec_const()
 	return Error;
 }
 
-int test_value_ptr_mat()
+static int test_value_ptr_mat()
 {
 	int Error = 0;
 
@@ -162,7 +135,7 @@ int test_value_ptr_mat()
 	return Error;
 }
 
-int test_value_ptr_mat_const()
+static int test_value_ptr_mat_const()
 {
 	int Error = 0;
 
@@ -215,7 +188,7 @@ int test_value_ptr_mat_const()
 	return Error;
 }
 
-int test_make_pointer_mat()
+static int test_make_pointer_mat()
 {
 	int Error = 0;
 
@@ -223,29 +196,65 @@ int test_make_pointer_mat()
 	double ArrayB[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 
 	glm::mat2x2 Mat2x2A = glm::make_mat2x2(ArrayA);
+	Error += glm::all(glm::equal(Mat2x2A, glm::mat2x2(0, 1, 2, 3), 0.001f)) ? 0 : 1;
+
 	glm::mat2x3 Mat2x3A = glm::make_mat2x3(ArrayA);
+	Error += glm::all(glm::equal(Mat2x3A, glm::mat2x3(0, 1, 2, 3, 4, 5), 0.001f)) ? 0 : 1;
+
 	glm::mat2x4 Mat2x4A = glm::make_mat2x4(ArrayA);
+	Error += glm::all(glm::equal(Mat2x4A, glm::mat2x4(0, 1, 2, 3, 4, 5, 6, 7), 0.001f)) ? 0 : 1;
+
 	glm::mat3x2 Mat3x2A = glm::make_mat3x2(ArrayA);
+	Error += glm::all(glm::equal(Mat3x2A, glm::mat3x2(0, 1, 2, 3, 4, 5), 0.001f)) ? 0 : 1;
+
 	glm::mat3x3 Mat3x3A = glm::make_mat3x3(ArrayA);
+	Error += glm::all(glm::equal(Mat3x3A, glm::mat3x3(0, 1, 2, 3, 4, 5, 6, 7, 8), 0.001f)) ? 0 : 1;
+
 	glm::mat3x4 Mat3x4A = glm::make_mat3x4(ArrayA);
+	Error += glm::all(glm::equal(Mat3x4A, glm::mat3x4(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11), 0.001f)) ? 0 : 1;
+
 	glm::mat4x2 Mat4x2A = glm::make_mat4x2(ArrayA);
+	Error += glm::all(glm::equal(Mat4x2A, glm::mat4x2(0, 1, 2, 3, 4, 5, 6, 7), 0.001f)) ? 0 : 1;
+
 	glm::mat4x3 Mat4x3A = glm::make_mat4x3(ArrayA);
+	Error += glm::all(glm::equal(Mat4x3A, glm::mat4x3(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11), 0.001f)) ? 0 : 1;
+
 	glm::mat4x4 Mat4x4A = glm::make_mat4x4(ArrayA);
+	Error += glm::all(glm::equal(Mat4x4A, glm::mat4x4(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15), 0.001f)) ? 0 : 1;
+
+
 
 	glm::dmat2x2 Mat2x2B = glm::make_mat2x2(ArrayB);
+	Error += glm::all(glm::equal(Mat2x2B, glm::dmat2x2(0, 1, 2, 3), 0.001)) ? 0 : 1;
+
 	glm::dmat2x3 Mat2x3B = glm::make_mat2x3(ArrayB);
+	Error += glm::all(glm::equal(Mat2x3B, glm::dmat2x3(0, 1, 2, 3, 4, 5), 0.001)) ? 0 : 1;
+
 	glm::dmat2x4 Mat2x4B = glm::make_mat2x4(ArrayB);
+	Error += glm::all(glm::equal(Mat2x4B, glm::dmat2x4(0, 1, 2, 3, 4, 5, 6, 7), 0.001)) ? 0 : 1;
+
 	glm::dmat3x2 Mat3x2B = glm::make_mat3x2(ArrayB);
+	Error += glm::all(glm::equal(Mat3x2B, glm::dmat3x2(0, 1, 2, 3, 4, 5), 0.001)) ? 0 : 1;
+
 	glm::dmat3x3 Mat3x3B = glm::make_mat3x3(ArrayB);
+	Error += glm::all(glm::equal(Mat3x3B, glm::dmat3x3(0, 1, 2, 3, 4, 5, 6, 7, 8), 0.001)) ? 0 : 1;
+
 	glm::dmat3x4 Mat3x4B = glm::make_mat3x4(ArrayB);
+	Error += glm::all(glm::equal(Mat3x4B, glm::dmat3x4(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11), 0.001)) ? 0 : 1;
+
 	glm::dmat4x2 Mat4x2B = glm::make_mat4x2(ArrayB);
+	Error += glm::all(glm::equal(Mat4x2B, glm::dmat4x2(0, 1, 2, 3, 4, 5, 6, 7), 0.001)) ? 0 : 1;
+
 	glm::dmat4x3 Mat4x3B = glm::make_mat4x3(ArrayB);
+	Error += glm::all(glm::equal(Mat4x3B, glm::dmat4x3(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11), 0.001)) ? 0 : 1;
+
 	glm::dmat4x4 Mat4x4B = glm::make_mat4x4(ArrayB);
+	Error += glm::all(glm::equal(Mat4x4B, glm::dmat4x4(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15), 0.001)) ? 0 : 1;
 
 	return Error;
 }
 
-int test_make_pointer_vec()
+static int test_make_pointer_vec()
 {
 	int Error = 0;
 
@@ -254,16 +263,107 @@ int test_make_pointer_vec()
 	bool ArrayC[] = {true, false, true, false, true, false, true, false, true, false, true, false, true, false, true, false};
 
 	glm::vec2 Vec2A = glm::make_vec2(ArrayA);
+	Error += glm::all(glm::equal(Vec2A, glm::vec2(0, 1), 0.001f)) ? 0 : 1;
+
 	glm::vec3 Vec3A = glm::make_vec3(ArrayA);
+	Error += glm::all(glm::equal(Vec3A, glm::vec3(0, 1, 2), 0.001f)) ? 0 : 1;
+
 	glm::vec4 Vec4A = glm::make_vec4(ArrayA);
+	Error += glm::all(glm::equal(Vec4A, glm::vec4(0, 1, 2, 3), 0.001f)) ? 0 : 1;
 
 	glm::ivec2 Vec2B = glm::make_vec2(ArrayB);
+	Error += glm::all(glm::equal(Vec2B, glm::ivec2(0, 1))) ? 0 : 1;
+
 	glm::ivec3 Vec3B = glm::make_vec3(ArrayB);
+	Error += glm::all(glm::equal(Vec3B, glm::ivec3(0, 1, 2))) ? 0 : 1;
+
 	glm::ivec4 Vec4B = glm::make_vec4(ArrayB);
+	Error += glm::all(glm::equal(Vec4B, glm::ivec4(0, 1, 2, 3))) ? 0 : 1;
 
 	glm::bvec2 Vec2C = glm::make_vec2(ArrayC);
+	Error += glm::all(glm::equal(Vec2C, glm::bvec2(true, false))) ? 0 : 1;
+
 	glm::bvec3 Vec3C = glm::make_vec3(ArrayC);
+	Error += glm::all(glm::equal(Vec3C, glm::bvec3(true, false, true))) ? 0 : 1;
+
 	glm::bvec4 Vec4C = glm::make_vec4(ArrayC);
+	Error += glm::all(glm::equal(Vec4C, glm::bvec4(true, false, true, false))) ? 0 : 1;
+
+	return Error;
+}
+
+static int test_make_vec1()
+{
+	int Error = 0;
+
+	glm::ivec1 const v1 = glm::make_vec1(glm::ivec1(2));
+	Error += v1 == glm::ivec1(2) ? 0 : 1;
+
+	glm::ivec1 const v2 = glm::make_vec1(glm::ivec2(2));
+	Error += v2 == glm::ivec1(2) ? 0 : 1;
+
+	glm::ivec1 const v3 = glm::make_vec1(glm::ivec3(2));
+	Error += v3 == glm::ivec1(2) ? 0 : 1;
+
+	glm::ivec1 const v4 = glm::make_vec1(glm::ivec4(2));
+	Error += v4 == glm::ivec1(2) ? 0 : 1;
+
+	return Error;
+}
+
+static int test_make_vec2()
+{
+	int Error = 0;
+
+	glm::ivec2 const v1 = glm::make_vec2(glm::ivec1(2));
+	Error += v1 == glm::ivec2(2, 0) ? 0 : 1;
+
+	glm::ivec2 const v2 = glm::make_vec2(glm::ivec2(2));
+	Error += v2 == glm::ivec2(2, 2) ? 0 : 1;
+
+	glm::ivec2 const v3 = glm::make_vec2(glm::ivec3(2));
+	Error += v3 == glm::ivec2(2, 2) ? 0 : 1;
+
+	glm::ivec2 const v4 = glm::make_vec2(glm::ivec4(2));
+	Error += v4 == glm::ivec2(2, 2) ? 0 : 1;
+
+	return Error;
+}
+
+static int test_make_vec3()
+{
+	int Error = 0;
+
+	glm::ivec3 const v1 = glm::make_vec3(glm::ivec1(2));
+	Error += v1 == glm::ivec3(2, 0, 0) ? 0 : 1;
+
+	glm::ivec3 const v2 = glm::make_vec3(glm::ivec2(2));
+	Error += v2 == glm::ivec3(2, 2, 0) ? 0 : 1;
+
+	glm::ivec3 const v3 = glm::make_vec3(glm::ivec3(2));
+	Error += v3 == glm::ivec3(2, 2, 2) ? 0 : 1;
+
+	glm::ivec3 const v4 = glm::make_vec3(glm::ivec4(2));
+	Error += v4 == glm::ivec3(2, 2, 2) ? 0 : 1;
+
+	return Error;
+}
+
+static int test_make_vec4()
+{
+	int Error = 0;
+
+	glm::ivec4 const v1 = glm::make_vec4(glm::ivec1(2));
+	Error += v1 == glm::ivec4(2, 0, 0, 1) ? 0 : 1;
+
+	glm::ivec4 const v2 = glm::make_vec4(glm::ivec2(2));
+	Error += v2 == glm::ivec4(2, 2, 0, 1) ? 0 : 1;
+
+	glm::ivec4 const v3 = glm::make_vec4(glm::ivec3(2));
+	Error += v3 == glm::ivec4(2, 2, 2, 1) ? 0 : 1;
+
+	glm::ivec4 const v4 = glm::make_vec4(glm::ivec4(2));
+	Error += v4 == glm::ivec4(2, 2, 2, 2) ? 0 : 1;
 
 	return Error;
 }
@@ -272,6 +372,10 @@ int main()
 {
 	int Error = 0;
 
+	Error += test_make_vec1();
+	Error += test_make_vec2();
+	Error += test_make_vec3();
+	Error += test_make_vec4();
 	Error += test_make_pointer_vec();
 	Error += test_make_pointer_mat();
 	Error += test_value_ptr_vec();

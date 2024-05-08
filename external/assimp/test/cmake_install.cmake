@@ -1,4 +1,4 @@
-# Install script for directory: /home/galax/Desktop/Projet-Moteur-de-Jeux/external/assimp/test
+# Install script for directory: /home/mickael/Documents/GoultardEngine/external/assimp/test
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -29,7 +29,7 @@ endif()
 
 # Install shared libraries without execute permission?
 if(NOT DEFINED CMAKE_INSTALL_SO_NO_EXE)
-  set(CMAKE_INSTALL_SO_NO_EXE "1")
+  set(CMAKE_INSTALL_SO_NO_EXE "0")
 endif()
 
 # Is this installation the result of a crosscompile?
@@ -44,7 +44,7 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/home/galax/Desktop/Projet-Moteur-de-Jeux/external/assimp/test/headercheck/cmake_install.cmake")
+  include("/home/mickael/Documents/GoultardEngine/external/assimp/test/headercheck/cmake_install.cmake")
 
 endif()
 

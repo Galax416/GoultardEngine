@@ -80,7 +80,7 @@ void Skybox::render(Camera &_camera)
 {
 	glm::mat4 viewMatrix = _camera.getViewMatrix();
 	glm::mat4 projectionMatrix = _camera.getProjectionMatrix();
-	glm::mat4 modelMatrix/*  = glm::mat4(1.0) */;
+	glm::mat4 modelMatrix = glm::mat4(1.0);
 
 	glUseProgram(m_program_SkyBox);
     glDepthFunc(GL_LEQUAL);

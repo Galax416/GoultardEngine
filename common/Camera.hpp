@@ -42,16 +42,18 @@ public:
     void setPosition(glm::vec3 _position) { m_position = _position; }
     void setRotation(glm::quat _rotation) { m_rotation = _rotation; }
     void setRotation(glm::vec3 _eulerAngle) { m_eulerAngle = _eulerAngle; }
+    void setTranslationSpeed(float _speed) { m_translationSpeed = _speed; }
 
     static float clipAngle180(float angle);
     static glm::vec3 projectVectorOnPlan(glm::vec3 vector, glm::vec3 normalPlan);
+    static glm::vec3 quatToEuler(glm::quat _quat);
 
 
 protected:
 
     // Utils
     float interpolate(float ratio, InterpolationType type);
-    glm::vec3 quatToEuler(glm::quat _quat);
+    
 
     // Camera parameters 
     float       m_fovDegree{ 45.0 };

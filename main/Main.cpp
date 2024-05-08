@@ -27,6 +27,7 @@ using namespace glm;
 #include <common/Input.hpp>
 #include <common/Player.hpp>
 #include <common/Weapon.hpp>
+#include <common/Monster.hpp>
 
 // settings
 const unsigned int SCR_WIDTH = 1080;
@@ -66,6 +67,7 @@ int main( void )
     Camera FreeCam;
     FreeCam.init();
     FreeCam.setEditionMode(true);
+    FreeCam.setTranslationSpeed(2000.0f);
 
     Camera FpsCamera;
 
@@ -81,27 +83,23 @@ int main( void )
     ar181.transform.setLocalRotation(glm::vec3(-90.0f, 1.0f, 1.0f));
 
     Entity map(&MainShader); // Test collision
-    Entity map2("../data/model/cube/Cube.gltf", &MainShader);
-    Entity map3("../data/model/cube/Cube.gltf", &MainShader);
-    Entity map4("../data/model/cube/Cube.gltf", &MainShader);
+    Entity stoneGround("../data/model/stone_ground/scene.gltf", &MainShader);
+    stoneGround.transform.setLocalScale(glm::vec3(2000.0f));
 
-    map2.transform.setLocalScale(glm::vec3(200, 200, 10));
-    map2.transform.setLocalPosition(glm::vec3(0, 0, -200));
-    map3.transform.setLocalScale(glm::vec3(200, 200, 10));
-    map3.transform.setLocalPosition(glm::vec3(0, 0, 200));
-    map4.transform.setLocalScale(glm::vec3(200, 10, 200));
+    Entity grassGround("../data/model/grass_ground/scene.gltf", &MainShader);
+    grassGround.transform.setLocalScale(glm::vec3(2000.0f));
+    grassGround.transform.setLocalPosition(glm::vec3(2000.0f, 0.0f, 0.0f));
 
-    map.addChild(map2);
-    map.addChild(map3);
-    map.addChild(map4);
+    map.addChild(stoneGround);
+    map.addChild(grassGround);
 
-    Entity Demon("../data/model/silver_bullet/scene.gltf", &MainShader);
-    Demon.transform.setLocalScale(glm::vec3(10.15f, 10.15f, 10.15f));
-    Demon.transform.setLocalPosition(glm::vec3(50.0f, 50.0f, 100.0f));
+    Monster Demon("../data/model/cacodemon/scene.gltf", &MainShader);
+    Demon.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
+    Demon.transform.setLocalPosition(glm::vec3(2500.0f, 200.0f, 100.0f));
 
     scene.addChild(Slayer);
     scene.addChild(map);
-    //scene.addChild(Demon);
+    scene.addChild(Demon);
     Slayer.addChild(ar181);
     Slayer.setWeapon(&ar181);
 
@@ -167,6 +165,9 @@ int main( void )
 
             // Weapon
             Slayer.weapon->updateBullets(deltaTime);
+
+            // Monster
+            Demon.detectPlayer(Slayer.transform.getLocalPosition(), deltaTime);
         }
 
         // Scene
@@ -176,7 +177,7 @@ int main( void )
         glUniformMatrix4fv(glGetUniformLocation(MainShader.getID(), "Projection"), 1, GL_FALSE, &currentCamera.getProjectionMatrix()[0][0]);
 		
         // Render
-        skybox.render(Slayer.camera);
+        skybox.render(currentCamera);
         scene.render();
 
         // Swap buffers

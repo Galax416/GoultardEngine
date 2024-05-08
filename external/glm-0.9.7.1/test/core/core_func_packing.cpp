@@ -1,41 +1,10 @@
-///////////////////////////////////////////////////////////////////////////////////
-/// OpenGL Mathematics (glm.g-truc.net)
-///
-/// Copyright (c) 2005 - 2015 G-Truc Creation (www.g-truc.net)
-/// Permission is hereby granted, free of charge, to any person obtaining a copy
-/// of this software and associated documentation files (the "Software"), to deal
-/// in the Software without restriction, including without limitation the rights
-/// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-/// copies of the Software, and to permit persons to whom the Software is
-/// furnished to do so, subject to the following conditions:
-/// 
-/// The above copyright notice and this permission notice shall be included in
-/// all copies or substantial portions of the Software.
-/// 
-/// Restrictions:
-///		By making use of the Software for military purposes, you choose to make
-///		a Bunny unhappy.
-/// 
-/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-/// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-/// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-/// THE SOFTWARE.
-///
-/// @file test/core/func_packing.cpp
-/// @date 2011-01-15 / 2011-09-13
-/// @author Christophe Riccio
-///////////////////////////////////////////////////////////////////////////////////
-
 #include <glm/gtc/type_precision.hpp>
 #include <glm/gtc/epsilon.hpp>
 #include <glm/vector_relational.hpp>
 #include <glm/packing.hpp>
 #include <vector>
 
-int test_packUnorm2x16()
+static int test_packUnorm2x16()
 {
 	int Error = 0;
 
@@ -56,7 +25,7 @@ int test_packUnorm2x16()
 	return Error;
 }
 
-int test_packSnorm2x16()
+static int test_packSnorm2x16()
 {
 	int Error = 0;
 
@@ -77,10 +46,16 @@ int test_packSnorm2x16()
 	return Error;
 }
 
-int test_packUnorm4x8()
+static int test_packUnorm4x8()
 {
 	int Error = 0;
-	
+
+	glm::uint32 Packed = glm::packUnorm4x8(glm::vec4(1.0f, 0.5f, 0.0f, 1.0f));
+	glm::u8vec4 Vec(255, 128, 0, 255);
+	glm::uint32 & Ref = *reinterpret_cast<glm::uint32*>(&Vec[0]);
+
+	Error += Packed == Ref ? 0 : 1;
+
 	std::vector<glm::vec4> A;
 	A.push_back(glm::vec4(1.0f, 0.7f, 0.3f, 0.0f));
 	A.push_back(glm::vec4(0.5f, 0.1f, 0.2f, 0.3f));
@@ -97,7 +72,7 @@ int test_packUnorm4x8()
 	return Error;
 }
 
-int test_packSnorm4x8()
+static int test_packSnorm4x8()
 {
 	int Error = 0;
 	
@@ -117,7 +92,7 @@ int test_packSnorm4x8()
 	return Error;
 }
 
-int test_packHalf2x16()
+static int test_packHalf2x16()
 {
 	int Error = 0;
 /*
@@ -144,7 +119,7 @@ int test_packHalf2x16()
 	return Error;
 }
 
-int test_packDouble2x32()
+static int test_packDouble2x32()
 {
 	int Error = 0;
 	
