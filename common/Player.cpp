@@ -3,10 +3,16 @@
 Player::Player(std::string filename, Shader *shader, Camera camera) : Entity(filename, shader) {
     camera.setEditionMode(false);
     this->camera = camera;
-	this->camera.init();
 	this->camera.setPosition(glm::vec3(0.f, 90.f, 0.f));
 	this->camera.setRotation(glm::quat(glm::vec3(0.f, 0.f, 0.f)));
 	this->camera.setEditionMode(false);
+}
+
+void Player::jump(float jumpSpeed) {
+	if (isGrounded) {
+		velocity.y = jumpSpeed;
+		isGrounded = false;
+	}
 }
 
 void Player::updateInput(bool isColliding, float _deltaTime, GLFWwindow* _window) {   
@@ -35,6 +41,13 @@ void Player::updateInput(bool isColliding, float _deltaTime, GLFWwindow* _window
 	eulerAngle.x = glm::clamp(eulerAngle.x, -89.9f, 89.9f); // Clamp the pitch angle between -90 and 90 degrees
 
 
+	// Apply gravity if not grounded
+	if (!isGrounded) {
+		velocity.y -= gravity * _deltaTime;
+	} else {
+		velocity.y = 0.0f;
+	}
+
 	// ZQSD movement
 	glm::vec3 pos = transform.getLocalPosition();
 	this->m_lastValidPosition = pos;
@@ -51,20 +64,27 @@ void Player::updateInput(bool isColliding, float _deltaTime, GLFWwindow* _window
 		pos += glm::normalize(Camera::projectVectorOnPlan(glm::normalize(glm::cross(camera.getFront(), VEC_UP)), VEC_UP)) * playerTranslationSpeed;
 	}
 
-	updatePlayer(isColliding, pos, eulerAngle);
+	// jump
+	if (glfwGetKey(_window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+		jump(5.0f);
+		m_jumpKeyPressed = true;
+	} else m_jumpKeyPressed = false;
 
-		// Weapon
-		if (glfwGetKey(_window, GLFW_KEY_E) == GLFW_PRESS) { 
-			glm::vec3 position = transform.getLocalPosition() + weapon->transform.getLocalPosition(); // weapon position
-			weapon->shoot(camera.getPosition(), camera.getFront(), camera.getRotationEuler(), bulletOffset, 1000.0f, 2.0f);
-		}
-		if(glfwGetKey(_window, GLFW_KEY_R) == GLFW_PRESS) {
-			weapon->reload();
-		}
+	updatePlayer(isColliding, pos + velocity, eulerAngle);
+
+	// Weapon
+	if (glfwGetMouseButton(_window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) { 
+		glm::vec3 position = transform.getLocalPosition() + weapon->transform.getLocalPosition(); // weapon position
+		weapon->shoot(camera.getPosition(), camera.getFront(), camera.getRotationEuler(), bulletOffset, 1000.0f, 2.0f);
+	}
+	if(glfwGetKey(_window, GLFW_KEY_R) == GLFW_PRESS) {
+		weapon->reload();
+	}
 
 }
 
 void Player::updatePlayer(bool isColliding, glm::vec3 pos, glm::vec3 eulerAngle) {
+	
 
 	// Compute the camera position
     glm::quat rotationQuat = glm::angleAxis(glm::radians(eulerAngle.y), VEC_UP); // rotate around the Y axis
@@ -76,15 +96,25 @@ void Player::updatePlayer(bool isColliding, glm::vec3 pos, glm::vec3 eulerAngle)
 	transform.setLocalRotation(glm::vec3(0.0f, eulerAngle.y, 0.0f));
 	
 	if (isColliding) {
-		transform.setLocalPosition(m_lastValidPosition - m_normalCollision);
-		camera.setPosition(m_lastValidPosition - m_normalCollision +  rotatedOffset);
+		if (m_normalCollision.y < 0) {
+			transform.setLocalPosition(glm::vec3(pos.x, m_jumpKeyPressed ? pos.y : m_heightGround, pos.z));
+			camera.setPosition(glm::vec3(pos.x, m_heightGround, pos.z) +  rotatedOffset);
+		} 
+		if (m_normalCollision.x != 0 || m_normalCollision.z != 0) {
+			transform.setLocalPosition(m_lastValidPosition - m_normalCollision);
+			camera.setPosition(m_lastValidPosition - m_normalCollision +  rotatedOffset);
+		}
+		
+		isGrounded = true;
 
-	}
-	else {
+	} else {
 		transform.setLocalPosition(pos);
 		camera.setPosition(pos + rotatedOffset);
-
+		m_normalCollision = glm::vec3(0.0f);
+		isGrounded = false;
 	}
+
+ 
 
 	for (auto&& child : children) {
 		// Rotate weapon around both X and Y axes
@@ -93,6 +123,7 @@ void Player::updatePlayer(bool isColliding, glm::vec3 pos, glm::vec3 eulerAngle)
         child->transform.setLocalPosition(weaponOffset);
 
 	}
+
 }
 
 bool Player::CheckCollisionWithEntity(Entity &other) {
@@ -100,13 +131,15 @@ bool Player::CheckCollisionWithEntity(Entity &other) {
 	if (CheckCollisionWithSingleEntity(other))
 		return true;
 
+	bool collisionDetected = false;
+
 	// And check collision with other child
 	for (auto&& child : other.children) {
 		if (CheckCollisionWithEntity(*child))
-			return true;
+			collisionDetected = true;
 	}
 
-	return false;
+	return collisionDetected;
 }
 
 bool Player::CheckCollisionWithSingleEntity(Entity &entity) { // AABB - AABB Collision
@@ -124,13 +157,19 @@ bool Player::CheckCollisionWithSingleEntity(Entity &entity) { // AABB - AABB Col
 	entityAABB.updateBoundingBox(entity.transform.getModelMatrix());
 
 
-	if (playerAABB.intersects(entityAABB)) {
-		// Collision detected
-		m_normalCollision = - playerAABB.getNormalCollision(entityAABB) * 0.1f;
+	if (playerAABB.intersects(entityAABB)) { // Collision detected
+		glm::vec3 n = playerAABB.getNormalCollision(entityAABB);
+		m_normalCollision.x += (std::abs(n.x) == 1) ? -n.x : 0.0f;
+		m_normalCollision.y += (std::abs(n.y) == 1) ? -n.y : 0.0f;
+		m_normalCollision.z += (std::abs(n.z) == 1) ? -n.z : 0.0f;
+
+		m_normalCollision *= 0.2f;
+		
+		m_heightGround = entityAABB.boxMax.y;
 		return true;
-	}
-	// No collision detected
-	return false;
+	
+	} else // No collision detected
+		return false;
 }
 
 

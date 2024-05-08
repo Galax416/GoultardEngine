@@ -3,7 +3,7 @@
 void Camera::init()
 {
     m_fovDegree = 45.0f;
-    m_translationSpeed = 75.0f;
+    m_translationSpeed = 150.0f;
 	m_rotationSpeed = 3.0f;
     m_position = glm::vec3(0.f, 0.f, 0.f);
 	m_eulerAngle = glm::vec3(0.f, 0.f, 0.f);
@@ -160,4 +160,5 @@ void Camera::update(float _deltaTime, GLFWwindow* _window) {
 	m_front = glm::normalize(m_front);
 
     computeView(m_projectionMatrix, m_viewMatrix, m_position, m_rotation, m_fovDegree);
+	
 }

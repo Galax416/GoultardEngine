@@ -50,6 +50,7 @@ bool isEditMode = false;
 bool globalInit();
 void windowSetup();
 
+
 /*******************************************************************************/
 
 int main( void )
@@ -63,18 +64,16 @@ int main( void )
     // Create and compile our GLSL program from the shaders
     Shader MainShader( "../shader/vertex_shader.glsl", "../shader/fragment_shader.glsl" );
     MainShader.use();
-
-    Camera FreeCam;
-    FreeCam.init();
+    
+    Camera FreeCam, FpsCamera;
     FreeCam.setEditionMode(true);
     FreeCam.setTranslationSpeed(2000.0f);
 
-    Camera FpsCamera;
-
-    Entity scene(&MainShader);
-
+    Entity scene(&MainShader);  
+    
     Player Slayer("../data/model/slayer/slayer.gltf", &MainShader, FpsCamera);
-    Slayer.transform.setLocalPosition(glm::vec3(0, 20, 0));
+
+    Slayer.transform.setLocalPosition(glm::vec3(0, 400, 0));
     //Shader HUDShader("../shader/vertexText.glsl", "../shader/fragmentText.glsl");
     //Slayer.initHUD(HUDShader.ID);
 
@@ -83,6 +82,33 @@ int main( void )
     ar181.transform.setLocalRotation(glm::vec3(-90.0f, 1.0f, 1.0f));
 
     Entity map(&MainShader); // Test collision
+    Entity map2("../data/model/cube/Cube.gltf", &MainShader);
+    Entity map3("../data/model/cube/Cube.gltf", &MainShader);
+    Entity map4("../data/model/cube/Cube.gltf", &MainShader);
+    Entity map5("../data/model/cube/Cube.gltf", &MainShader);
+
+    map2.transform.setLocalScale(glm::vec3(200, 200, 10));
+    map2.transform.setLocalPosition(glm::vec3(0, 0, -200));
+    map3.transform.setLocalScale(glm::vec3(200, 200, 10));
+    map3.transform.setLocalPosition(glm::vec3(0, 0, 200));
+    map4.transform.setLocalScale(glm::vec3(200, 10, 200));
+    map4.transform.setLocalPosition(glm::vec3(0, -100, 0));
+    map5.transform.setLocalScale(glm::vec3(200, 10, 200));
+    map5.transform.setLocalPosition(glm::vec3(200, -50, 0));
+
+    map.addChild(map2);
+    map.addChild(map5);
+    map.addChild(map4);
+    map.addChild(map3);
+
+    // Entity Demon("../data/model/silver_bullet/scene.gltf", &MainShader);
+    // Demon.transform.setLocalScale(glm::vec3(10.15f, 10.15f, 10.15f));
+    // Demon.transform.setLocalPosition(glm::vec3(50.0f, 50.0f, 100.0f));
+
+    Entity boombox("../data/model/boombox/BoomBox.gltf", &MainShader);
+    boombox.transform.setLocalScale(glm::vec3(2000,2000,2000));
+    boombox.transform.setLocalPosition(glm::vec3(100,0,0));
+
     Entity stoneGround("../data/model/stone_ground/scene.gltf", &MainShader);
     stoneGround.transform.setLocalScale(glm::vec3(2000.0f));
 
@@ -99,6 +125,7 @@ int main( void )
 
     scene.addChild(Slayer);
     scene.addChild(map);
+    scene.addChild(boombox);
     scene.addChild(Demon);
     Slayer.addChild(ar181);
     Slayer.setWeapon(&ar181);
@@ -106,7 +133,7 @@ int main( void )
     scene.updateSelfAndChild();
 
     // Get a handle for our "LightPosition" uniform
-    GLuint LightID = glGetUniformLocation(MainShader.getID(), "LightPosition_worldspace");
+    // GLuint LightID = glGetUniformLocation(MainShader.getID(), "LightPosition_worldspace");
     
     // Chargement de la Skybox
     Skybox skybox;
@@ -178,9 +205,9 @@ int main( void )
         // Scene
         scene.updateSelfAndChild();
 
-        glUniformMatrix4fv(glGetUniformLocation(MainShader.getID(), "View"), 1, GL_FALSE, &currentCamera.getViewMatrix()[0][0]);
-        glUniformMatrix4fv(glGetUniformLocation(MainShader.getID(), "Projection"), 1, GL_FALSE, &currentCamera.getProjectionMatrix()[0][0]);
-		
+        MainShader.setMat4("View", currentCamera.getViewMatrix());
+        MainShader.setMat4("Projection", currentCamera.getProjectionMatrix());
+
         // Render
         skybox.render(currentCamera);
         scene.render();
