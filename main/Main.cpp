@@ -147,9 +147,7 @@ int main( void )
         Camera currentCamera;
 
         if (isEditMode) {
-
             FreeCam.update(deltaTime, window);
-
             currentCamera = FreeCam;
         } else {
             // Player
@@ -165,6 +163,13 @@ int main( void )
 
             // Weapon
             Slayer.weapon->updateBullets(deltaTime);
+            for (auto&& bullet : Slayer.weapon->getBullets()) {
+                if (Demon.CheckCollisionWithEntity(*bullet)) {
+                    bullet->setAlive(false);
+                    Demon.setHealth(Demon.getHealth() - 10);
+                    std::cout << "Demon health: " << Demon.getHealth() << std::endl;
+                }
+            }
 
             // Monster
             Demon.detectPlayer(Slayer.transform.getLocalPosition(), deltaTime);

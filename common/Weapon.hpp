@@ -46,4 +46,7 @@ public:
     // maxAmmo
     int getMaxAmmo() const {return maxAmmo;}
     void setMaxAmmo(int amount) {maxAmmo = amount;}
+
+    // bullets
+    std::vector<Bullet*> getBullets() const {return bullets;}
 };
