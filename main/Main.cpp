@@ -49,6 +49,7 @@ bool isEditMode = false;
 bool globalInit();
 void windowSetup();
 
+
 /*******************************************************************************/
 
 int main( void )
@@ -62,17 +63,14 @@ int main( void )
     // Create and compile our GLSL program from the shaders
     Shader MainShader( "../shader/vertex_shader.glsl", "../shader/fragment_shader.glsl" );
     MainShader.use();
-
-    Camera FreeCam;
-    FreeCam.init();
+    
+    Camera FreeCam, FpsCamera;
     FreeCam.setEditionMode(true);
-
-    Camera FpsCamera;
-
-    Entity scene(&MainShader);
-
+    Entity scene(&MainShader);  
+    
     Player Slayer("../data/model/slayer/slayer.gltf", &MainShader, FpsCamera);
-    Slayer.transform.setLocalPosition(glm::vec3(0, 20, 0));
+
+    Slayer.transform.setLocalPosition(glm::vec3(0, 400, 0));
     //Shader HUDShader("../shader/vertexText.glsl", "../shader/fragmentText.glsl");
     //Slayer.initHUD(HUDShader.ID);
 
@@ -176,7 +174,7 @@ int main( void )
         glUniformMatrix4fv(glGetUniformLocation(MainShader.getID(), "Projection"), 1, GL_FALSE, &currentCamera.getProjectionMatrix()[0][0]);
 		
         // Render
-        skybox.render(Slayer.camera);
+        skybox.render(currentCamera);
         scene.render();
 
         // Swap buffers

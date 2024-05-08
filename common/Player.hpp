@@ -15,10 +15,14 @@ class Player : public Entity {
 private:
     float m_translationSpeed{ 150.0f };
     float m_rotationSpeed{ 2.5f };
-    int m_health{ 100 };
+    int   m_health{ 100 };
 
     glm::vec3 m_lastValidPosition;
     glm::vec3 m_normalCollision;
+
+    float m_heightGround{ 0.0f };
+
+    bool m_jumpKeyPressed{ false };
 
 public:
     Camera camera;
@@ -29,6 +33,9 @@ public:
     void updateInput(bool isColliding=false, float deltaTime=0.0f, GLFWwindow* window=nullptr);
     void updatePlayer(bool isColliding=false, glm::vec3 pos=glm::vec3(0.0f), glm::vec3 eulerAngle=glm::vec3(0.0f));
 
+    // Mvt
+    void jump(float jumpSpeed);
+    
     void setNormalCollision(glm::vec3 n) { m_normalCollision = n; }
 
     bool CheckCollisionWithEntity(Entity &entity);

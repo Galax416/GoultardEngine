@@ -30,6 +30,16 @@ public:
 	// Shader
 	Shader* shader;
 
+	// Gravity
+	bool isGravityEntity{ false };
+	void setIsGravtityEntity(bool boolean) { isGravityEntity = boolean; }
+	float gravity = 9.807f;
+	glm::vec3 velocity{ 0.0f, 0.0f, 0.0f };
+	bool isGrounded{ false };
+
+
+
+	// Fonctions
 	void addChild(Entity& child) {
 		child.parent = this;
 		children.push_back(&child);

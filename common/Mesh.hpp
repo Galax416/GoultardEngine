@@ -105,17 +105,21 @@ public:
         float penY = std::min(boxMax.y - other.boxMin.y, other.boxMax.y - boxMin.y);
         float penZ = std::min(boxMax.z - other.boxMin.z, other.boxMax.z - boxMin.z);
 
+        glm::vec3 res(0.0f);
+
         // Détermination de l'axe de pénétration le plus faible
         if (penX <= penY && penX <= penZ) {
             // Pénétration sur l'axe X
-            return glm::vec3((direction.x > 0) ? -1.0f : 1.0f, 0.0f, 0.0f);
+            res.x = (direction.x > 0) ? -1.0f : 1.0f;
         } else if (penY <= penX && penY <= penZ) {
             // Pénétration sur l'axe Y
-            return glm::vec3(0.0f, (direction.y > 0) ? -1.0f : 1.0f, 0.0f);
+            res.y = (direction.y > 0) ? -1.0f : 1.0f;
         } else {
             // Pénétration sur l'axe Z
-            return glm::vec3(0.0f, 0.0f, (direction.z > 0) ? -1.0f : 1.0f);
+            res.z = (direction.z > 0) ? -1.0f : 1.0f;
         }
+
+        return res;
     }
 
 };

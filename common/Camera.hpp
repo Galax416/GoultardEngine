@@ -25,6 +25,9 @@ static glm::vec3 VEC_RIGHT{ 1.f,0.f,0.f };
 class Camera {
 public:
 
+    Camera() {
+        init();
+    };
     void init();
     void update(float _deltaTime, GLFWwindow* _window);
     void updateInput(float _deltaTime, GLFWwindow* _window);
