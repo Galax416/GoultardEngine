@@ -18,7 +18,7 @@ public:
 	Entity* parent;
 
 	// Constructors
-	Entity(Shader *shader) : model(""), shader(shader), parent(nullptr){}
+	Entity(Shader *shader) : model(""), shader(shader), parent(nullptr) {}
 	Entity(std::string filename, Shader *shader) : model(filename), shader(shader) ,parent(nullptr) {} // Entity with geometry
 
 	// Geometry
@@ -71,7 +71,7 @@ public:
 
 	void render() {
 		shader->use();
-		glUniformMatrix4fv(glGetUniformLocation(shader->getID(), "Model"), 1, GL_FALSE, &transform.getModelMatrix()[0][0]); // Model Matrix
+		shader->setMat4("Model", transform.getModelMatrix()); // Model Matrix
 		
 		// Draw Mesh
 		model.Draw(shader); // Render geometry
@@ -86,13 +86,15 @@ public:
 		if (CheckCollisionWithSingleEntity(other))
 			return true;
 
+		bool collisionDetected = false;
+
 		// And check collision with other child
 		for (auto&& child : other.children) {
 			if (CheckCollisionWithEntity(*child))
-				return true;
+				collisionDetected = true;
 		}
 
-		return false;
+		return collisionDetected;
 	}
 
 	bool CheckCollisionWithSingleEntity(Entity &other) { // AABB - AABB Collision

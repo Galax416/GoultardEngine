@@ -100,7 +100,8 @@ void Player::updatePlayer(bool isColliding, glm::vec3 pos, glm::vec3 eulerAngle)
 		if (m_normalCollision.y < 0) {
 			transform.setLocalPosition(glm::vec3(pos.x, m_jumpKeyPressed ? pos.y : m_heightGround, pos.z));
 			camera.setPosition(glm::vec3(pos.x, m_heightGround, pos.z) +  rotatedOffset);
-		} else {
+		} 
+		if (m_normalCollision.x != 0 || m_normalCollision.z != 0) {
 			transform.setLocalPosition(m_lastValidPosition - m_normalCollision);
 			camera.setPosition(m_lastValidPosition - m_normalCollision +  rotatedOffset);
 		}
@@ -131,13 +132,15 @@ bool Player::CheckCollisionWithEntity(Entity &other) {
 	if (CheckCollisionWithSingleEntity(other))
 		return true;
 
+	bool collisionDetected = false;
+
 	// And check collision with other child
 	for (auto&& child : other.children) {
 		if (CheckCollisionWithEntity(*child))
-			return true;
+			collisionDetected = true;
 	}
 
-	return false;
+	return collisionDetected;
 }
 
 bool Player::CheckCollisionWithSingleEntity(Entity &entity) { // AABB - AABB Collision
@@ -155,14 +158,19 @@ bool Player::CheckCollisionWithSingleEntity(Entity &entity) { // AABB - AABB Col
 	entityAABB.updateBoundingBox(entity.transform.getModelMatrix());
 
 
-	if (playerAABB.intersects(entityAABB)) {
-		// Collision detected
-		m_normalCollision = - playerAABB.getNormalCollision(entityAABB) * 0.3f;
+	if (playerAABB.intersects(entityAABB)) { // Collision detected
+		glm::vec3 n = playerAABB.getNormalCollision(entityAABB);
+		m_normalCollision.x += (std::abs(n.x) == 1) ? -n.x : 0.0f;
+		m_normalCollision.y += (std::abs(n.y) == 1) ? -n.y : 0.0f;
+		m_normalCollision.z += (std::abs(n.z) == 1) ? -n.z : 0.0f;
+
+		m_normalCollision *= 0.2f;
+		
 		m_heightGround = entityAABB.boxMax.y;
 		return true;
-	}
-	// No collision detected
-	return false;
+	
+	} else // No collision detected
+		return false;
 }
 
 

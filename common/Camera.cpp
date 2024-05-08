@@ -160,4 +160,5 @@ void Camera::update(float _deltaTime, GLFWwindow* _window) {
 	m_front = glm::normalize(m_front);
 
     computeView(m_projectionMatrix, m_viewMatrix, m_position, m_rotation, m_fovDegree);
+	
 }

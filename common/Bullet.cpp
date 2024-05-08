@@ -20,7 +20,7 @@ void Bullet::update(float deltaTime) {
 void Bullet::render() {
 
     shader->use();
-	glUniformMatrix4fv(glGetUniformLocation(shader->getID(), "Model"), 1, GL_FALSE, &transform.getModelMatrix()[0][0]); // Model Matrix
+    shader->setMat4("Model", transform.getModelMatrix()); // Model Matrix
 
     model->Draw(shader);
 }
