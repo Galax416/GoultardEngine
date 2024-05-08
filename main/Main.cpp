@@ -192,7 +192,7 @@ int main( void )
             Slayer.weapon->updateBullets(deltaTime);
             for (auto&& bullet : Slayer.weapon->getBullets()) {
                 if (Demon.CheckCollisionWithEntity(*bullet)) {
-                    bullet->setAlive(false);
+                    // bullet->setAlive(false);
                     Demon.setHealth(Demon.getHealth() - 10);
                     std::cout << "Demon health: " << Demon.getHealth() << std::endl;
                 }

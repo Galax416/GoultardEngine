@@ -1,7 +1,7 @@
 #include <common/Bullet.hpp>
 
-Bullet::Bullet(Model* model, Shader *shader) : Entity("", shader) {
-    this->model = model;
+Bullet::Bullet(Model* modelptr, Shader *shader) : Entity("", shader) {
+    this->model = *modelptr;
 }
 
 void Bullet::update(float deltaTime) {
@@ -22,5 +22,5 @@ void Bullet::render() {
     shader->use();
     shader->setMat4("Model", transform.getModelMatrix()); // Model Matrix
 
-    model->Draw(shader);
+    model.Draw(shader);
 }

@@ -11,10 +11,10 @@ private:
     float lifeTime;
     bool Alive;
 
-    Model *model;
+    Model *modelptr;
 
 public:
-    Bullet(Model *model, Shader *shader);
+    Bullet(Model *modelptr, Shader *shader);
     void update(float deltaTime);
     void render();
 

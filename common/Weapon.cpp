@@ -1,6 +1,6 @@
 #include <common/Weapon.hpp>
 
-Weapon::Weapon(std::string filename, Shader *shader) : Entity(filename, shader), bulletModel("") {}
+// Weapon::Weapon(std::string filename, Shader *shader) : Entity(filename, shader), bulletModel("") {}
 Weapon::Weapon(std::string filename, Shader *shader, std::string bulletPath) : Entity(filename, shader), bulletModel(bulletPath) {
 }
 

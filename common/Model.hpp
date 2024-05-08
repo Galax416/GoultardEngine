@@ -43,7 +43,7 @@ public:
     vector<Mesh> getAllMeshes() { return meshes; }
 
     // get the doundingBox of the model
-    AABB getBoundingBox() { return boundingBox; }
+    AABB getBoundingBox() { return boundingBox; } 
     
 private:
     // AABB Model

@@ -101,6 +101,9 @@ public:
 		AABB entityAABB = this->model.getBoundingBox();
 		AABB otherAABB = other.model.getBoundingBox();
 
+		if (entityAABB.boxMax == glm::vec3(-std::numeric_limits<float>::infinity()) || entityAABB.boxMin == glm::vec3(std::numeric_limits<float>::infinity())) return false;
+		if (otherAABB.boxMax == glm::vec3(-std::numeric_limits<float>::infinity()) || otherAABB.boxMin == glm::vec3(std::numeric_limits<float>::infinity())) return false;
+
 		// Update bounding box
 		entityAABB.updateBoundingBox(this->transform.getModelMatrix());
 		otherAABB.updateBoundingBox(other.transform.getModelMatrix());
