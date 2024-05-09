@@ -15,7 +15,7 @@ class Player : public Entity {
 private:
     float m_translationSpeed{ 150.0f };
     float m_rotationSpeed{ 2.5f };
-    int   m_health{ 100 };
+    float   m_health{ 100 };
 
     glm::vec3 m_lastValidPosition;
     glm::vec3 m_normalCollision;
@@ -27,7 +27,6 @@ private:
 public:
     Camera camera;
     Weapon* weapon;
-    float m_health{ 100 };
 
     Player(std::string filename, Shader *shader, Camera camera);
 
