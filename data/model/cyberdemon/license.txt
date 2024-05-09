@@ -1,0 +1,11 @@
+Model Information:
+* title:	Cyberdemon
+* source:	https://sketchfab.com/3d-models/cyberdemon-76b2100f785844b38bb37415f0de8f74
+* author:	extruder676 (https://sketchfab.com/extruder676)
+
+Model License:
+* license type:	CC-BY-NC-SA-4.0 (http://creativecommons.org/licenses/by-nc-sa/4.0/)
+* requirements:	Author must be credited. No commercial use. Modified versions must have the same license.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Cyberdemon" (https://sketchfab.com/3d-models/cyberdemon-76b2100f785844b38bb37415f0de8f74) by extruder676 (https://sketchfab.com/extruder676) licensed under CC-BY-NC-SA-4.0 (http://creativecommons.org/licenses/by-nc-sa/4.0/)

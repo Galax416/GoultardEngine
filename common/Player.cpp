@@ -53,18 +53,26 @@ void Player::updateInput(bool isColliding, float _deltaTime, GLFWwindow* _window
 
 	updatePlayer(isColliding, pos, eulerAngle);
 
-		// Weapon
-		if (glfwGetKey(_window, GLFW_KEY_E) == GLFW_PRESS) { 
-			glm::vec3 position = transform.getLocalPosition() + weapon->transform.getLocalPosition(); // weapon position
-			weapon->shoot(camera.getPosition(), camera.getFront(), camera.getRotationEuler(), bulletOffset, 1000.0f, 2.0f);
-		}
-		if(glfwGetKey(_window, GLFW_KEY_R) == GLFW_PRESS) {
-			weapon->reload();
-		}
+	updatePlayer(isColliding, pos + velocity, eulerAngle);
+
+	// Weapon
+	if (glfwGetMouseButton(_window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) { 
+		glm::vec3 position = transform.getLocalPosition() + weapon->transform.getLocalPosition(); // weapon position
+		weapon->shoot(camera.getPosition(), camera.getFront(), camera.getRotationEuler(), bulletOffset, 3000.0f, 5.0f);
+	}
+	if(glfwGetKey(_window, GLFW_KEY_R) == GLFW_PRESS) {
+		weapon->reload();
+	}
 
 }
 
 void Player::updatePlayer(bool isColliding, glm::vec3 pos, glm::vec3 eulerAngle) {
+	
+	// check if the player is out of the map
+	if (transform.getLocalPosition().y < -800.0f) {
+		transform.setLocalPosition(glm::vec3(0.0f, 400.0f, 0.0f));
+		return;
+	}
 
 	// Compute the camera position
     glm::quat rotationQuat = glm::angleAxis(glm::radians(eulerAngle.y), VEC_UP); // rotate around the Y axis
@@ -131,6 +139,12 @@ bool Player::CheckCollisionWithSingleEntity(Entity &entity) { // AABB - AABB Col
 	}
 	// No collision detected
 	return false;
+}
+
+void Player::respawn(glm::vec3 pos) {
+	transform.setLocalPosition(pos);
+	setHealth(100);
+	weapon->setAmmo(weapon->getMaxAmmo());
 }
 
 

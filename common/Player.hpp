@@ -15,7 +15,6 @@ class Player : public Entity {
 private:
     float m_translationSpeed{ 150.0f };
     float m_rotationSpeed{ 2.5f };
-    int m_health{ 100 };
 
     glm::vec3 m_lastValidPosition;
     glm::vec3 m_normalCollision;
@@ -23,11 +22,17 @@ private:
 public:
     Camera camera;
     Weapon* weapon;
+    float m_health{ 100 };
 
     Player(std::string filename, Shader *shader, Camera camera);
 
     void updateInput(bool isColliding=false, float deltaTime=0.0f, GLFWwindow* window=nullptr);
     void updatePlayer(bool isColliding=false, glm::vec3 pos=glm::vec3(0.0f), glm::vec3 eulerAngle=glm::vec3(0.0f));
+
+    // Mvt
+    void jump(float jumpSpeed);
+    
+    void respawn(glm::vec3 pos);
 
     void setNormalCollision(glm::vec3 n) { m_normalCollision = n; }
 
@@ -37,7 +42,7 @@ public:
     void setWeapon(Weapon* weapon) { this->weapon = weapon; }
 
     void setHealth(int health) { m_health = health;};
-    int getHealth() const { return m_health;} ;
+    float& getHealth() { return m_health;} ;
 
     void initHUD(GLuint shaderID);
     void DrawHUD();

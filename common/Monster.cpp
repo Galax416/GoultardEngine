@@ -12,11 +12,11 @@ void Monster::updateMonster(bool isColliding, glm::vec3 pos, glm::vec3 eulerAngl
     transform.setLocalRotation(eulerAngle);
 }
 
-void Monster::detectPlayer(glm::vec3 playerPos, float deltaTime) {
+void Monster::detectPlayer(glm::vec3 playerPos, float deltaTime, float &playerHealth) {
     playerPos.y += 83.0f; // ennemy aim at the head of the player
     glm::vec3 monsterPos = transform.getLocalPosition();
     float distance = glm::distance(monsterPos, playerPos);
-    if (distance < m_detectionRange) {
+    if (distance < m_detectionRange || isChasing) {
 		if (distance > 5.0f) { // prevent naughty things
 			// Move towards the player
 			glm::vec3 direction = glm::normalize(playerPos - monsterPos);
@@ -24,7 +24,7 @@ void Monster::detectPlayer(glm::vec3 playerPos, float deltaTime) {
 
 			// look at the player
 			glm::quat rotation = glm::quatLookAt(direction, VEC_UP);
-			glm::quat initialRotation = glm::angleAxis(glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+			glm::quat initialRotation = glm::angleAxis(glm::radians(RotationOffset), glm::vec3(0.0f, 1.0f, 0.0f)); // depending on the model
 			rotation = rotation * initialRotation; // rotate the model
 			rotation = glm::normalize(rotation);
 
@@ -32,46 +32,18 @@ void Monster::detectPlayer(glm::vec3 playerPos, float deltaTime) {
 		}
         if (distance < 50.0f) {
             // Attack the player
-            std::cout << "Attack the player" << std::endl;
+            static float attackTimer = 0.0f;
+            attackTimer += deltaTime;
+            if (attackTimer >= attackSpeed) {
+                playerHealth -= damage;
+                attackTimer = 0.0f;
+            }
         }
     }
 }
 
-// Same as Player
-bool Monster::CheckCollisionWithEntity(Entity &other) {
-	// Check collision with other
-	if (CheckCollisionWithSingleEntity(other))
-		return true;
-
-	// And check collision with other child
-	for (auto&& child : other.children) {
-		if (CheckCollisionWithEntity(*child))
-			return true;
-	}
-
-	return false;
-}
-
-bool Monster::CheckCollisionWithSingleEntity(Entity &entity) { // AABB - AABB Collision
-	AABB playerAABB = this->model.getBoundingBox();
-	AABB entityAABB = entity.model.getBoundingBox();
-	if (entityAABB.boxMax == glm::vec3(-std::numeric_limits<float>::infinity()) || entityAABB.boxMin == glm::vec3(std::numeric_limits<float>::infinity())) return false;
-
-	// Update bounding box
-	for (auto&& child : this->children) {
-		AABB chidlAABB = child->model.getBoundingBox();
-		chidlAABB.updateBoundingBox(child->transform.getModelMatrix());
-		playerAABB.updateBoundingBox(this->transform.getModelMatrix());
-		playerAABB.expand(chidlAABB);
-	}
-	entityAABB.updateBoundingBox(entity.transform.getModelMatrix());
-
-
-	if (playerAABB.intersects(entityAABB)) {
-		// Collision detected
-		m_normalCollision = - playerAABB.getNormalCollision(entityAABB) * 0.1f;
-		return true;
-	}
-	// No collision detected
-	return false;
+void Monster::respawn(glm::vec3 pos) {
+    transform.setLocalPosition(pos);
+    m_health = 100;
+    isChasing = false;
 }
