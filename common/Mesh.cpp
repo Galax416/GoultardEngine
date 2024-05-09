@@ -93,7 +93,8 @@ void Mesh::setupMesh() {
 
 void Mesh::drawCollisionBox(Shader &shader) {
     // Sauvegarde de l'état OpenGL
-    glPushAttrib(GL_LINE_BIT);
+    GLint prevLineWidth;
+    glGetIntegerv(GL_LINE_WIDTH, &prevLineWidth);
     glLineWidth(4.0f); // Épaisseur des lignes
 
     // Utilisation du shader approprié
@@ -140,6 +141,6 @@ void Mesh::drawCollisionBox(Shader &shader) {
     glBindVertexArray(0);
 
     // Restauration de l'état OpenGL
-    glPopAttrib();
+    glLineWidth(prevLineWidth);
 }
 

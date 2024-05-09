@@ -208,7 +208,7 @@ unsigned int TextureFromFile(const char *path, const string &directory, bool gam
     return textureID;
 }
 
-static GLuint loadTexture2DFromFilePath(const std::string& path) {
+GLuint Model::loadTexture2DFromFilePath(const std::string& path) {
 	GLuint texture;
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);

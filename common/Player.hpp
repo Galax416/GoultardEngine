@@ -24,6 +24,9 @@ private:
 
     bool m_jumpKeyPressed{ false };
 
+    Shader *m_shaderHUD;
+    GLuint m_crosshairTextureID;
+
 public:
     Camera camera;
     Weapon* weapon;
@@ -48,6 +51,6 @@ public:
     void setHealth(int health) { m_health = health;};
     float& getHealth() { return m_health;} ;
 
-    void initHUD(GLuint shaderID);
-    void DrawHUD();
+    void initHUD(Shader *shaderHUD);
+    void DrawHUD(int windowWidth, int windowHeight);
 };

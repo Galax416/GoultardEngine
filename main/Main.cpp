@@ -28,6 +28,7 @@ using namespace glm;
 #include <common/Player.hpp>
 #include <common/Weapon.hpp>
 #include <common/Monster.hpp>
+#include <common/GLutils.hpp>
 
 // settings
 const unsigned int SCR_WIDTH = 1080;
@@ -67,6 +68,7 @@ int main( void )
     // Create and compile our GLSL program from the shaders
     Shader MainShader( "../shader/vertex_shader.glsl", "../shader/fragment_shader.glsl" );
     MainShader.use();
+    Shader HUDShader("../shader/vertexHUD.glsl", "../shader/fragmentHUD.glsl");
     
     Camera FreeCam, FpsCamera;
     FreeCam.setEditionMode(true);
@@ -77,8 +79,7 @@ int main( void )
     Player Slayer("../data/model/slayer/slayer.gltf", &MainShader, FpsCamera);
 
     Slayer.transform.setLocalPosition(glm::vec3(0, 400, 0));
-    //Shader HUDShader("../shader/vertexText.glsl", "../shader/fragmentText.glsl");
-    //Slayer.initHUD(HUDShader.ID);
+    Slayer.initHUD(&HUDShader);
 
     Weapon ar181("../data/model/plasma_rifle/scene.gltf", &MainShader, "../data/model/50bmg/scene.gltf");
     ar181.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
@@ -192,6 +193,11 @@ int main( void )
         // Clear the screen
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // Debug
+        glEnable(GL_DEBUG_OUTPUT);
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+        glDebugMessageCallback(MessageCallback, 0);
+
         // Use our shader
 
         // -- Update --
@@ -212,7 +218,7 @@ int main( void )
             currentCamera = Slayer.camera;
             
             // HUD
-            //Slayer.DrawHUD();
+            Slayer.DrawHUD(SCR_WIDTH, SCR_HEIGHT);
 
             // Weapon
             Slayer.weapon->updateBullets(deltaTime);

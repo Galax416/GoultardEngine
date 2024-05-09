@@ -44,6 +44,8 @@ public:
 
     // get the doundingBox of the model
     AABB getBoundingBox() { return boundingBox; } 
+
+    static GLuint loadTexture2DFromFilePath(const std::string& path);
     
 private:
     // AABB Model

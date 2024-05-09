@@ -100,6 +100,8 @@ add_executable(main
 	common/Monster.hpp
 	common/Monster.cpp
 
+	common/GLutils.hpp
+
 )
 target_link_libraries(main
 	${ALL_LIBS}
