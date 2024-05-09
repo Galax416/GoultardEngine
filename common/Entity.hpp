@@ -37,8 +37,6 @@ public:
 	glm::vec3 velocity{ 0.0f, 0.0f, 0.0f };
 	bool isGrounded{ false };
 
-
-
 	// Fonctions
 	void addChild(Entity& child) {
 		child.parent = this;

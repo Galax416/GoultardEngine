@@ -37,6 +37,9 @@ const unsigned int SCR_HEIGHT = 720;
 float deltaTime = 0.0f;	// time between current frame and last frame
 float lastFrame = 0.0f;
 
+// Entity pointers
+std::vector<Monster*> monsters;
+
 //rotation
 float angle = 0.;
 float zoom = 1.;
@@ -101,10 +104,6 @@ int main( void )
     map.addChild(map4);
     map.addChild(map3);
 
-    // Entity Demon("../data/model/silver_bullet/scene.gltf", &MainShader);
-    // Demon.transform.setLocalScale(glm::vec3(10.15f, 10.15f, 10.15f));
-    // Demon.transform.setLocalPosition(glm::vec3(50.0f, 50.0f, 100.0f));
-
     Entity boombox("../data/model/boombox/BoomBox.gltf", &MainShader);
     boombox.transform.setLocalScale(glm::vec3(2000,2000,2000));
     boombox.transform.setLocalPosition(glm::vec3(100,0,0));
@@ -122,13 +121,40 @@ int main( void )
     Monster Demon("../data/model/cacodemon/scene.gltf", &MainShader);
     Demon.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
     Demon.transform.setLocalPosition(glm::vec3(2500.0f, 200.0f, 100.0f));
+    Demon.setSpawnPoint(glm::vec3(2500.0f, 200.0f, 100.0f));
+    Demon.transform.setLocalRotation(glm::vec3(0.0f, 97.0f, 0.0f));
+    Demon.setRotationOffset(90.0f);
 
-    scene.addChild(Slayer);
+    Monster Knight("../data/model/cyberdemon/scene.gltf", &MainShader);
+    Knight.transform.setLocalScale(glm::vec3(15.0f, 15.0f, 15.0f));
+    Knight.transform.setLocalPosition(glm::vec3(2200.0f, 200.0f, -300.0f));
+    Knight.setSpawnPoint(glm::vec3(2200.0f, 200.0f, -300.0f));
+    Knight.transform.setLocalRotation(glm::vec3(0.0f, -90.0f, 0.0f));
+    Knight.setIsGravtityEntity(true);
+    Knight.setHealth(350); Knight.setDetectionRange(1500.0f); Knight.setDamage(40.0f);
+    Knight.setRotationOffset(180.0f);
+
+    // Monster bigBrain("../data/model/naked/scene.gltf", &MainShader);
+    // bigBrain.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
+    // bigBrain.transform.setLocalPosition(glm::vec3(2400.0f, 200.0f, 400.0f));
+    // bigBrain.setSpawnPoint(glm::vec3(2400.0f, 200.0f, 400.0f));
+    // bigBrain.transform.setLocalRotation(glm::vec3(0.0f, 50.0f, 0.0f));
+    // bigBrain.setHealth(200); bigBrain.setDetectionRange(1800.0f); bigBrain.setDamage(50.0f);
+
+
+    monsters.push_back(&Demon); monsters.push_back(&Knight);
+
+    // map 
     scene.addChild(map);
-    scene.addChild(boombox);
-    scene.addChild(Demon);
+    // Player
+    scene.addChild(Slayer);
+    // Weapon
     Slayer.addChild(ar181);
     Slayer.setWeapon(&ar181);
+    // Monster
+    scene.addChild(Demon); scene.addChild(Knight);
+    // Misc
+    scene.addChild(boombox);
 
     scene.updateSelfAndChild();
 
@@ -190,16 +216,30 @@ int main( void )
 
             // Weapon
             Slayer.weapon->updateBullets(deltaTime);
+
+            // Collision with monster
             for (auto&& bullet : Slayer.weapon->getBullets()) {
-                if (Demon.CheckCollisionWithEntity(*bullet)) {
-                    // bullet->setAlive(false);
-                    Demon.setHealth(Demon.getHealth() - 10);
-                    std::cout << "Demon health: " << Demon.getHealth() << std::endl;
+                for (auto&& monster : monsters) {
+                    if (monster->CheckCollisionWithEntity(*bullet)) {
+                        bullet->setAlive(false);
+                        monster->setHealth(monster->getHealth() - bullet->getDamage());
+                        monster->setisChasing(true);
+                        // respawn
+                        if (monster->getHealth() <= 0) {
+                            monster->respawn(monster->getSpawnPoint());
+                        }
+                    }
                 }
             }
 
             // Monster
-            Demon.detectPlayer(Slayer.transform.getLocalPosition(), deltaTime);
+            for (auto&& monster : monsters) {
+                monster->detectPlayer(Slayer.transform.getLocalPosition(), deltaTime, Slayer.getHealth());
+            }
+
+            if (Slayer.getHealth() <= 0) {
+                Slayer.respawn(glm::vec3(0, 400, 0));
+            }
         }
 
         // Scene

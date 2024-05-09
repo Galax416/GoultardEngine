@@ -9,6 +9,7 @@ private:
     glm::vec3 rotation;
     float speed;
     float lifeTime;
+    float damage;
     bool Alive;
 
     Model *modelptr;
@@ -32,4 +33,7 @@ public:
 
     bool isAlive() const { return Alive; }
     void setAlive(bool newIsAlive) { Alive = newIsAlive; }
+
+    float getDamage() const { return damage; }
+    void setDamage(float newDamage) { damage = newDamage; }
 };

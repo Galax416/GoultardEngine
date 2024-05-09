@@ -33,6 +33,7 @@ void Weapon::shoot(glm::vec3 position, glm::vec3 direction, glm::vec3 rotation, 
         bullet->setSpeed(speed);
         bullet->setLifeTime(lifeTime);
         bullet->setAlive(true);
+        bullet->setDamage(20.0f);
         bullets.push_back(bullet);
         bullet->parent = this;
 
