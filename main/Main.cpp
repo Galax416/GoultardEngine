@@ -105,10 +105,6 @@ int main( void )
     map.addChild(map4);
     map.addChild(map3);
 
-    Entity boombox("../data/model/boombox/BoomBox.gltf", &MainShader);
-    boombox.transform.setLocalScale(glm::vec3(2000,2000,2000));
-    boombox.transform.setLocalPosition(glm::vec3(100,0,0));
-
     Entity stoneGround("../data/model/stone_ground/scene.gltf", &MainShader);
     stoneGround.transform.setLocalScale(glm::vec3(2000.0f));
 
@@ -155,7 +151,6 @@ int main( void )
     // Monster
     scene.addChild(Demon); scene.addChild(Knight);
     // Misc
-    scene.addChild(boombox);
 
     scene.updateSelfAndChild();
 

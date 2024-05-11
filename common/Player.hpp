@@ -16,6 +16,7 @@ private:
     float m_translationSpeed{ 150.0f };
     float m_rotationSpeed{ 2.5f };
     float   m_health{ 100 };
+    float m_maxHealth{ 100 };
 
     glm::vec3 m_lastValidPosition;
     glm::vec3 m_normalCollision;

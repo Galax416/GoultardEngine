@@ -183,76 +183,109 @@ void Player::respawn(glm::vec3 pos) {
 	weapon->setAmmo(weapon->getMaxAmmo());
 }
 
-
 void Player::initHUD(Shader* shaderHUD) {
 	m_shaderHUD = shaderHUD;
+	m_shaderHUD->use();
 
-	glGenTextures(1, &m_crosshairTextureID);
-	glBindTexture(GL_TEXTURE_2D, m_crosshairTextureID);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    // load texture
-	int width, height, channels;
-	unsigned char *imageData = stbi_load("../data/hud/crosshair.png", &width, &height, &channels, 0);
-
-	if (!imageData) {
+	m_crosshairTextureID = TextureFromFile("crosshair.png", "../data/hud/", true);
+	if (m_crosshairTextureID == 0) {
 		std::cerr << "Error: Loading crosshair image failed" << std::endl;
 		return;
 	}
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
-	glGenerateMipmap(GL_TEXTURE_2D);
-
-	stbi_image_free(imageData);
 }
 
 void Player::DrawHUD(int windowWidth, int windowHeight) {
-	m_shaderHUD->use();
+    m_shaderHUD->use();
 
-	// Draw crosshair
-	// Set up crosshair vertices
-    float vertices[] = {
-        // positions          // colors           // texture coords
-         0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
-         0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
-        -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // top left 
+    // Calculer la largeur de la barre de vie en fonction des points de vie actuels
+    float healthPercentage = static_cast<float>(m_health) / static_cast<float>(m_maxHealth);
+    float barWidth = 2.0f * 0.2f * healthPercentage; // Largeur de la barre de vie en fonction du pourcentage de santé
+
+    // Définir les coordonnées des sommets de la barre de vie
+    float barHeight = 0.1f; // Hauteur de la barre de vie
+    float barX = -0.9f; // Position X de la barre de vie
+    float barY = -0.9f; // Position Y de la barre de vie
+
+    // Définir les coordonnées des sommets de la barre de vie
+    GLfloat healthBarVertices[] = {
+        // Bas gauche
+        barX, barY,
+        // Bas droit
+        barX + barWidth, barY,
+        // Haut droit
+        barX + barWidth, barY + barHeight,
+        // Haut gauche
+        barX, barY + barHeight
     };
-    unsigned int indices[] = {  
-        0, 1, 3, // first triangle
-        1, 2, 3  // second triangle
-    };
 
-	// Set up crosshair VAO and VBO
-	unsigned int VBO, VAO, EBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
+    // Créer et configurer les buffers OpenGL pour la barre de vie
+    GLuint healthBarVAO, healthBarVBO;
+    glGenVertexArrays(1, &healthBarVAO);
+    glGenBuffers(1, &healthBarVBO);
 
-    glBindVertexArray(VAO);
+    glBindVertexArray(healthBarVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, healthBarVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(healthBarVertices), healthBarVertices, GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-    // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    // Configuration des attributs de vertex pour la position
     glEnableVertexAttribArray(0);
-    // color attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    // texture coord attribute
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);
 
- 	glBindTexture(GL_TEXTURE_2D, m_crosshairTextureID);
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    // Dessiner la barre de vie
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+    // Nettoyer
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    // Définir les coordonnées des sommets du viseur (crosshair)
+    // Notez que les coordonnées du viseur doivent également être ajustées pour correspondre à l'intervalle [-1, 1]
+
+    GLfloat crosshairVertices[] = {
+        // Position
+        -0.05f, -0.05f,
+         0.05f, -0.05f,
+         0.05f,  0.05f,
+        -0.05f,  0.05f
+    };
+
+    GLfloat texCoords[] = {
+        // UV
+        0.0f, 0.0f,
+        1.0f, 0.0f,
+        1.0f, 1.0f,
+        0.0f, 1.0f
+    };
+
+    // Créer et configurer les buffers OpenGL pour le viseur
+    GLuint crosshairVAO, crosshairVBO;
+    glGenVertexArrays(1, &crosshairVAO);
+    glGenBuffers(1, &crosshairVBO);
+
+    glBindVertexArray(crosshairVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, crosshairVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(crosshairVertices) + sizeof(texCoords), nullptr, GL_STATIC_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(crosshairVertices), crosshairVertices);
+    glBufferSubData(GL_ARRAY_BUFFER, sizeof(crosshairVertices), sizeof(texCoords), texCoords);
+
+    // Position attribute
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);
+
+    // Texture coordinate attribute
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)(sizeof(crosshairVertices)));
+
+    // Dessiner le viseur (crosshair)
+    glActiveTexture(GL_TEXTURE0);
+    m_shaderHUD->setInt("texHud", 0);
+    glBindTexture(GL_TEXTURE_2D, m_crosshairTextureID);
+    glBindVertexArray(crosshairVAO);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+    // Nettoyer
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     shader->use();
 }
