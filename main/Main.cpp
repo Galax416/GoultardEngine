@@ -16,6 +16,9 @@ GLFWwindow* window;
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+// Audio
+#include <irrKlang.h>
+
 using namespace glm;
 
 #include <common/Shader.hpp>
@@ -29,6 +32,7 @@ using namespace glm;
 #include <common/Weapon.hpp>
 #include <common/Monster.hpp>
 #include <common/GLutils.hpp>
+#include <common/Hud.hpp>
 
 // settings
 const unsigned int SCR_WIDTH = 1080;
@@ -68,7 +72,6 @@ int main( void )
     // Create and compile our GLSL program from the shaders
     Shader MainShader( "../shader/vertex_shader.glsl", "../shader/fragment_shader.glsl" );
     MainShader.use();
-    Shader HUDShader("../shader/vertexHUD.glsl", "../shader/fragmentHUD.glsl");
     
     Camera FreeCam, FpsCamera;
     FreeCam.setEditionMode(true);
@@ -77,9 +80,7 @@ int main( void )
     Entity scene(&MainShader);  
     
     Player Slayer("../data/model/slayer/slayer.gltf", &MainShader, FpsCamera);
-
     Slayer.transform.setLocalPosition(glm::vec3(0, 400, 0));
-    Slayer.initHUD(&HUDShader);
 
     Weapon ar181("../data/model/plasma_rifle/scene.gltf", &MainShader, "../data/model/50bmg/scene.gltf");
     ar181.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
@@ -161,6 +162,10 @@ int main( void )
     Skybox skybox;
     skybox.init(Shader("../shader/vertexSky.glsl", "../shader/fragmentSky.glsl"));
 
+    // Hud
+    Shader HUDShader("../shader/vertexHUD.glsl", "../shader/fragmentHUD.glsl");
+    Shader TextShader("../shader/Text.vs", "../shader/Text.fs");
+    Hud hud(&HUDShader, &TextShader);
 
     // Pressing only one time
     glfwSetKeyCallback(window, key_callback);
@@ -168,6 +173,11 @@ int main( void )
     // For speed computation
     double lastTime = glfwGetTime();
     int nbFrames = 0;
+
+    irrklang::ISoundEngine* engine = irrklang::createIrrKlangDevice();
+    engine->setSoundVolume(0.35f);
+    Slayer.setSoundEngine(engine);
+    ar181.setSoundEngine(engine);
 
     do{
 
@@ -213,7 +223,8 @@ int main( void )
             currentCamera = Slayer.camera;
             
             // HUD
-            Slayer.DrawHUD(SCR_WIDTH, SCR_HEIGHT);
+            hud.render(SCR_WIDTH, SCR_HEIGHT, Slayer.getHealth(), Slayer.getMaxHealth());
+            MainShader.use();
 
             // Weapon
             Slayer.weapon->updateBullets(deltaTime);
@@ -333,6 +344,10 @@ void windowSetup()
 
     // Cull triangles which normal is not towards the camera
     glEnable(GL_CULL_FACE);
+
+    // Blending
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
 }
 
 

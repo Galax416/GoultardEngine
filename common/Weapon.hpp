@@ -5,19 +5,22 @@
 #include <common/Bullet.hpp>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+#include <irrKlang.h>
 
 class Weapon : public Entity {
 
 private:
     float reloadTime{ 0.5f };
     float lastReloadTime{ 0.0f };
-    float fireRate{ 0.2f };
+    float fireRate{ 0.3f };
     float lastShootTime{ 0.0f };
     int ammo{ 30 };
     int maxAmmo{ 30 };
 
     std::vector<Bullet*> bullets; // Bullets fired by the weapon
     Model bulletModel; // Model of the bullet
+
+    irrklang::ISoundEngine* m_soundEngine;
 
 public:
     Weapon(std::string filename, Shader *shader); // Constructor no bullet
@@ -49,4 +52,6 @@ public:
 
     // bullets
     std::vector<Bullet*> getBullets() const {return bullets;}
+
+    void setSoundEngine(irrklang::ISoundEngine* soundEngine) { m_soundEngine = soundEngine; }
 };

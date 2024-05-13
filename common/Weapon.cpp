@@ -37,6 +37,8 @@ void Weapon::shoot(glm::vec3 position, glm::vec3 direction, glm::vec3 rotation, 
         bullets.push_back(bullet);
         bullet->parent = this;
 
+        m_soundEngine->play2D("../data/sound/gunshot.wav", false);
+
         ammo--;
     }
     if (ammo == 0) std::cout << "Out of ammo" << std::endl;

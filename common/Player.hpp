@@ -2,9 +2,9 @@
 
 #include <common/Entity.hpp>
 #include <common/Weapon.hpp>
-#include <common/text2D.hpp>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+#include <irrKlang.h>
 
 static glm::vec3 cameraOffset(0.f, 83.f, 15.f); // offset from the player position
 static glm::vec3 weaponOffset(-20.0f, 70.0f, 60.0f); // offset from the player position
@@ -25,8 +25,8 @@ private:
 
     bool m_jumpKeyPressed{ false };
 
-    Shader *m_shaderHUD;
-    GLuint m_crosshairTextureID;
+    // Sound
+    irrklang::ISoundEngine* m_soundEngine;
 
 public:
     Camera camera;
@@ -51,7 +51,7 @@ public:
 
     void setHealth(int health) { m_health = health;};
     float& getHealth() { return m_health;} ;
+    int getMaxHealth() { return m_maxHealth; }
 
-    void initHUD(Shader *shaderHUD);
-    void DrawHUD(int windowWidth, int windowHeight);
+    void setSoundEngine(irrklang::ISoundEngine* soundEngine) { m_soundEngine = soundEngine; }
 };
