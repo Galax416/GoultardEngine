@@ -14,6 +14,7 @@ void Model::computeBoundingBox() {
 }
 
 void Model::Draw(Shader *shader) {
+    if (this == nullptr) return;
     for(unsigned int i = 0; i < meshes.size(); i++) {
         meshes[i].Draw(*shader);
         meshes[i].drawCollisionBox(*shader);

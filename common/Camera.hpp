@@ -42,6 +42,8 @@ public:
     glm::vec3 getPosition() const {return m_position;}
     bool getEditionMode() const {return m_isEditionMode;}
 
+
+    void setFov(float fov) { m_fovDegree = fov; }
     void setPosition(glm::vec3 _position) { m_position = _position; }
     void setRotation(glm::quat _rotation) { m_rotation = _rotation; }
     void setRotation(glm::vec3 _eulerAngle) { m_eulerAngle = _eulerAngle; }
@@ -50,6 +52,10 @@ public:
     static float clipAngle180(float angle);
     static glm::vec3 projectVectorOnPlan(glm::vec3 vector, glm::vec3 normalPlan);
     static glm::vec3 quatToEuler(glm::quat _quat);
+
+    glm::vec3 simulateIdle();
+    glm::vec3 simulateWalking();
+    glm::vec3 simulateSprint();
 
 
 protected:

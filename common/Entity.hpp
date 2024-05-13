@@ -18,11 +18,14 @@ public:
 	Entity* parent;
 
 	// Constructors
-	Entity(Shader *shader) : model(""), shader(shader), parent(nullptr) {}
-	Entity(std::string filename, Shader *shader) : model(filename), shader(shader) ,parent(nullptr) {} // Entity with geometry
+	Entity(Shader *shader) : model(nullptr), shader(shader), parent(nullptr) {}
+	Entity(Model *model, Shader *shader) : model(model), shader(shader) ,parent(nullptr) {} // Entity with geometry
+	Entity(std::string filename, Shader *shader) : shader(shader), parent(nullptr) {
+		model = new Model(filename); // Créer un objet Model à partir du chemin du fichier
+	}
 
 	// Geometry
-	Model model;
+	Model* model;
 
 	// Model Matrix
 	Transform transform;
@@ -72,7 +75,7 @@ public:
 		shader->setMat4("Model", transform.getModelMatrix()); // Model Matrix
 		
 		// Draw Mesh
-		model.Draw(shader); // Render geometry
+		model->Draw(shader); // Render geometry
 
 		for (auto&& child : children) {
 			child->render();
@@ -96,8 +99,8 @@ public:
 	}
 
 	bool CheckCollisionWithSingleEntity(Entity &other) { // AABB - AABB Collision
-		AABB entityAABB = this->model.getBoundingBox();
-		AABB otherAABB = other.model.getBoundingBox();
+		AABB entityAABB = this->model->getBoundingBox();
+		AABB otherAABB = other.model->getBoundingBox();
 
 		if (entityAABB.boxMax == glm::vec3(-std::numeric_limits<float>::infinity()) || entityAABB.boxMin == glm::vec3(std::numeric_limits<float>::infinity())) return false;
 		if (otherAABB.boxMax == glm::vec3(-std::numeric_limits<float>::infinity()) || otherAABB.boxMin == glm::vec3(std::numeric_limits<float>::infinity())) return false;

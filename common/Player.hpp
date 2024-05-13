@@ -13,7 +13,7 @@ static glm::vec3 bulletOffset = weaponOffset - cameraOffset; // offset from the 
 class Player : public Entity {
 
 private:
-    float m_translationSpeed{ 150.0f };
+    float m_translationSpeed{ 250.0f };
     float m_rotationSpeed{ 2.5f };
     float   m_health{ 100 };
 
@@ -23,12 +23,14 @@ private:
     float m_heightGround{ 0.0f };
 
     bool m_jumpKeyPressed{ false };
+    bool m_isSprinting{ false };
 
 public:
     Camera camera;
     Weapon* weapon;
 
     Player(std::string filename, Shader *shader, Camera camera);
+    Player(Model *model, Shader *shader, Camera camera);
 
     void updateInput(bool isColliding=false, float deltaTime=0.0f, GLFWwindow* window=nullptr);
     void updatePlayer(bool isColliding=false, glm::vec3 pos=glm::vec3(0.0f), glm::vec3 eulerAngle=glm::vec3(0.0f));

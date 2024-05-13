@@ -16,7 +16,7 @@ void Camera::init()
 void Camera::computeView(glm::mat4& _outProjectionMatrix, glm::mat4& _outviewMatrix, glm::vec3& _position, glm::quat _rotation, float _fovDegree)
 {
 	// Projection matrix : FOV, 4:3 ratio, display range : 0.1 unit <-> 100 units
-	_outProjectionMatrix = glm::perspective(glm::radians(_fovDegree), 16.0f / 9.0f, 0.1f, 20000.0f);
+	_outProjectionMatrix = glm::perspective(glm::radians(_fovDegree), 16.0f / 9.0f, 0.1f, 10000000.0f);
 
 	const glm::vec3 front = normalize(_rotation* VEC_FRONT);
 	const glm::vec3 up = normalize(_rotation * VEC_UP);
@@ -161,4 +161,28 @@ void Camera::update(float _deltaTime, GLFWwindow* _window) {
 
     computeView(m_projectionMatrix, m_viewMatrix, m_position, m_rotation, m_fovDegree);
 	
+}
+
+glm::vec3 Camera::simulateIdle() {
+	float time = glfwGetTime();
+    float rotationOffsetYaw = 0.01f * glm::sin(time * 1.0f);
+    float rotationOffsetPitch = 0.01f * glm::cos(time * 2.0f);
+
+    return glm::vec3(rotationOffsetPitch, rotationOffsetYaw, 0.0f);
+}
+
+glm::vec3 Camera::simulateWalking() {
+	float time = glfwGetTime();
+    float rotationOffsetYaw = 0.05 * glm::sin(time * 5.0f);
+    float rotationOffsetPitch = 0.02 * glm::cos(time * 2.0f);
+
+    return glm::vec3(rotationOffsetPitch, rotationOffsetYaw, 0.0f);
+}
+
+glm::vec3 Camera::simulateSprint() {
+	float time = glfwGetTime();
+    float rotationOffsetYaw = 0.8 * glm::sin(time * 20.0f);
+    float rotationOffsetPitch = 0.05 * glm::cos(time * 20.0f);
+
+    return glm::vec3(rotationOffsetPitch, rotationOffsetYaw, 0.0f);
 }

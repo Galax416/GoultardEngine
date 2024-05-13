@@ -24,7 +24,6 @@ using namespace glm;
 #include <common/Camera.hpp>
 #include <common/Entity.hpp>
 #include <common/Skybox.hpp>
-#include <common/Input.hpp>
 #include <common/Player.hpp>
 #include <common/Weapon.hpp>
 #include <common/Monster.hpp>
@@ -53,6 +52,11 @@ bool isEditMode = false;
 bool globalInit();
 void windowSetup();
 
+void processInput(GLFWwindow *window);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+
+void initMap(Entity *map, Shader *shader);
+
 
 /*******************************************************************************/
 
@@ -70,69 +74,77 @@ int main( void )
     
     Camera FreeCam, FpsCamera;
     FreeCam.setEditionMode(true);
+    FreeCam.setPosition(glm::vec3(0.0f, 100.0f, 0.0f));
     FreeCam.setTranslationSpeed(2000.0f);
 
     Entity scene(&MainShader);  
     
     Player Slayer("../data/model/slayer/slayer.gltf", &MainShader, FpsCamera);
-
-    Slayer.transform.setLocalPosition(glm::vec3(0, 400, 0));
-    //Shader HUDShader("../shader/vertexText.glsl", "../shader/fragmentText.glsl");
-    //Slayer.initHUD(HUDShader.ID);
+    scene.addChild(Slayer);
+    Slayer.transform.setLocalPosition(glm::vec3(0, 800, 0));
+    // Shader HUDShader("../shader/vertexText.glsl", "../shader/fragmentText.glsl");
+    // Slayer.initHUD(HUDShader.getID());
 
     Weapon ar181("../data/model/plasma_rifle/scene.gltf", &MainShader, "../data/model/50bmg/scene.gltf");
     ar181.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
     ar181.transform.setLocalRotation(glm::vec3(-90.0f, 1.0f, 1.0f));
+    Slayer.addChild(ar181);
+    Slayer.setWeapon(&ar181);
+
 
     Entity map(&MainShader); // Test collision
-    Entity map2("../data/model/cube/Cube.gltf", &MainShader);
-    Entity map3("../data/model/cube/Cube.gltf", &MainShader);
-    Entity map4("../data/model/cube/Cube.gltf", &MainShader);
-    Entity map5("../data/model/cube/Cube.gltf", &MainShader);
+    scene.addChild(map);
 
-    map2.transform.setLocalScale(glm::vec3(200, 200, 10));
-    map2.transform.setLocalPosition(glm::vec3(0, 0, -200));
-    map3.transform.setLocalScale(glm::vec3(200, 200, 10));
-    map3.transform.setLocalPosition(glm::vec3(0, 0, 200));
-    map4.transform.setLocalScale(glm::vec3(200, 10, 200));
-    map4.transform.setLocalPosition(glm::vec3(0, -100, 0));
-    map5.transform.setLocalScale(glm::vec3(200, 10, 200));
-    map5.transform.setLocalPosition(glm::vec3(200, -50, 0));
+    Entity road_1("../data/model/Map/road/scene.gltf", &MainShader);
+    map.addChild(road_1);
+    road_1.transform.setLocalScale(glm::vec3(0.5f));
 
-    map.addChild(map2);
-    map.addChild(map5);
-    map.addChild(map4);
-    map.addChild(map3);
+    Entity bat_1("../data/model/Map/clinic_bat/scene.gltf", &MainShader);
+    map.addChild(bat_1);
+    bat_1.transform.setLocalScale(glm::vec3(0.5f));
+    bat_1.transform.setLocalPosition(glm::vec3(1753, 0, -4470));
 
-    Entity boombox("../data/model/boombox/BoomBox.gltf", &MainShader);
-    boombox.transform.setLocalScale(glm::vec3(2000,2000,2000));
-    boombox.transform.setLocalPosition(glm::vec3(100,0,0));
+    Model basket("../data/model/Map/basket/scene.gltf");
 
-    Entity stoneGround("../data/model/stone_ground/scene.gltf", &MainShader);
-    stoneGround.transform.setLocalScale(glm::vec3(2000.0f));
+    Entity basket_1(&basket, &MainShader);
+    map.addChild(basket_1);
+    basket_1.transform.setLocalScale(glm::vec3(0.5f));
+    basket_1.transform.setLocalPosition(glm::vec3(-4451, 0, -4143));
+    Entity basket_2(&basket, &MainShader);
+    map.addChild(basket_2);
+    basket_2.transform.setLocalScale(glm::vec3(0.5f));
+    basket_2.transform.setLocalRotation(glm::vec3(0.0f, 180.0f, 0.0f));
+    basket_2.transform.setLocalPosition(glm::vec3(-4451, 0, -5726));
+    
+    
 
-    Entity grassGround("../data/model/grass_ground/scene.gltf", &MainShader);
-    grassGround.transform.setLocalScale(glm::vec3(2000.0f));
-    grassGround.transform.setLocalPosition(glm::vec3(2000.0f, 0.0f, 0.0f));
 
-    map.addChild(stoneGround);
-    map.addChild(grassGround);
 
-    Monster Demon("../data/model/cacodemon/scene.gltf", &MainShader);
-    Demon.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
-    Demon.transform.setLocalPosition(glm::vec3(2500.0f, 200.0f, 100.0f));
-    Demon.setSpawnPoint(glm::vec3(2500.0f, 200.0f, 100.0f));
-    Demon.transform.setLocalRotation(glm::vec3(0.0f, 97.0f, 0.0f));
-    Demon.setRotationOffset(90.0f);
+    // Entity stoneGround("../data/model/stone_ground/scene.gltf", &MainShader);
+    // stoneGround.transform.setLocalScale(glm::vec3(2000.0f));
 
-    Monster Knight("../data/model/cyberdemon/scene.gltf", &MainShader);
-    Knight.transform.setLocalScale(glm::vec3(15.0f, 15.0f, 15.0f));
-    Knight.transform.setLocalPosition(glm::vec3(2200.0f, 200.0f, -300.0f));
-    Knight.setSpawnPoint(glm::vec3(2200.0f, 200.0f, -300.0f));
-    Knight.transform.setLocalRotation(glm::vec3(0.0f, -90.0f, 0.0f));
-    Knight.setIsGravtityEntity(true);
-    Knight.setHealth(350); Knight.setDetectionRange(1500.0f); Knight.setDamage(40.0f);
-    Knight.setRotationOffset(180.0f);
+    // Entity grassGround("../data/model/grass_ground/scene.gltf", &MainShader);
+    // grassGround.transform.setLocalScale(glm::vec3(2000.0f));
+    // grassGround.transform.setLocalPosition(glm::vec3(2000.0f, 0.0f, 0.0f));
+
+
+
+    // Monster Demon("../data/model/cacodemon/scene.gltf", &MainShader);
+    // scene.addChild(Demon);
+    // Demon.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
+    // Demon.transform.setLocalPosition(glm::vec3(2500.0f, 200.0f, 100.0f));
+    // Demon.setSpawnPoint(glm::vec3(2500.0f, 200.0f, 100.0f));
+    // Demon.transform.setLocalRotation(glm::vec3(0.0f, 97.0f, 0.0f));
+    // Demon.setRotationOffset(90.0f);
+
+    // Monster Knight("../data/model/cyberdemon/scene.gltf", &MainShader);
+    // Knight.transform.setLocalScale(glm::vec3(15.0f, 15.0f, 15.0f));
+    // Knight.transform.setLocalPosition(glm::vec3(2200.0f, 200.0f, -300.0f));
+    // Knight.setSpawnPoint(glm::vec3(2200.0f, 200.0f, -300.0f));
+    // Knight.transform.setLocalRotation(glm::vec3(0.0f, -90.0f, 0.0f));
+    // Knight.setIsGravtityEntity(true);
+    // Knight.setHealth(350); Knight.setDetectionRange(1500.0f); Knight.setDamage(40.0f);
+    // Knight.setRotationOffset(180.0f);
 
     // Monster bigBrain("../data/model/naked/scene.gltf", &MainShader);
     // bigBrain.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
@@ -142,24 +154,25 @@ int main( void )
     // bigBrain.setHealth(200); bigBrain.setDetectionRange(1800.0f); bigBrain.setDamage(50.0f);
 
 
-    monsters.push_back(&Demon); monsters.push_back(&Knight);
+    // monsters.push_back(&Demon); monsters.push_back(&Knight);
 
     // map 
-    scene.addChild(map);
+    // scene.addChild(map);
     // Player
-    scene.addChild(Slayer);
+    // scene.addChild(Slayer);
     // Weapon
-    Slayer.addChild(ar181);
-    Slayer.setWeapon(&ar181);
+    // Slayer.addChild(ar181);
+    // Slayer.setWeapon(&ar181);
     // Monster
-    scene.addChild(Demon); scene.addChild(Knight);
+    // scene.addChild(Demon); scene.addChild(Knight);
     // Misc
-    scene.addChild(boombox);
+    // scene.addChild(boombox);
 
     scene.updateSelfAndChild();
 
     // Get a handle for our "LightPosition" uniform
     // GLuint LightID = glGetUniformLocation(MainShader.getID(), "LightPosition_worldspace");
+    glm::vec3 lightPos = {0, 100, 0};
     
     // Chargement de la Skybox
     Skybox skybox;
@@ -189,6 +202,13 @@ int main( void )
         // -----
         processInput(window);
 
+        // if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) lightPos += Camera::projectVectorOnPlan(FreeCam.getFront(), VEC_UP) * 10.0f;
+        // if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) basket_2.transform.translate(Camera::projectVectorOnPlan(FreeCam.getFront(), VEC_UP) * 10.0f);
+        // std::cout << basket_2.transform.getLocalPosition().x << " " << basket_2.transform.getLocalPosition().z << std::endl;
+
+        MainShader.setVec3("pointLightPos", lightPos);
+        
+
         // Clear the screen
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -204,15 +224,13 @@ int main( void )
             currentCamera = FreeCam;
         } else {
             // Player
-            Slayer.camera.update(deltaTime, window);
-
             bool isColliding = Slayer.CheckCollisionWithEntity(map);
             Slayer.updateInput(isColliding, deltaTime, window);
 
             currentCamera = Slayer.camera;
             
             // HUD
-            //Slayer.DrawHUD();
+            // Slayer.DrawHUD();
 
             // Weapon
             Slayer.weapon->updateBullets(deltaTime);
@@ -242,11 +260,11 @@ int main( void )
             }
         }
 
-        // Scene
-        scene.updateSelfAndChild();
-
         MainShader.setMat4("View", currentCamera.getViewMatrix());
         MainShader.setMat4("Projection", currentCamera.getProjectionMatrix());
+
+        // Scene
+        scene.updateSelfAndChild();
 
         // Render
         skybox.render(currentCamera);
@@ -331,7 +349,7 @@ void windowSetup()
     glDepthFunc(GL_LESS);
 
     // Cull triangles which normal is not towards the camera
-    glEnable(GL_CULL_FACE);
+    // glEnable(GL_CULL_FACE);
 }
 
 
@@ -364,3 +382,4 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
 }
+

@@ -1,5 +1,13 @@
 #include <common/Player.hpp>
 
+Player::Player(Model *model, Shader *shader, Camera camera) : Entity(model, shader) {
+    camera.setEditionMode(false);
+    this->camera = camera;
+	this->camera.setPosition(glm::vec3(0.f, 90.f, 0.f));
+	this->camera.setRotation(glm::quat(glm::vec3(0.f, 0.f, 0.f)));
+	this->camera.setEditionMode(false);
+}
+
 Player::Player(std::string filename, Shader *shader, Camera camera) : Entity(filename, shader) {
     camera.setEditionMode(false);
     this->camera = camera;
@@ -16,6 +24,7 @@ void Player::jump(float jumpSpeed) {
 }
 
 void Player::updateInput(bool isColliding, float _deltaTime, GLFWwindow* _window) {   
+	camera.update(_deltaTime, _window);
 	float playerTranslationSpeed = m_translationSpeed * _deltaTime;
 	float playerRotationSpeed = m_rotationSpeed * _deltaTime;
 
@@ -48,6 +57,17 @@ void Player::updateInput(bool isColliding, float _deltaTime, GLFWwindow* _window
 		velocity.y = 0.0f;
 	}
 
+	// sprint
+	if (glfwGetKey(_window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+		playerTranslationSpeed = m_translationSpeed * 3 * _deltaTime;
+		camera.setFov(55.0f);
+		m_isSprinting = true;
+		
+	} else {
+		camera.setFov(45.0f);
+		m_isSprinting = false;
+	}
+
 	// ZQSD movement
 	glm::vec3 pos = transform.getLocalPosition();
 	this->m_lastValidPosition = pos;
@@ -70,7 +90,13 @@ void Player::updateInput(bool isColliding, float _deltaTime, GLFWwindow* _window
 		m_jumpKeyPressed = true;
 	} else m_jumpKeyPressed = false;
 
-	updatePlayer(isColliding, pos + velocity, eulerAngle);
+	glm::vec3 cameraRotation = eulerAngle;
+	if (m_lastValidPosition == pos) cameraRotation += camera.simulateIdle();
+	//else if (m_isSprinting) cameraRotation += camera.simulateSprint();
+	else if(isGrounded) cameraRotation += camera.simulateWalking();
+
+	
+	updatePlayer(isColliding, pos + velocity, cameraRotation);
 
 	// Weapon
 	if (glfwGetMouseButton(_window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) { 
@@ -86,38 +112,45 @@ void Player::updateInput(bool isColliding, float _deltaTime, GLFWwindow* _window
 void Player::updatePlayer(bool isColliding, glm::vec3 pos, glm::vec3 eulerAngle) {
 	
 	// check if the player is out of the map
-	if (transform.getLocalPosition().y < -800.0f) {
+	if (transform.getLocalPosition().y < -8000.0f) {
 		transform.setLocalPosition(glm::vec3(0.0f, 400.0f, 0.0f));
 		return;
 	}
 
 	// Compute the camera position
     glm::quat rotationQuat = glm::angleAxis(glm::radians(eulerAngle.y), VEC_UP); // rotate around the Y axis
-    glm::vec3 rotatedOffset = rotationQuat * cameraOffset;
-    glm::vec3 finalCameraPosition = pos + rotatedOffset;
+    glm::vec3 rotatedOffset;
+	if (m_isSprinting) rotatedOffset = rotationQuat * cameraOffset + camera.getFront() * 15.0f;
+	else rotatedOffset = rotationQuat * cameraOffset;
 
 	// Update the camera position and rotation
     camera.setRotation(eulerAngle);
 	transform.setLocalRotation(glm::vec3(0.0f, eulerAngle.y, 0.0f));
-	
+
+
 	if (isColliding) {
 		if (m_normalCollision.y < 0) {
-			transform.setLocalPosition(glm::vec3(pos.x, m_jumpKeyPressed ? pos.y : m_heightGround, pos.z));
-			camera.setPosition(glm::vec3(pos.x, m_heightGround, pos.z) +  rotatedOffset);
+			glm::vec3 groundPos = glm::vec3(pos.x, m_jumpKeyPressed ? pos.y : m_heightGround, pos.z);
+
+			transform.setLocalPosition(groundPos);
+			camera.setPosition(groundPos + rotatedOffset);
 		} 
 		if (m_normalCollision.x != 0 || m_normalCollision.z != 0) {
-			transform.setLocalPosition(m_lastValidPosition - m_normalCollision);
-			camera.setPosition(m_lastValidPosition - m_normalCollision +  rotatedOffset);
+			glm::vec3 correctedPosition = m_lastValidPosition - m_normalCollision + rotatedOffset;
+
+			camera.setPosition(correctedPosition);
+			transform.setLocalPosition(correctedPosition);
 		}
 		
 		isGrounded = true;
 
 	} else {
-		transform.setLocalPosition(pos);
 		camera.setPosition(pos + rotatedOffset);
+		transform.setLocalPosition(pos);
 		m_normalCollision = glm::vec3(0.0f);
 		isGrounded = false;
 	}
+
 
  
 
@@ -148,13 +181,15 @@ bool Player::CheckCollisionWithEntity(Entity &other) {
 }
 
 bool Player::CheckCollisionWithSingleEntity(Entity &entity) { // AABB - AABB Collision
-	AABB playerAABB = this->model.getBoundingBox();
-	AABB entityAABB = entity.model.getBoundingBox();
+	AABB playerAABB = this->model->getBoundingBox();
+	if (entity.model == nullptr) return false;
+	AABB entityAABB = entity.model->getBoundingBox();
+
 	if (entityAABB.boxMax == glm::vec3(-std::numeric_limits<float>::infinity()) || entityAABB.boxMin == glm::vec3(std::numeric_limits<float>::infinity())) return false;
 
 	// Update bounding box
 	for (auto&& child : this->children) {
-		AABB chidlAABB = child->model.getBoundingBox();
+		AABB chidlAABB = child->model->getBoundingBox();
 		chidlAABB.updateBoundingBox(child->transform.getModelMatrix());
 		playerAABB.updateBoundingBox(this->transform.getModelMatrix());
 		playerAABB.expand(chidlAABB);
@@ -191,6 +226,6 @@ void Player::initHUD(GLuint shaderID) {
 void Player::DrawHUD() {
 	// Print the health
 	char text[256];
-	sprintf(text, "Health: %d", m_health);
+	sprintf(text, "Health: %f", m_health);
 	printText2D(text, 100, 500, 60);
 }

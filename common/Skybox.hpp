@@ -21,7 +21,7 @@ private:
     GLuint m_skyboxVAO;
     GLuint m_skyboxVBO;
 
-    float m_dimSkybox{ 10000.0f };
+    float m_dimSkybox{ 1000000.0f };
     
 public:
     void init(Shader _shader);

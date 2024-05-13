@@ -23,7 +23,7 @@ void main(){
         FragPos = (Model * vec4(aPos, 1.0)).xyz; 
 
         // Normal world
-        Normal = aNormal;//mat3(transpose(inverse(Model))) * aNormal; // Transform normal to world space
+        Normal = mat3(transpose(inverse(Model))) * aNormal; 
 
         mat4 MVP = Projection * View * Model;
         gl_Position = MVP * vec4(aPos,1);

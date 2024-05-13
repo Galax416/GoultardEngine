@@ -67,8 +67,8 @@ public:
         }
 
         // Expand the bounding box slightly for safety margin
-        this->boxMin = minCoords * 1.02f;
-        this->boxMax = maxCoords * 1.02f;
+        this->boxMin = minCoords ;//* 1.02f;
+        this->boxMax = maxCoords ;//* 1.02f;
     }
 
     void updateBoundingBox(const glm::mat4& modelMatrix) {
