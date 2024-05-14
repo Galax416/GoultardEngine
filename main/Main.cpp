@@ -82,7 +82,9 @@ int main( void )
     FreeCam.setPosition(glm::vec3(0.0f, 100.0f, 0.0f));
     FreeCam.setTranslationSpeed(2000.0f);
 
-    Entity scene(&MainShader);  
+    Entity scene(&MainShader); 
+
+    FpsCamera.setRotation(glm::vec3(0,180,0)); 
     
     Player Slayer("../data/model/slayer/slayer.gltf", &MainShader, FpsCamera);
     scene.addChild(Slayer);
@@ -329,8 +331,6 @@ int main( void )
     // MORE CHAIR !!!!
 
 
-
-
     // Monster Demon("../data/model/cacodemon/scene.gltf", &MainShader);
     // scene.addChild(Demon);
     // Demon.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
@@ -416,13 +416,7 @@ int main( void )
         // input
         // -----
         processInput(window);
-
-
-        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) bat_10.transform.translate(Camera::projectVectorOnPlan(FreeCam.getFront(), VEC_UP) * 10.0f);
-        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS) bat_10.transform.setRotation(glm::vec3(0, 10, 0));
-        std::cout << bat_10.transform.getLocalPosition().x << " " << bat_10.transform.getLocalPosition().z << std::endl;
         
-
         // Clear the screen
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
