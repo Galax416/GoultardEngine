@@ -20,9 +20,8 @@ public:
 	// Constructors
 	Entity(Shader *shader) : model(nullptr), shader(shader), parent(nullptr) {}
 	Entity(Model *model, Shader *shader) : model(model), shader(shader) ,parent(nullptr) {} // Entity with geometry
-	Entity(std::string filename, Shader *shader) : shader(shader), parent(nullptr) {
-		model = new Model(filename); // Créer un objet Model à partir du chemin du fichier
-	}
+	Entity(std::string filename, Shader *shader) : model(new Model(filename)), shader(shader), parent(nullptr) {}
+	
 
 	// Geometry
 	Model* model;

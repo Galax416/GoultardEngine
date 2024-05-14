@@ -16,7 +16,6 @@ GLuint loadCubeMapTexture(std::vector<std::string> faces);
 class Skybox
 {
 private:
-    Shader shader;
     GLuint m_cubeMapTexture;
     GLuint m_skyboxVAO;
     GLuint m_skyboxVBO;
@@ -24,7 +23,10 @@ private:
     float m_dimSkybox{ 1000000.0f };
     
 public:
-    void init(Shader _shader);
+    Shader *shader;
+
+    Skybox(Shader *_shader);
+
     void render(Camera &_camera);
     void clear();
 };

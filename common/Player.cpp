@@ -100,7 +100,6 @@ void Player::updateInput(bool isColliding, float _deltaTime, GLFWwindow* _window
 
 	// Weapon
 	if (glfwGetMouseButton(_window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) { 
-		glm::vec3 position = transform.getLocalPosition() + weapon->transform.getLocalPosition(); // weapon position
 		weapon->shoot(camera.getPosition(), camera.getFront(), camera.getRotationEuler(), bulletOffset, 3000.0f, 5.0f);
 	}
 	if(glfwGetKey(_window, GLFW_KEY_R) == GLFW_PRESS) {
@@ -117,10 +116,13 @@ void Player::updatePlayer(bool isColliding, glm::vec3 pos, glm::vec3 eulerAngle)
 		return;
 	}
 
+	glm::vec3 cameraSprintPos = camera.getFront() * 15.0f;
+
+
 	// Compute the camera position
     glm::quat rotationQuat = glm::angleAxis(glm::radians(eulerAngle.y), VEC_UP); // rotate around the Y axis
     glm::vec3 rotatedOffset;
-	if (m_isSprinting) rotatedOffset = rotationQuat * cameraOffset + camera.getFront() * 15.0f;
+	if (m_isSprinting) rotatedOffset = rotationQuat * cameraOffset + cameraSprintPos;
 	else rotatedOffset = rotationQuat * cameraOffset;
 
 	// Update the camera position and rotation
@@ -136,10 +138,9 @@ void Player::updatePlayer(bool isColliding, glm::vec3 pos, glm::vec3 eulerAngle)
 			camera.setPosition(groundPos + rotatedOffset);
 		} 
 		if (m_normalCollision.x != 0 || m_normalCollision.z != 0) {
-			glm::vec3 correctedPosition = m_lastValidPosition - m_normalCollision + rotatedOffset;
 
-			camera.setPosition(correctedPosition);
-			transform.setLocalPosition(correctedPosition);
+			camera.setPosition(m_lastValidPosition - m_normalCollision +  rotatedOffset);
+			transform.setLocalPosition(m_lastValidPosition - m_normalCollision);
 		}
 		
 		isGrounded = true;

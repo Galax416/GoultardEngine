@@ -6,8 +6,8 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
-static glm::vec3 cameraOffset(0.f, 83.f, 15.f); // offset from the player position
-static glm::vec3 weaponOffset(-20.0f, 70.0f, 60.0f); // offset from the player position
+static glm::vec3 cameraOffset(0.f, 83.f, 25.f); // offset from the player position
+static glm::vec3 weaponOffset(-20.0f, 70.0f, 65.0f); // offset from the player position
 static glm::vec3 bulletOffset = weaponOffset - cameraOffset; // offset from the camera position
 
 class Player : public Entity {

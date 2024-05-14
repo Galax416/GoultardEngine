@@ -81,6 +81,17 @@
 				"metallicFactor":0,
 				"roughnessFactor":0.3100000023841858
 			}
+		},
+		{
+			"doubleSided":true,
+			"name":"Laundrymat.002",
+			"pbrMetallicRoughness":{
+				"baseColorTexture":{
+					"index":2
+				},
+				"metallicFactor":0,
+				"roughnessFactor":0.4399999976158142
+			}
 		}
 	],
 	"meshes":[
@@ -104,6 +115,15 @@
 					},
 					"indices":7,
 					"material":1
+				},
+				{
+					"attributes":{
+						"POSITION":8,
+						"NORMAL":9,
+						"TEXCOORD_0":10
+					},
+					"indices":11,
+					"material":2
 				}
 			]
 		}
@@ -116,6 +136,10 @@
 		{
 			"sampler":0,
 			"source":1
+		},
+		{
+			"sampler":0,
+			"source":2
 		}
 	],
 	"images":[
@@ -128,13 +152,18 @@
 			"mimeType":"image/png",
 			"name":"Basketball_baseColor",
 			"uri":"Basketball_baseColor.png"
+		},
+		{
+			"mimeType":"image/png",
+			"name":"Laundrymat_baseColor",
+			"uri":"Laundrymat_baseColor.png"
 		}
 	],
 	"accessors":[
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":6861,
+			"count":6857,
 			"max":[
 				17200,
 				20.02466583251953,
@@ -150,19 +179,19 @@
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":6861,
+			"count":6857,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":6861,
+			"count":6857,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":13590,
+			"count":13584,
 			"type":"SCALAR"
 		},
 		{
@@ -198,55 +227,113 @@
 			"componentType":5123,
 			"count":48,
 			"type":"SCALAR"
+		},
+		{
+			"bufferView":8,
+			"componentType":5126,
+			"count":24,
+			"max":[
+				-4402.49365234375,
+				21.424964904785156,
+				-8047.763671875
+			],
+			"min":[
+				-6200.18603515625,
+				20.000003814697266,
+				-9849
+			],
+			"type":"VEC3"
+		},
+		{
+			"bufferView":9,
+			"componentType":5126,
+			"count":24,
+			"type":"VEC3"
+		},
+		{
+			"bufferView":10,
+			"componentType":5126,
+			"count":24,
+			"type":"VEC2"
+		},
+		{
+			"bufferView":11,
+			"componentType":5123,
+			"count":36,
+			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":82332,
+			"byteLength":82284,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":82332,
-			"byteOffset":82332,
+			"byteLength":82284,
+			"byteOffset":82284,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":54888,
-			"byteOffset":164664,
+			"byteLength":54856,
+			"byteOffset":164568,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":27180,
-			"byteOffset":219552,
+			"byteLength":27168,
+			"byteOffset":219424,
 			"target":34963
 		},
 		{
 			"buffer":0,
 			"byteLength":312,
-			"byteOffset":246732,
+			"byteOffset":246592,
 			"target":34962
 		},
 		{
 			"buffer":0,
 			"byteLength":312,
-			"byteOffset":247044,
+			"byteOffset":246904,
 			"target":34962
 		},
 		{
 			"buffer":0,
 			"byteLength":208,
-			"byteOffset":247356,
+			"byteOffset":247216,
 			"target":34962
 		},
 		{
 			"buffer":0,
 			"byteLength":96,
-			"byteOffset":247564,
+			"byteOffset":247424,
+			"target":34963
+		},
+		{
+			"buffer":0,
+			"byteLength":288,
+			"byteOffset":247520,
+			"target":34962
+		},
+		{
+			"buffer":0,
+			"byteLength":288,
+			"byteOffset":247808,
+			"target":34962
+		},
+		{
+			"buffer":0,
+			"byteLength":192,
+			"byteOffset":248096,
+			"target":34962
+		},
+		{
+			"buffer":0,
+			"byteLength":72,
+			"byteOffset":248288,
 			"target":34963
 		}
 	],
@@ -258,7 +345,7 @@
 	],
 	"buffers":[
 		{
-			"byteLength":247660,
+			"byteLength":248360,
 			"uri":"scene.bin"
 		}
 	]

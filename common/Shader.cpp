@@ -99,14 +99,17 @@ void Shader::use() {
 }
 
 void Shader::setInt(const std::string &name, int value) { 
+	this->use();
 	glUniform1i(glGetUniformLocation(ID, name.c_str()), value); 
 }
 
 void Shader::setVec3(const std::string &name, const glm::vec3 &value) {
+	this->use();
     glUniform3fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]);
 }
 
 void Shader::setMat4(const std::string &name, const glm::mat4 &mat) {
+	this->use();
     glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
 }
 

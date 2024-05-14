@@ -1,7 +1,6 @@
 #include <common/Skybox.hpp>
 
-void Skybox::init(Shader _shader) {
-	shader = _shader;
+Skybox::Skybox(Shader *_shader) : shader(_shader) {
 
     std::vector<std::string> faces = {
 		"../data/skybox/right.jpg",
@@ -82,17 +81,17 @@ void Skybox::render(Camera &_camera)
 	glm::mat4 projectionMatrix = _camera.getProjectionMatrix();
 	glm::mat4 modelMatrix = glm::mat4(1.0);
 
-	shader.use();
+	shader->use();
     glDepthFunc(GL_LEQUAL);
     glBindVertexArray(m_skyboxVAO);
     if (m_cubeMapTexture != -1){
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubeMapTexture);
-		shader.setInt("Skybox", 0);
-		shader.setMat4("Model", modelMatrix);
-		shader.setMat4("View", viewMatrix);
-		shader.setMat4("Projection", projectionMatrix);
+		shader->setInt("Skybox", 0);
+		shader->setMat4("Model", modelMatrix);
+		shader->setMat4("View", viewMatrix);
+		shader->setMat4("Projection", projectionMatrix);
 
     }
     glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -107,7 +106,7 @@ void Skybox::clear()
     glDeleteVertexArrays(1, &m_skyboxVAO);
 
     // Cleanup programme
-    glDeleteProgram(shader.getID());
+    glDeleteProgram(shader->getID());
 }
 
 GLuint loadCubeMapTexture(std::vector<std::string> faces) {
