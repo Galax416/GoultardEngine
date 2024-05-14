@@ -1,15 +1,26 @@
 #version 330 core
 
-layout(location = 0) in vec3 vertices_position_modelspace;
+layout(location = 0) in vec3 aPos;
 
-out vec3 Position;
+
+out vec3 TexCoords;
+out vec3 Normal;
+out float visibility;
 
 uniform mat4 Model;
 uniform mat4 View;
 uniform mat4 Projection;
 
+const float density = 0.0007;
+const float gradient = 1.5;
+
 void main()
 {
-    Position = vec3(Model * vec4(vertices_position_modelspace, 1.0));
-    gl_Position = Projection * View * vec4(Position, 1.0);
+    TexCoords = (Model * vec4(aPos, 1.0)).xyz;
+    gl_Position = Projection * View * vec4(TexCoords, 1.0);
+
+    vec4 positionRelativeToCamera = View * Model * vec4(aPos, 1.0);
+    float distance = length(positionRelativeToCamera.xyz);
+    visibility = exp(-pow((distance*density), gradient));
+    visibility = clamp(visibility, 0.0, 1.0);
 }

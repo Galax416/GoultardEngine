@@ -53,6 +53,11 @@ public:
 		m_isDirty = true;
 	}
 
+	void translate(const glm::vec3& newPosition) {
+		m_pos += newPosition;
+		m_isDirty = true;
+	}
+
 	void setLocalRotation(const glm::quat& newRotation) {
 		m_rotation = newRotation;
 		hasquat = true;

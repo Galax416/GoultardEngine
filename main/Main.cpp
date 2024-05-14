@@ -27,7 +27,6 @@ using namespace glm;
 #include <common/Camera.hpp>
 #include <common/Entity.hpp>
 #include <common/Skybox.hpp>
-#include <common/Input.hpp>
 #include <common/Player.hpp>
 #include <common/Weapon.hpp>
 #include <common/Monster.hpp>
@@ -58,6 +57,11 @@ bool isEditMode = false;
 bool globalInit();
 void windowSetup();
 
+void processInput(GLFWwindow *window);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+
+void initMap(Entity *map, Shader *shader);
+
 
 /*******************************************************************************/
 
@@ -75,62 +79,274 @@ int main( void )
     
     Camera FreeCam, FpsCamera;
     FreeCam.setEditionMode(true);
+    FreeCam.setPosition(glm::vec3(0.0f, 100.0f, 0.0f));
     FreeCam.setTranslationSpeed(2000.0f);
 
     Entity scene(&MainShader);  
     
     Player Slayer("../data/model/slayer/slayer.gltf", &MainShader, FpsCamera);
+    scene.addChild(Slayer);
     Slayer.transform.setLocalPosition(glm::vec3(0, 400, 0));
 
     Weapon ar181("../data/model/plasma_rifle/scene.gltf", &MainShader, "../data/model/50bmg/scene.gltf");
     ar181.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
     ar181.transform.setLocalRotation(glm::vec3(-90.0f, 1.0f, 1.0f));
+    Slayer.addChild(ar181);
+    Slayer.setWeapon(&ar181);
+
 
     Entity map(&MainShader); // Test collision
-    Entity map2("../data/model/cube/Cube.gltf", &MainShader);
-    Entity map3("../data/model/cube/Cube.gltf", &MainShader);
-    Entity map4("../data/model/cube/Cube.gltf", &MainShader);
-    Entity map5("../data/model/cube/Cube.gltf", &MainShader);
+    scene.addChild(map);
 
-    map2.transform.setLocalScale(glm::vec3(200, 200, 10));
-    map2.transform.setLocalPosition(glm::vec3(0, 0, -200));
-    map3.transform.setLocalScale(glm::vec3(200, 200, 10));
-    map3.transform.setLocalPosition(glm::vec3(0, 0, 200));
-    map4.transform.setLocalScale(glm::vec3(200, 10, 200));
-    map4.transform.setLocalPosition(glm::vec3(0, -100, 0));
-    map5.transform.setLocalScale(glm::vec3(200, 10, 200));
-    map5.transform.setLocalPosition(glm::vec3(200, -50, 0));
+    Entity road_1("../data/model/Map/road/scene.gltf", &MainShader);
+    map.addChild(road_1);
+    road_1.transform.setLocalScale(glm::vec3(0.5f));
 
-    map.addChild(map2);
-    map.addChild(map5);
-    map.addChild(map4);
-    map.addChild(map3);
+    Entity bat_1("../data/model/Map/bat_clinic/scene.gltf", &MainShader);
+    map.addChild(bat_1);
+    bat_1.transform.setLocalScale(glm::vec3(0.5f));
+    bat_1.transform.setLocalPosition(glm::vec3(1753, 0, -4470));
 
-    Entity stoneGround("../data/model/stone_ground/scene.gltf", &MainShader);
-    stoneGround.transform.setLocalScale(glm::vec3(2000.0f));
+    Model basket("../data/model/Map/basket/scene.gltf");
 
-    Entity grassGround("../data/model/grass_ground/scene.gltf", &MainShader);
-    grassGround.transform.setLocalScale(glm::vec3(2000.0f));
-    grassGround.transform.setLocalPosition(glm::vec3(2000.0f, 0.0f, 0.0f));
+    Entity basket_1(&basket, &MainShader);
+    map.addChild(basket_1);
+    basket_1.transform.setLocalScale(glm::vec3(0.5f));
+    basket_1.transform.setLocalPosition(glm::vec3(-4451, 0, -4143));
+    Entity basket_2(&basket, &MainShader);
+    map.addChild(basket_2);
+    basket_2.transform.setLocalScale(glm::vec3(0.5f));
+    basket_2.transform.setLocalRotation(glm::vec3(0.0f, 180.0f, 0.0f));
+    basket_2.transform.setLocalPosition(glm::vec3(-4451, 0, -5726));
 
-    map.addChild(stoneGround);
-    map.addChild(grassGround);
+    Entity car_1("../data/model/Map/car/scene.gltf", &MainShader);
+    map.addChild(car_1);
+    car_1.transform.setLocalScale(glm::vec3(60.0f));
+    car_1.transform.setLocalRotation(glm::vec3(0.0f, 1140.0f, 0.0f));
+    car_1.transform.setLocalPosition(glm::vec3(-2496, 0, -4173));
+    
+    Entity bat_2("../data/model/Map/bat_car_wash/scene.gltf", &MainShader);
+    map.addChild(bat_2);
+    bat_2.transform.setLocalScale(glm::vec3(0.5f));
+    bat_2.transform.setLocalPosition(glm::vec3(-2776, 10, -4490));
 
-    Monster Demon("../data/model/cacodemon/scene.gltf", &MainShader);
-    Demon.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
-    Demon.transform.setLocalPosition(glm::vec3(2500.0f, 200.0f, 100.0f));
-    Demon.setSpawnPoint(glm::vec3(2500.0f, 200.0f, 100.0f));
-    Demon.transform.setLocalRotation(glm::vec3(0.0f, 97.0f, 0.0f));
-    Demon.setRotationOffset(90.0f);
+    Model wall("../data/model/Map/wall/scene.gltf");
+    Entity wall_1(&wall, &MainShader);
+    map.addChild(wall_1);
+    wall_1.transform.setLocalScale(glm::vec3(6.5f));
+    wall_1.transform.setLocalPosition(glm::vec3(-6336, 300, 467));
+    Entity wall_2(&wall, &MainShader);
+    map.addChild(wall_2);
+    wall_2.transform.setLocalScale(glm::vec3(6.5f));
+    wall_2.transform.setLocalPosition(glm::vec3(-6336, 300, -11242));
+    Entity wall_3(&wall, &MainShader);
+    map.addChild(wall_3);
+    wall_3.transform.setLocalScale(glm::vec3(6.5f));
+    wall_3.transform.setLocalPosition(glm::vec3(-19303, 300, -6534));
+    wall_3.transform.setLocalRotation(glm::vec3(0, 90, 0));
+    Entity wall_4(&wall, &MainShader);
+    map.addChild(wall_4);
+    wall_4.transform.setLocalScale(glm::vec3(6.5f));
+    wall_4.transform.setLocalPosition(glm::vec3(6616, 300, -6534));
+    wall_4.transform.setLocalRotation(glm::vec3(0, 90, 0));
 
-    Monster Knight("../data/model/cyberdemon/scene.gltf", &MainShader);
-    Knight.transform.setLocalScale(glm::vec3(15.0f, 15.0f, 15.0f));
-    Knight.transform.setLocalPosition(glm::vec3(2200.0f, 200.0f, -300.0f));
-    Knight.setSpawnPoint(glm::vec3(2200.0f, 200.0f, -300.0f));
-    Knight.transform.setLocalRotation(glm::vec3(0.0f, -90.0f, 0.0f));
-    Knight.setIsGravtityEntity(true);
-    Knight.setHealth(350); Knight.setDetectionRange(1500.0f); Knight.setDamage(40.0f);
-    Knight.setRotationOffset(180.0f);
+    Model bat__1("../data/model/Map/bat_1/scene.gltf");
+    Entity bat_3(&bat__1, &MainShader);
+    map.addChild(bat_3);
+    bat_3.transform.setLocalScale(glm::vec3(0.2f, 0.3f, 0.4f));
+    bat_3.transform.setLocalPosition(glm::vec3(1055, 0, -2444));
+    bat_3.transform.setLocalRotation(glm::vec3(0, -90, 0));
+    Entity bat_3_2(&bat__1, &MainShader);
+    map.addChild(bat_3_2);
+    bat_3_2.transform.setLocalScale(glm::vec3(0.2f, 0.3f, 0.4f));
+    bat_3_2.transform.setLocalPosition(glm::vec3(-1582, 0, -8189));
+    bat_3_2.transform.setLocalRotation(glm::vec3(0, -90, 0));
+    Entity bat_3_3(&bat__1, &MainShader);
+    map.addChild(bat_3_3);
+    bat_3_3.transform.setLocalScale(glm::vec3(0.2f, 0.3f, 0.4f));
+    bat_3_3.transform.setLocalPosition(glm::vec3(-5838, 0, -1035));
+    Entity bat_3_4(&bat__1, &MainShader);
+    map.addChild(bat_3_4);
+    bat_3_4.transform.setLocalScale(glm::vec3(0.2f, 0.3f, 0.4f));
+    bat_3_4.transform.setLocalPosition(glm::vec3(-15336, 0, -7350));
+
+    Model bat__2("../data/model/Map/bat_2/scene.gltf");
+    Entity bat_4(&bat__2, &MainShader);
+    map.addChild(bat_4);
+    bat_4.transform.setLocalScale(glm::vec3(0.5f));
+    bat_4.transform.setLocalPosition(glm::vec3(-3541, 0, -8112));
+    Entity bat_4_2(&bat__2, &MainShader);
+    map.addChild(bat_4_2);
+    bat_4_2.transform.setLocalScale(glm::vec3(0.5f));
+    bat_4_2.transform.setLocalPosition(glm::vec3(-8066, 0, -917));
+    bat_4_2.transform.setLocalRotation(glm::vec3(0, 180, 0));
+    Entity bat_4_3(&bat__2, &MainShader);
+    map.addChild(bat_4_3);
+    bat_4_3.transform.setLocalScale(glm::vec3(0.5f));
+    bat_4_3.transform.setLocalPosition(glm::vec3(-12516, 0, -5379));
+    bat_4_3.transform.setLocalRotation(glm::vec3(0, 90, 0));
+
+    Model bat__3("../data/model/Map/bat_3/scene.gltf");
+    Entity bat_5(&bat__3, &MainShader);
+    map.addChild(bat_5);
+    bat_5.transform.setLocalScale(glm::vec3(0.5f));
+    bat_5.transform.setLocalPosition(glm::vec3(-1733, 0, -858));
+    bat_5.transform.setLocalRotation(glm::vec3(0, 180, 0));
+    Entity bat_5_2(&bat__3, &MainShader);
+    map.addChild(bat_5_2);
+    bat_5_2.transform.setLocalScale(glm::vec3(0.5f));
+    bat_5_2.transform.setLocalPosition(glm::vec3(953, 0, -8989));
+    bat_5_2.transform.setLocalRotation(glm::vec3(0, -90, 0));
+    Entity bat_5_3(&bat__3, &MainShader);
+    map.addChild(bat_5_3);
+    bat_5_3.transform.setLocalScale(glm::vec3(0.5f));
+    bat_5_3.transform.setLocalPosition(glm::vec3(-6263, 0, -8989));
+    bat_5_3.transform.setLocalRotation(glm::vec3(0, 90, 0));
+    Entity bat_5_4(&bat__3, &MainShader);
+    map.addChild(bat_5_4);
+    bat_5_4.transform.setLocalScale(glm::vec3(0.5f));
+    bat_5_4.transform.setLocalPosition(glm::vec3(-16576, 0, -2693));
+    bat_5_4.transform.setLocalRotation(glm::vec3(0, 180, 0));
+    Entity bat_5_5(&bat__3, &MainShader);
+    map.addChild(bat_5_5);
+    bat_5_5.transform.setLocalScale(glm::vec3(0.5f));
+    bat_5_5.transform.setLocalPosition(glm::vec3(-8998, 0, -2693));
+
+    Model bat__4("../data/model/Map/bat_4/scene.gltf");
+    Entity bat_6(&bat__4, &MainShader);
+    map.addChild(bat_6);
+    bat_6.transform.setLocalScale(glm::vec3(0.5f));
+    bat_6.transform.setLocalPosition(glm::vec3(940, 0, -6281));
+    bat_6.transform.setLocalRotation(glm::vec3(0, -90, 0));
+    Entity bat_6_2(&bat__4, &MainShader);
+    map.addChild(bat_6_2);
+    bat_6_2.transform.setLocalScale(glm::vec3(0.5f));
+    bat_6_2.transform.setLocalPosition(glm::vec3(-4447, 0, -6288));
+    bat_6_2.transform.setLocalRotation(glm::vec3(0, 180, 0));
+    Entity bat_6_3(&bat__4, &MainShader);
+    map.addChild(bat_6_3);
+    bat_6_3.transform.setLocalScale(glm::vec3(0.5f));
+    bat_6_3.transform.setLocalPosition(glm::vec3(-9848, 0, -8070));
+    Entity bat_6_4(&bat__4, &MainShader);
+    map.addChild(bat_6_4);
+    bat_6_4.transform.setLocalScale(glm::vec3(0.5f));
+    bat_6_4.transform.setLocalPosition(glm::vec3(-13440, 0, -866));
+    bat_6_4.transform.setLocalRotation(glm::vec3(0, 90, 0));
+
+    Model bat__5("../data/model/Map/bat_5/scene.gltf");
+    Entity bat_7(&bat__5, &MainShader);
+    map.addChild(bat_7);
+    bat_7.transform.setLocalScale(glm::vec3(0.5f));
+    bat_7.transform.setLocalPosition(glm::vec3(-846, 0, -6735));
+    bat_7.transform.setLocalRotation(glm::vec3(0, -90, 0));
+    Entity bat_7_2(&bat__5, &MainShader);
+    map.addChild(bat_7_2);
+    bat_7_2.transform.setLocalScale(glm::vec3(0.5f));
+    bat_7_2.transform.setLocalPosition(glm::vec3(-8871, 0, -9874));
+    Entity bat_7_3(&bat__5, &MainShader);
+    map.addChild(bat_7_3);
+    bat_7_3.transform.setLocalScale(glm::vec3(0.5f));
+    bat_7_3.transform.setLocalPosition(glm::vec3(-15593, 0, -871));
+    bat_7_3.transform.setLocalRotation(glm::vec3(0, 90, 0));
+
+    Model bat__6("../data/model/Map/bat_6/scene.gltf");
+    Entity bat_8(&bat__6, &MainShader);
+    map.addChild(bat_8);
+    bat_8.transform.setLocalScale(glm::vec3(0.5f, 1.6f, 0.5f));
+    bat_8.transform.setLocalPosition(glm::vec3(-3984, 0, -9894));
+    Entity bat_8_2(&bat__6, &MainShader);
+    map.addChild(bat_8_2);
+    bat_8_2.transform.setLocalScale(glm::vec3(0.5f, 1.6f, 0.5f));
+    bat_8_2.transform.setLocalPosition(glm::vec3(-16995, 0, -7243));
+    Entity bat_8_3(&bat__6, &MainShader);
+    map.addChild(bat_8_3);
+    bat_8_3.transform.setLocalScale(glm::vec3(0.5f, 1.6f, 0.5f));
+    bat_8_3.transform.setLocalPosition(glm::vec3(-9816, 0, -5954));
+    bat_8_3.transform.setLocalRotation(glm::vec3(0, -90, 0));
+
+    Model bat__7("../data/model/Map/bat_7/scene.gltf");
+    Entity bat_9(&bat__7, &MainShader);
+    map.addChild(bat_9);
+    bat_9.transform.setLocalScale(glm::vec3(0.5f));
+    bat_9.transform.setLocalPosition(glm::vec3(-4469, 0, -8028));
+    Entity bat_9_2(&bat__7, &MainShader);
+    map.addChild(bat_9_2);
+    bat_9_2.transform.setLocalScale(glm::vec3(0.5f));
+    bat_9_2.transform.setLocalPosition(glm::vec3(-8057, 0, -8002));
+    Entity bat_9_3(&bat__7, &MainShader);
+    map.addChild(bat_9_3);
+    bat_9_3.transform.setLocalScale(glm::vec3(0.5f));
+    bat_9_3.transform.setLocalPosition(glm::vec3(-13462, 0, -9822));
+    Entity bat_9_4(&bat__7, &MainShader);
+    map.addChild(bat_9_4);
+    bat_9_4.transform.setLocalScale(glm::vec3(0.5f));
+    bat_9_4.transform.setLocalPosition(glm::vec3(-4504, 0, -149));
+    bat_9_4.transform.setLocalRotation(glm::vec3(0, 90, 0));
+    Entity bat_9_5(&bat__7, &MainShader);
+    map.addChild(bat_9_5);
+    bat_9_5.transform.setLocalScale(glm::vec3(0.5f));
+    bat_9_5.transform.setLocalPosition(glm::vec3(-8984, 0, -925));
+    bat_9_5.transform.setLocalRotation(glm::vec3(0, 180, 0));
+
+    Model bat__8("../data/model/Map/bat_8/scene.gltf");
+    Entity bat_10(&bat__8, &MainShader);
+    map.addChild(bat_10);
+    bat_10.transform.setLocalScale(glm::vec3(0.5f));
+    bat_10.transform.setLocalPosition(glm::vec3(-11602, 0, -8046));
+    Entity bat_10_2(&bat__8, &MainShader);
+    map.addChild(bat_10_2);
+    bat_10_2.transform.setLocalScale(glm::vec3(0.5f));
+    bat_10_2.transform.setLocalPosition(glm::vec3(-2612, 0, -6261));
+    bat_10_2.transform.setLocalRotation(glm::vec3(0, 180, 0));
+    Entity bat_10_3(&bat__8, &MainShader);
+    map.addChild(bat_10_3);
+    bat_10_3.transform.setLocalScale(glm::vec3(0.5f));
+    bat_10_3.transform.setLocalPosition(glm::vec3(-11688, 0, -908));
+    bat_10_3.transform.setLocalRotation(glm::vec3(0, 180, 0));
+    Entity bat_10_4(&bat__8, &MainShader);
+    map.addChild(bat_10_4);
+    bat_10_4.transform.setLocalScale(glm::vec3(0.5f));
+    bat_10_4.transform.setLocalPosition(glm::vec3(-8018, 0, -4527));
+    bat_10_4.transform.setLocalRotation(glm::vec3(0, 90, 0));
+
+
+    
+    Model chair("../data/model/Map/chair/scene.gltf");
+    Entity chair_1(&chair, &MainShader);
+    map.addChild(chair_1);
+    chair_1.transform.setLocalPosition(glm::vec3(569, 30, -4276));
+    chair_1.transform.setLocalRotation(glm::vec3(0, -90, 0));
+    Entity chair_2(&chair, &MainShader);
+    map.addChild(chair_2);
+    chair_2.transform.setLocalPosition(glm::vec3(569, 30, -4639));
+    chair_2.transform.setLocalRotation(glm::vec3(0, -90, 0));
+    Entity chair_3(&chair, &MainShader);
+    map.addChild(chair_3);
+    chair_3.transform.setLocalPosition(glm::vec3(-1555, 30, -5714));
+    Entity chair_4(&chair, &MainShader);
+    map.addChild(chair_4);
+    chair_4.transform.setLocalPosition(glm::vec3(-1981, 30, -5714));
+    // MORE CHAIR !!!!
+
+
+
+
+    // Monster Demon("../data/model/cacodemon/scene.gltf", &MainShader);
+    // scene.addChild(Demon);
+    // Demon.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
+    // Demon.transform.setLocalPosition(glm::vec3(2500.0f, 200.0f, 100.0f));
+    // Demon.setSpawnPoint(glm::vec3(2500.0f, 200.0f, 100.0f));
+    // Demon.transform.setLocalRotation(glm::vec3(0.0f, 97.0f, 0.0f));
+    // Demon.setRotationOffset(90.0f);
+
+    // Monster Knight("../data/model/cyberdemon/scene.gltf", &MainShader);
+    // Knight.transform.setLocalScale(glm::vec3(15.0f, 15.0f, 15.0f));
+    // Knight.transform.setLocalPosition(glm::vec3(2200.0f, 200.0f, -300.0f));
+    // Knight.setSpawnPoint(glm::vec3(2200.0f, 200.0f, -300.0f));
+    // Knight.transform.setLocalRotation(glm::vec3(0.0f, -90.0f, 0.0f));
+    // Knight.setIsGravtityEntity(true);
+    // Knight.setHealth(350); Knight.setDetectionRange(1500.0f); Knight.setDamage(40.0f);
+    // Knight.setRotationOffset(180.0f);
 
     // Monster bigBrain("../data/model/naked/scene.gltf", &MainShader);
     // bigBrain.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
@@ -140,17 +356,17 @@ int main( void )
     // bigBrain.setHealth(200); bigBrain.setDetectionRange(1800.0f); bigBrain.setDamage(50.0f);
 
 
-    monsters.push_back(&Demon); monsters.push_back(&Knight);
+    // monsters.push_back(&Demon); monsters.push_back(&Knight);
 
     // map 
-    scene.addChild(map);
+    // scene.addChild(map);
     // Player
-    scene.addChild(Slayer);
+    // scene.addChild(Slayer);
     // Weapon
-    Slayer.addChild(ar181);
-    Slayer.setWeapon(&ar181);
+    // Slayer.addChild(ar181);
+    // Slayer.setWeapon(&ar181);
     // Monster
-    scene.addChild(Demon); scene.addChild(Knight);
+    // scene.addChild(Demon); scene.addChild(Knight);
     // Misc
 
     scene.updateSelfAndChild();
@@ -159,8 +375,9 @@ int main( void )
     // GLuint LightID = glGetUniformLocation(MainShader.getID(), "LightPosition_worldspace");
     
     // Chargement de la Skybox
-    Skybox skybox;
-    skybox.init(Shader("../shader/vertexSky.glsl", "../shader/fragmentSky.glsl"));
+    Shader SkyboxShader("../shader/vertexSky.glsl", "../shader/fragmentSky.glsl");
+    Skybox skybox(&SkyboxShader);
+
 
     // Hud
     Shader HUDShader("../shader/vertexHUD.glsl", "../shader/fragmentHUD.glsl");
@@ -200,6 +417,12 @@ int main( void )
         // -----
         processInput(window);
 
+
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) bat_10.transform.translate(Camera::projectVectorOnPlan(FreeCam.getFront(), VEC_UP) * 10.0f);
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS) bat_10.transform.setRotation(glm::vec3(0, 10, 0));
+        std::cout << bat_10.transform.getLocalPosition().x << " " << bat_10.transform.getLocalPosition().z << std::endl;
+        
+
         // Clear the screen
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -229,10 +452,9 @@ int main( void )
         if (isEditMode) {
             FreeCam.update(deltaTime, window);
             currentCamera = FreeCam;
+            
         } else {
             // Player
-            Slayer.camera.update(deltaTime, window);
-
             bool isColliding = Slayer.CheckCollisionWithEntity(map);
             Slayer.updateInput(isColliding, deltaTime, window);
 
@@ -270,15 +492,23 @@ int main( void )
             }
         }
 
+        MainShader.setMat4("View", currentCamera.getViewMatrix());
+        MainShader.setMat4("Projection", currentCamera.getProjectionMatrix());
+        MainShader.setInt("isEditMode", (int)isEditMode);
+
         // Scene
         scene.updateSelfAndChild();
 
-        MainShader.setMat4("View", currentCamera.getViewMatrix());
-        MainShader.setMat4("Projection", currentCamera.getProjectionMatrix());
-
         // Render
         skybox.render(currentCamera);
+        skybox.shader->setInt("isEditMode", (int)isEditMode);
         scene.render();
+
+        // Camera
+        MainShader.setVec3("cameraPos", currentCamera.getPosition());
+
+        // Light 
+        MainShader.setVec3("pointLightPos", currentCamera.getPosition());
 
         // Swap buffers
         glfwSwapBuffers(window);
@@ -359,7 +589,7 @@ void windowSetup()
     glDepthFunc(GL_LESS);
 
     // Cull triangles which normal is not towards the camera
-    glEnable(GL_CULL_FACE);
+    // glEnable(GL_CULL_FACE);
 }
 
 
@@ -392,3 +622,4 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
 }
+
