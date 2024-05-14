@@ -30,6 +30,7 @@ private:
 
 public:
     Monster(std::string filename, Shader *shader);
+    Monster(Model *model, Shader *shader);
 
     void updateMonster(bool isColliding=false, glm::vec3 pos=glm::vec3(0.0f), glm::vec3 eulerAngle=glm::vec3(0.0f), float deltaTime=0.0f);
 

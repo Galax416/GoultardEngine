@@ -54,6 +54,9 @@ bool wireMode = false;
 // edit mode
 bool isEditMode = false;
 
+// Collision
+bool CollisionRender = false;
+
 bool globalInit();
 void windowSetup();
 
@@ -61,7 +64,6 @@ void processInput(GLFWwindow *window);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
 void initMap(Entity *map, Shader *shader);
-
 
 /*******************************************************************************/
 
@@ -75,17 +77,18 @@ int main( void )
 
     // Create and compile our GLSL program from the shaders
     Shader MainShader( "../shader/vertex_shader.glsl", "../shader/fragment_shader.glsl" );
+
     MainShader.use();
     
+    Entity scene(&MainShader);
+
     Camera FreeCam, FpsCamera;
     FreeCam.setEditionMode(true);
     FreeCam.setPosition(glm::vec3(0.0f, 100.0f, 0.0f));
     FreeCam.setTranslationSpeed(2000.0f);
 
-    Entity scene(&MainShader); 
-
     FpsCamera.setRotation(glm::vec3(0,180,0)); 
-    
+
     Player Slayer("../data/model/slayer/slayer.gltf", &MainShader, FpsCamera);
     scene.addChild(Slayer);
     Slayer.transform.setLocalPosition(glm::vec3(0, 400, 0));
@@ -330,44 +333,28 @@ int main( void )
     chair_4.transform.setLocalPosition(glm::vec3(-1981, 30, -5714));
     // MORE CHAIR !!!!
 
+    Model Cacodemon("../data/model/cacodemon/scene.gltf");
+    Model Cyberdemon("../data/model/cyberdemon/scene.gltf");
+    
+    Monster Demon(&Cacodemon, &MainShader);
+    scene.addChild(Demon);
+    Demon.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
+    Demon.transform.setLocalPosition(glm::vec3(2500.0f, 200.0f, 100.0f));
+    Demon.setSpawnPoint(glm::vec3(2500.0f, 200.0f, 100.0f));
+    Demon.transform.setLocalRotation(glm::vec3(0.0f, 97.0f, 0.0f));
+    Demon.setRotationOffset(90.0f);
 
-    // Monster Demon("../data/model/cacodemon/scene.gltf", &MainShader);
-    // scene.addChild(Demon);
-    // Demon.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
-    // Demon.transform.setLocalPosition(glm::vec3(2500.0f, 200.0f, 100.0f));
-    // Demon.setSpawnPoint(glm::vec3(2500.0f, 200.0f, 100.0f));
-    // Demon.transform.setLocalRotation(glm::vec3(0.0f, 97.0f, 0.0f));
-    // Demon.setRotationOffset(90.0f);
-
-    // Monster Knight("../data/model/cyberdemon/scene.gltf", &MainShader);
-    // Knight.transform.setLocalScale(glm::vec3(15.0f, 15.0f, 15.0f));
-    // Knight.transform.setLocalPosition(glm::vec3(2200.0f, 200.0f, -300.0f));
-    // Knight.setSpawnPoint(glm::vec3(2200.0f, 200.0f, -300.0f));
-    // Knight.transform.setLocalRotation(glm::vec3(0.0f, -90.0f, 0.0f));
-    // Knight.setIsGravtityEntity(true);
-    // Knight.setHealth(350); Knight.setDetectionRange(1500.0f); Knight.setDamage(40.0f);
-    // Knight.setRotationOffset(180.0f);
-
-    // Monster bigBrain("../data/model/naked/scene.gltf", &MainShader);
-    // bigBrain.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
-    // bigBrain.transform.setLocalPosition(glm::vec3(2400.0f, 200.0f, 400.0f));
-    // bigBrain.setSpawnPoint(glm::vec3(2400.0f, 200.0f, 400.0f));
-    // bigBrain.transform.setLocalRotation(glm::vec3(0.0f, 50.0f, 0.0f));
-    // bigBrain.setHealth(200); bigBrain.setDetectionRange(1800.0f); bigBrain.setDamage(50.0f);
+    Monster Knight("../data/model/cyberdemon/scene.gltf", &MainShader);
+    scene.addChild(Knight);
+    Knight.transform.setLocalScale(glm::vec3(15.0f, 15.0f, 15.0f));
+    Knight.transform.setLocalPosition(glm::vec3(2200.0f, 200.0f, -300.0f));
+    Knight.setSpawnPoint(glm::vec3(2200.0f, 200.0f, -300.0f));
+    Knight.transform.setLocalRotation(glm::vec3(0.0f, -90.0f, 0.0f));
+    Knight.setHealth(350); Knight.setDetectionRange(1500.0f); Knight.setDamage(40.0f);
+    Knight.setRotationOffset(180.0f);
 
 
-    // monsters.push_back(&Demon); monsters.push_back(&Knight);
-
-    // map 
-    // scene.addChild(map);
-    // Player
-    // scene.addChild(Slayer);
-    // Weapon
-    // Slayer.addChild(ar181);
-    // Slayer.setWeapon(&ar181);
-    // Monster
-    // scene.addChild(Demon); scene.addChild(Knight);
-    // Misc
+    monsters.push_back(&Demon); monsters.push_back(&Knight);
 
     scene.updateSelfAndChild();
 
@@ -416,6 +403,10 @@ int main( void )
         // input
         // -----
         processInput(window);
+
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) bat_10.transform.translate(Camera::projectVectorOnPlan(FreeCam.getFront(), VEC_UP) * 10.0f);
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS) bat_10.transform.setRotation(glm::vec3(0, 10, 0));
+        std::cout << bat_10.transform.getLocalPosition().x << " " << bat_10.transform.getLocalPosition().z << std::endl;
         
         // Clear the screen
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -497,6 +488,7 @@ int main( void )
         skybox.render(currentCamera);
         skybox.shader->setInt("isEditMode", (int)isEditMode);
         scene.render();
+        if (CollisionRender) scene.renderCollision();
 
         // Camera
         MainShader.setVec3("cameraPos", currentCamera.getPosition());
@@ -605,6 +597,11 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
     if (key == GLFW_KEY_C && action == GLFW_PRESS) {
         isEditMode = !isEditMode;
+    }
+
+    if (key == GLFW_KEY_F1 && action == GLFW_PRESS) {
+        CollisionRender = 
+            !CollisionRender;
     }
 }
 

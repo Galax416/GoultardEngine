@@ -15,10 +15,14 @@ void Model::computeBoundingBox() {
 
 void Model::Draw(Shader *shader) {
     if (this == nullptr) return;
-    for(unsigned int i = 0; i < meshes.size(); i++) {
+    for(unsigned int i = 0; i < meshes.size(); i++)
         meshes[i].Draw(*shader);
+}
+
+void Model::DrawCollision(Shader *shader) {
+    if (this == nullptr) return;
+    for (unsigned int i = 0; i < meshes.size(); i++)
         meshes[i].drawCollisionBox(*shader);
-    }
 }
 
 void Model::loadModel(string const &path) {

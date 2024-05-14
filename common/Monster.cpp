@@ -1,7 +1,8 @@
 #include <common/Monster.hpp>
 
-Monster::Monster(std::string filename, Shader *shader) : Entity(filename, shader) {
-}
+Monster::Monster(std::string filename, Shader *shader) : Entity(filename, shader) {}
+
+Monster::Monster(Model *model, Shader *shader) : Entity(model, shader) {}
 
 void Monster::updateMonster(bool isColliding, glm::vec3 pos, glm::vec3 eulerAngle, float deltaTime) {
     if (isColliding) {

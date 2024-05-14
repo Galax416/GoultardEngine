@@ -81,6 +81,17 @@ public:
 		}
 	}
 
+	void renderCollision() {
+		shader->use();
+
+		// Draw Mesh
+		model->DrawCollision(shader); // Render Collision
+
+		for (auto&& child : children) {
+			child->renderCollision();
+		}
+	}
+
 	bool CheckCollisionWithEntity(Entity &other) {
 		// Check collision with other
 		if (CheckCollisionWithSingleEntity(other))
