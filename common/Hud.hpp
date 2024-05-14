@@ -4,6 +4,7 @@
 #include <ft2build.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+ #include <glm/gtc/type_ptr.hpp>
 #include FT_FREETYPE_H  
 
 struct Character {
@@ -18,11 +19,22 @@ class Hud {
 private:
 
     Shader *m_shaderHUD;
+    int windowWidth; 
+    int windowHeight;
+    float texCoords[8] = {
+        0.0f, 0.0f, // 0
+        1.0f, 0.0f, // 1
+        1.0f, 1.0f, // 2
+        0.0f, 1.0f  // 3
+    };
+
     // Crosshair
     GLuint m_crosshairTextureID;
     GLuint crosshairVAO, crosshairVBO;
     // Health bar
+    GLuint healthTextureID;
     GLuint healthBarVAO, healthBarVBO;
+    
     // Text
     Shader *m_textShader;
     FT_Library m_ft;
@@ -33,16 +45,14 @@ private:
 
 public:
 
-    Hud(Shader *shaderHUD, Shader *textShader);
+    Hud(Shader *shaderHUD, Shader *textShader, int windowWidth, int windowHeight);
 
-    void render(int windowWidth, int windowHeight, int health, int maxHealth);
+    void render(int health, int maxHealth, int bullets);
     void renderCrosshair();
-    void renderHealthBar(float health, float maxHealth);
+    void renderHealthBar(float health, int maxHealth);
     void renderText(std::string text, float x, float y, float scale, glm::vec3 color);
 
     void initText();
-    void initCrosshair();
     void initHealthBar();
-
-    void update();
+    void initCrosshair();
 };

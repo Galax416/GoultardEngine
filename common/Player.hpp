@@ -27,6 +27,7 @@ private:
 
     // Sound
     irrklang::ISoundEngine* m_soundEngine;
+    float lastPlayed{ 0.0f }; // footstep sound
 
 public:
     Camera camera;

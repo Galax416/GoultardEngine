@@ -65,6 +65,14 @@ void Player::updateInput(bool isColliding, float _deltaTime, GLFWwindow* _window
 		pos += glm::normalize(Camera::projectVectorOnPlan(glm::normalize(glm::cross(camera.getFront(), VEC_UP)), VEC_UP)) * playerTranslationSpeed;
 	}
 
+	// footsteps sound
+	if(m_lastValidPosition != pos && isGrounded && !m_soundEngine->isCurrentlyPlaying("../data/sound/footsteps.wav")) {
+		if (glfwGetTime() - lastPlayed > 2) {
+			m_soundEngine->play2D("../data/sound/footstep.wav", false);
+			lastPlayed = glfwGetTime();
+		}
+	}
+
 	// jump
 	if (glfwGetKey(_window, GLFW_KEY_SPACE) == GLFW_PRESS) {
 		jump(5.0f);

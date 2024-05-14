@@ -164,8 +164,8 @@ int main( void )
 
     // Hud
     Shader HUDShader("../shader/vertexHUD.glsl", "../shader/fragmentHUD.glsl");
-    Shader TextShader("../shader/Text.vs", "../shader/Text.fs");
-    Hud hud(&HUDShader, &TextShader);
+    Shader TextShader("../shader/vertexText.glsl", "../shader/fragmentText.glsl");
+    Hud hud(&HUDShader, &TextShader, SCR_WIDTH, SCR_HEIGHT);
 
     // Pressing only one time
     glfwSetKeyCallback(window, key_callback);
@@ -175,9 +175,14 @@ int main( void )
     int nbFrames = 0;
 
     irrklang::ISoundEngine* engine = irrklang::createIrrKlangDevice();
-    engine->setSoundVolume(0.35f);
+    engine->setSoundVolume(0.20f);
     Slayer.setSoundEngine(engine);
     ar181.setSoundEngine(engine);
+
+    // Intro
+    float IntroDuration = 9.0f + glfwGetTime(); // 10 seconds
+    float IntroTimer = glfwGetTime();
+    bool played = false;
 
     do{
 
@@ -209,6 +214,17 @@ int main( void )
         MainShader.use();
         
         Camera currentCamera;
+        if (IntroTimer < IntroDuration) {
+            hud.renderText("Welcome to hell", SCR_WIDTH/3 - 45.0f, SCR_WIDTH/3, 2.0f, glm::vec3(0.529, 0.122, 0.051));
+            hud.renderText("Made with GoultardEngine", SCR_WIDTH/3, 25.0f, 1.0f, glm::vec3(0.141, 0.075, 0.075));
+            if(!played) {
+                engine->play2D("../data/sound/dssgcock.wav", false);
+                engine->play2D("../data/sound/AtDoomsGate.wav", false);
+                played = true;
+            }
+            IntroTimer = glfwGetTime();
+        }        
+
 
         if (isEditMode) {
             FreeCam.update(deltaTime, window);
@@ -223,7 +239,7 @@ int main( void )
             currentCamera = Slayer.camera;
             
             // HUD
-            hud.render(SCR_WIDTH, SCR_HEIGHT, Slayer.getHealth(), Slayer.getMaxHealth());
+            hud.render(Slayer.getHealth(), Slayer.getMaxHealth(), Slayer.weapon->getAmmo());
             MainShader.use();
 
             // Weapon
@@ -344,10 +360,6 @@ void windowSetup()
 
     // Cull triangles which normal is not towards the camera
     glEnable(GL_CULL_FACE);
-
-    // Blending
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
 }
 
 
