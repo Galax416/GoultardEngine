@@ -27,7 +27,7 @@ void Weapon::shoot(glm::vec3 position, glm::vec3 direction, glm::vec3 rotation, 
         glm::vec3 rotationoff = offset * rotationQuat;
         bullet->transform.setLocalPosition(rotationoff + position); // Set bullet position
 
-        bullet->transform.setLocalScale(glm::vec3(1.5f, 1.5f, 1.5f));
+        bullet->transform.setLocalScale(glm::vec3(3.0f, 3.0f, 3.0f));
 
         bullet->setDirection(direction);
         bullet->setSpeed(speed);
@@ -46,6 +46,7 @@ void Weapon::shoot(glm::vec3 position, glm::vec3 direction, glm::vec3 rotation, 
 
 void Weapon::reload() {
     if (glfwGetTime() - lastReloadTime >= reloadTime && ammo < maxAmmo) {
+        m_soundEngine->play2D("../data/sound/reload.wav", false);
         lastReloadTime = glfwGetTime();
         ammo = maxAmmo;
     }

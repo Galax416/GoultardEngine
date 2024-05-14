@@ -28,6 +28,8 @@ private:
     // glm::vec3 m_normalCollision;
     glm::vec3 spawnPoint;
 
+    irrklang::ISoundEngine* m_soundEngine;
+
 public:
     Monster(std::string filename, Shader *shader);
     Monster(Model *model, Shader *shader);
@@ -60,4 +62,6 @@ public:
     glm::vec3 getSpawnPoint() const { return spawnPoint; }
 
     void setRotationOffset(float offset) { RotationOffset = offset; }
+
+    void setSoundEngine(irrklang::ISoundEngine* soundEngine) { m_soundEngine = soundEngine; }
 };

@@ -85,12 +85,13 @@ void Player::updateInput(bool isColliding, float _deltaTime, GLFWwindow* _window
 	}
 
 	// footsteps sound
-	if(m_lastValidPosition != pos && isGrounded && !m_soundEngine->isCurrentlyPlaying("../data/sound/footsteps.wav")) {
+	if(m_lastValidPosition != pos && isGrounded) {
 		if (glfwGetTime() - lastPlayed > 2) {
 			m_soundEngine->play2D("../data/sound/footstep.wav", false);
 			lastPlayed = glfwGetTime();
 		}
 	}
+
 
 	// jump
 	if (glfwGetKey(_window, GLFW_KEY_SPACE) == GLFW_PRESS) {
@@ -222,6 +223,7 @@ bool Player::CheckCollisionWithSingleEntity(Entity &entity) { // AABB - AABB Col
 }
 
 void Player::respawn(glm::vec3 pos) {
+	m_soundEngine->play2D("../data/sound/dspldeth.wav", false);
 	transform.setLocalPosition(pos);
 	setHealth(100);
 	weapon->setAmmo(weapon->getMaxAmmo());

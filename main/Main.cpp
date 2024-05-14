@@ -343,6 +343,7 @@ int main( void )
     Demon.setSpawnPoint(glm::vec3(2500.0f, 200.0f, 100.0f));
     Demon.transform.setLocalRotation(glm::vec3(0.0f, 97.0f, 0.0f));
     Demon.setRotationOffset(90.0f);
+ 
 
     Monster Knight("../data/model/cyberdemon/scene.gltf", &MainShader);
     scene.addChild(Knight);
@@ -382,12 +383,17 @@ int main( void )
     engine->setSoundVolume(0.20f);
     Slayer.setSoundEngine(engine);
     ar181.setSoundEngine(engine);
+    Demon.setSoundEngine(engine);
+    Knight.setSoundEngine(engine);
 
     // Intro
     float IntroDuration = 9.0f + glfwGetTime(); // 10 seconds
     float IntroTimer = glfwGetTime();
     bool played = false;
 
+    Camera currentCamera;
+    if(isEditMode) currentCamera = FreeCam;
+    else currentCamera = FpsCamera;
     do{
 
         // Measure speed
@@ -421,7 +427,6 @@ int main( void )
         // -- Update --
         MainShader.use();
         
-        Camera currentCamera;
         if (IntroTimer < IntroDuration) {
             hud.renderText("Welcome to hell", SCR_WIDTH/3 - 45.0f, SCR_WIDTH/3, 2.0f, glm::vec3(0.529, 0.122, 0.051));
             hud.renderText("Made with GoultardEngine", SCR_WIDTH/3, 25.0f, 1.0f, glm::vec3(0.141, 0.075, 0.075));
@@ -433,7 +438,9 @@ int main( void )
             IntroTimer = glfwGetTime();
         }        
 
-
+        glm::vec3 listenpos = currentCamera.getPosition();
+        glm::vec3 listendir = currentCamera.getFront();
+        engine->setListenerPosition(irrklang::vec3df(listenpos.x,listenpos.y,listenpos.z), irrklang::vec3df(listendir.x,listendir.y,listendir.z));
         if (isEditMode) {
             FreeCam.update(deltaTime, window);
             currentCamera = FreeCam;
@@ -456,11 +463,14 @@ int main( void )
             for (auto&& bullet : Slayer.weapon->getBullets()) {
                 for (auto&& monster : monsters) {
                     if (monster->CheckCollisionWithEntity(*bullet)) {
+                        glm::vec3 monsterpos = monster->transform.getLocalPosition();
+                        engine->play3D("../data/sound/monster/dsdmpain.wav", irrklang::vec3df(monsterpos.x,monsterpos.y,monsterpos.z), false, false, true);
                         bullet->setAlive(false);
                         monster->setHealth(monster->getHealth() - bullet->getDamage());
                         monster->setisChasing(true);
                         // respawn
                         if (monster->getHealth() <= 0) {
+                            engine->play3D("../data/sound/monster/dskntdth.wav", irrklang::vec3df(monsterpos.x,monsterpos.y,monsterpos.z), false, false, true);
                             monster->respawn(monster->getSpawnPoint());
                         }
                     }

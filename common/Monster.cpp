@@ -18,6 +18,10 @@ void Monster::detectPlayer(glm::vec3 playerPos, float deltaTime, float &playerHe
     glm::vec3 monsterPos = transform.getLocalPosition();
     float distance = glm::distance(monsterPos, playerPos);
     if (distance < m_detectionRange || isChasing) {
+        if (!isChasing) {
+            m_soundEngine->play2D("../data/sound/monster/dssgtsit.wav", false);
+            isChasing = true;
+        }
 		if (distance > 5.0f) { // prevent naughty things
 			// Move towards the player
 			glm::vec3 direction = glm::normalize(playerPos - monsterPos);
@@ -33,6 +37,7 @@ void Monster::detectPlayer(glm::vec3 playerPos, float deltaTime, float &playerHe
 		}
         if (distance < 50.0f) {
             // Attack the player
+            m_soundEngine->play2D("../data/sound/monster/dssgtatk.wav", false);
             static float attackTimer = 0.0f;
             attackTimer += deltaTime;
             if (attackTimer >= attackSpeed) {
@@ -44,6 +49,7 @@ void Monster::detectPlayer(glm::vec3 playerPos, float deltaTime, float &playerHe
 }
 
 void Monster::respawn(glm::vec3 pos) {
+    m_soundEngine->play2D("../data/sound/monster/dskntdth.wav", false);
     transform.setLocalPosition(pos);
     m_health = 100;
     isChasing = false;
