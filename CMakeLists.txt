@@ -72,12 +72,6 @@ add_executable(main
 	common/stb_image.cpp
 	common/stb_image.hpp
 
-	common/text2D.hpp
-	common/text2D.cpp
-
-	common/vboindexer.cpp
-	common/vboindexer.hpp
-
 	common/Transform.hpp
 	common/Entity.hpp
 
@@ -104,8 +98,6 @@ add_executable(main
 
 	common/Monster.hpp
 	common/Monster.cpp
-
-	common/GLutils.hpp
 
 )
 target_link_libraries(main

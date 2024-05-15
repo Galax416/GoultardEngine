@@ -2,7 +2,6 @@
 
 #include <common/Entity.hpp>
 #include <common/Weapon.hpp>
-#include <common/text2D.hpp>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>

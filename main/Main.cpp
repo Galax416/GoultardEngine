@@ -22,7 +22,6 @@ GLFWwindow* window;
 using namespace glm;
 
 #include <common/Shader.hpp>
-#include <common/vboindexer.hpp>
 #include <common/Model.hpp>
 #include <common/Camera.hpp>
 #include <common/Entity.hpp>
@@ -30,7 +29,6 @@ using namespace glm;
 #include <common/Player.hpp>
 #include <common/Weapon.hpp>
 #include <common/Monster.hpp>
-#include <common/GLutils.hpp>
 #include <common/Hud.hpp>
 
 // settings
@@ -63,8 +61,6 @@ void windowSetup();
 void processInput(GLFWwindow *window);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
-void initMap(Entity *map, Shader *shader);
-
 /*******************************************************************************/
 
 int main( void )
@@ -91,7 +87,7 @@ int main( void )
 
     Player Slayer("../data/model/slayer/slayer.gltf", &MainShader, FpsCamera);
     scene.addChild(Slayer);
-    Slayer.transform.setLocalPosition(glm::vec3(0, 400, 0));
+    Slayer.transform.setLocalPosition(glm::vec3(0, 500, 0));
 
     Weapon ar181("../data/model/plasma_rifle/scene.gltf", &MainShader, "../data/model/50bmg/scene.gltf");
     ar181.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
@@ -100,7 +96,8 @@ int main( void )
     Slayer.setWeapon(&ar181);
 
 
-    Entity map(&MainShader); // Test collision
+    // MAP
+    Entity map(&MainShader);
     scene.addChild(map);
 
     Entity road_1("../data/model/Map/road/scene.gltf", &MainShader);
@@ -333,6 +330,7 @@ int main( void )
     chair_4.transform.setLocalPosition(glm::vec3(-1981, 30, -5714));
     // MORE CHAIR !!!!
 
+    // MONSTERS
     Model Cacodemon("../data/model/cacodemon/scene.gltf");
     Model Cyberdemon("../data/model/cyberdemon/scene.gltf");
     
@@ -410,9 +408,9 @@ int main( void )
         // -----
         processInput(window);
 
-        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) bat_10.transform.translate(Camera::projectVectorOnPlan(FreeCam.getFront(), VEC_UP) * 10.0f);
-        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS) bat_10.transform.setRotation(glm::vec3(0, 10, 0));
-        std::cout << bat_10.transform.getLocalPosition().x << " " << bat_10.transform.getLocalPosition().z << std::endl;
+        // if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) bat_10.transform.translate(Camera::projectVectorOnPlan(FreeCam.getFront(), VEC_UP) * 10.0f);
+        // if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS) bat_10.transform.setRotation(glm::vec3(0, 10, 0));
+        // std::cout << bat_10.transform.getLocalPosition().x << " " << bat_10.transform.getLocalPosition().z << std::endl;
         
         // Clear the screen
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -420,13 +418,13 @@ int main( void )
         // Debug
         glEnable(GL_DEBUG_OUTPUT);
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-        glDebugMessageCallback(MessageCallback, 0);
 
         // Use our shader
 
         // -- Update --
         MainShader.use();
         
+        // Intro
         if (IntroTimer < IntroDuration) {
             hud.renderText("Welcome to hell", SCR_WIDTH/3 - 45.0f, SCR_WIDTH/3, 2.0f, glm::vec3(0.529, 0.122, 0.051));
             hud.renderText("Made with GoultardEngine", SCR_WIDTH/3, 25.0f, 1.0f, glm::vec3(0.141, 0.075, 0.075));
