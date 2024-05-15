@@ -80,14 +80,14 @@ int main( void )
 
     Camera FreeCam, FpsCamera;
     FreeCam.setEditionMode(true);
-    FreeCam.setPosition(glm::vec3(0.0f, 100.0f, 0.0f));
+    FreeCam.setPosition(glm::vec3(0.0f, 10.0f, 0.0f));
     FreeCam.setTranslationSpeed(2000.0f);
 
     FpsCamera.setRotation(glm::vec3(0,180,0)); 
 
     Player Slayer("../data/model/slayer/slayer.gltf", &MainShader, FpsCamera);
     scene.addChild(Slayer);
-    Slayer.transform.setLocalPosition(glm::vec3(0, 10, 0));
+    Slayer.transform.setLocalPosition(glm::vec3(0, 200, 0));
 
     Weapon ar181("../data/model/plasma_rifle/scene.gltf", &MainShader, "../data/model/50bmg/scene.gltf");
     ar181.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
@@ -364,7 +364,7 @@ int main( void )
     cyber_1.transform.setLocalScale(glm::vec3(15.0f, 15.0f, 15.0f));
     cyber_1.transform.setLocalPosition(glm::vec3(2126.0f, 200.0f, -1718.0f));
     cyber_1.transform.setLocalRotation(glm::vec3(0.0f, -43.0f, 0.0f));
-    cyber_1.setSpawnPoint(Caco_1.transform.getLocalPosition());
+    cyber_1.setSpawnPoint(cyber_1.transform.getLocalPosition());
     cyber_1.setHealth(250); cyber_1.setDetectionRange(1500.0f); cyber_1.setDamage(25.0f);
     cyber_1.setRotationOffset(180.0f);
     cyber_1.setSpeed(300.0f);

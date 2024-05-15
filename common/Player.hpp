@@ -18,8 +18,8 @@ private:
     float   m_health{ 100 };
     float m_maxHealth{ 100 };
 
-    glm::vec3 m_lastValidPosition;
-    glm::vec3 m_normalCollision;
+    glm::vec3 m_lastValidPosition { 0.0f, 0.0f, 0.0f };
+    glm::vec3 m_normalCollision { 0.0f, 0.0f, 0.0f };
 
     float m_heightGround{ 0.0f };
 

@@ -94,7 +94,7 @@ void Player::updateInput(bool isColliding, float _deltaTime, GLFWwindow* _window
 
 
 	// jump
-	if (glfwGetKey(_window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+	if (glfwGetKey(_window, GLFW_KEY_SPACE) == GLFW_PRESS && isGrounded) {
 		jump(5.0f);
 		m_jumpKeyPressed = true;
 	} else m_jumpKeyPressed = false;
