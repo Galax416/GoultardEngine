@@ -9,7 +9,7 @@
 class Monster : public Entity {
 
 private:
-    float m_translationSpeed{ 150.0f };
+    float m_translationSpeed{ 300.0f };
     float m_rotationSpeed{ 2.5f };
     float m_health{ 100 };
     float m_maxHealth{ 100 };
@@ -46,7 +46,7 @@ public:
     void setHealth(int health) { this->m_health = health;};
     int getHealth() const { return m_health;} ;
 
-    void setMaxHealth(int health) { this->m_maxHealth = health;};
+    void setMaxHealth(int health) { this->m_maxHealth = health; if(m_health > m_maxHealth) m_maxHealth = m_health;};
     int getMaxHealth() const { return m_maxHealth;} ;
 
     void setisChasing(bool aggr) { isChasing = aggr; }

@@ -6,7 +6,7 @@ Monster::Monster(std::string filename, Shader *shader) : Entity(filename, shader
 Monster::Monster(Model *model, Shader *shader) : Entity(model, shader) {}
 
 void Monster::updateMonster(bool isColliding, glm::vec3 pos, glm::quat eulerAngle) {
-    if (isColliding & isGravityEntity) {
+    if (isColliding && isGravityEntity) {
 		if (m_normalCollision.y < 0) {
 			transform.setLocalPosition(glm::vec3(pos.x, m_heightGround-5, pos.z));
 		} 
@@ -123,6 +123,6 @@ bool Monster::CheckCollisionWithSingleEntity(Entity &entity) { // AABB - AABB Co
 
 void Monster::respawn(glm::vec3 pos) {
     transform.setLocalPosition(pos);
-    m_health = 100;
+    m_health = m_maxHealth;
     isChasing = false;
 }
