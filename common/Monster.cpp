@@ -39,7 +39,7 @@ void Monster::detectPlayer(glm::vec3 playerPos, float deltaTime, float &playerHe
 			if (isGravityEntity) transform.setLocalRotation(extractYaw(rotation));
 			else transform.setLocalRotation(rotation);
 		}
-        if (distance < 50.0f) {
+        if (distance < 250.0f) {
             // Attack the player
             if (!m_soundEngine->isCurrentlyPlaying("../data/sound/monster/dssgtatk.wav")) m_soundEngine->play2D("../data/sound/monster/dssgtatk.wav", false);
             static float attackTimer = 0.0f;

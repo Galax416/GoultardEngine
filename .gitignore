@@ -2,3 +2,4 @@ build/
 CMakeFiles/
 CMakeCache.txt
 .vscode/
+main/main
