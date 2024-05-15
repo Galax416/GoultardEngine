@@ -87,7 +87,7 @@ int main( void )
 
     Player Slayer("../data/model/slayer/slayer.gltf", &MainShader, FpsCamera);
     scene.addChild(Slayer);
-    Slayer.transform.setLocalPosition(glm::vec3(0, 1000, 0));
+    Slayer.transform.setLocalPosition(glm::vec3(0, 10, 0));
 
     Weapon ar181("../data/model/plasma_rifle/scene.gltf", &MainShader, "../data/model/50bmg/scene.gltf");
     ar181.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
@@ -368,6 +368,7 @@ int main( void )
     cyber_1.setHealth(250); cyber_1.setDetectionRange(1500.0f); cyber_1.setDamage(25.0f);
     cyber_1.setRotationOffset(180.0f);
     cyber_1.setSpeed(300.0f);
+    cyber_1.setIsGravtityEntity(true);
 
     Monster cyber_2(&Cyberdemon, &MainShader);
     scene.addChild(cyber_2);
@@ -378,6 +379,7 @@ int main( void )
     cyber_2.setHealth(250); cyber_2.setDetectionRange(1500.0f); cyber_2.setDamage(25.0f);
     cyber_2.setRotationOffset(180.0f);
     cyber_2.setSpeed(300.0f);
+    cyber_2.setIsGravtityEntity(true);
 
     Monster cyber_3(&Cyberdemon, &MainShader);
     scene.addChild(cyber_3);
@@ -388,6 +390,7 @@ int main( void )
     cyber_3.setHealth(500); cyber_3.setDetectionRange(1500.0f); cyber_3.setDamage(50.0f); // STRONG
     cyber_3.setRotationOffset(180.0f);
     cyber_3.setSpeed(350.0f);
+    cyber_3.setIsGravtityEntity(true);
 
     Monster hell_1(&HellKnight, &MainShader);
     scene.addChild(hell_1);
@@ -398,6 +401,7 @@ int main( void )
     hell_1.setHealth(175); hell_1.setDetectionRange(800.0f); hell_1.setDamage(35.0f);
     hell_1.setRotationOffset(180.0f);
     hell_1.setSpeed(250.0f);
+    hell_1.setIsGravtityEntity(true);
 
     Monster hell_2(&HellKnight, &MainShader);
     scene.addChild(hell_2);
@@ -408,6 +412,7 @@ int main( void )
     hell_2.setHealth(175); hell_2.setDetectionRange(800.0f); hell_2.setDamage(35.0f);
     hell_2.setRotationOffset(180.0f);
     hell_2.setSpeed(250.0f);
+    hell_2.setIsGravtityEntity(true);
 
 
     monsters.push_back(&Caco_1); monsters.push_back(&cyber_1); monsters.push_back(&hell_1);

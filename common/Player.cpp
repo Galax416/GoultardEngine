@@ -45,7 +45,7 @@ void Player::updateInput(bool isColliding, float _deltaTime, GLFWwindow* _window
 	glm::vec3 eulerAngle = camera.getRotationEuler();
 
 	eulerAngle.y -= (float)(deltaX) * playerRotationSpeed;
-	eulerAngle.y = Camera::clipAngle180(eulerAngle.y); // Clamp the yaw angle between -180 and 180 degrees
+	eulerAngle.y = clipAngle180(eulerAngle.y); // Clamp the yaw angle between -180 and 180 degrees
 	eulerAngle.x += (float)(deltaY) * playerRotationSpeed;
 	eulerAngle.x = glm::clamp(eulerAngle.x, -89.9f, 89.9f); // Clamp the pitch angle between -90 and 90 degrees
 
@@ -72,16 +72,16 @@ void Player::updateInput(bool isColliding, float _deltaTime, GLFWwindow* _window
 	glm::vec3 pos = transform.getLocalPosition();
 	this->m_lastValidPosition = pos;
 	if (glfwGetKey(_window, GLFW_KEY_W) == GLFW_PRESS) {
-		pos += glm::normalize(Camera::projectVectorOnPlan(camera.getFront(), VEC_UP)) * playerTranslationSpeed;
+		pos += glm::normalize(projectVectorOnPlan(camera.getFront(), VEC_UP)) * playerTranslationSpeed;
 	}
 	if (glfwGetKey(_window, GLFW_KEY_S) == GLFW_PRESS) {
-		pos -= glm::normalize(Camera::projectVectorOnPlan(camera.getFront(), VEC_UP)) * playerTranslationSpeed;
+		pos -= glm::normalize(projectVectorOnPlan(camera.getFront(), VEC_UP)) * playerTranslationSpeed;
 	}
 	if (glfwGetKey(_window, GLFW_KEY_A) == GLFW_PRESS) {
-		pos -= glm::normalize(Camera::projectVectorOnPlan(glm::normalize(glm::cross(camera.getFront(), VEC_UP)), VEC_UP)) * playerTranslationSpeed;
+		pos -= glm::normalize(projectVectorOnPlan(glm::normalize(glm::cross(camera.getFront(), VEC_UP)), VEC_UP)) * playerTranslationSpeed;
 	}
 	if (glfwGetKey(_window, GLFW_KEY_D) == GLFW_PRESS) {
-		pos += glm::normalize(Camera::projectVectorOnPlan(glm::normalize(glm::cross(camera.getFront(), VEC_UP)), VEC_UP)) * playerTranslationSpeed;
+		pos += glm::normalize(projectVectorOnPlan(glm::normalize(glm::cross(camera.getFront(), VEC_UP)), VEC_UP)) * playerTranslationSpeed;
 	}
 
 	// footsteps sound

@@ -2,6 +2,7 @@
 
 #include <common/Entity.hpp>
 #include <common/Weapon.hpp>
+#include <common/Utils.hpp>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -39,7 +40,7 @@ public:
 
     void detectPlayer(glm::vec3 playerPos, float deltaTime, float &playerHealth);
 
-    void setHealth(int health) { this->m_health = health;};
+    void setHealth(int health) { this->m_health = health; if(m_health > m_maxHealth) m_health = m_maxHealth;};
     int getHealth() const { return m_health;};
 
     void setSpeed(float speed) { m_translationSpeed = speed; }

@@ -25,7 +25,10 @@ void Monster::detectPlayer(glm::vec3 playerPos, float deltaTime, float &playerHe
 		if (distance > 5.0f) { // prevent naughty things
 			// Move towards the player
 			glm::vec3 direction = glm::normalize(playerPos - monsterPos);
-			transform.setLocalPosition(monsterPos + direction * m_translationSpeed * deltaTime);
+            glm::vec3 pos = monsterPos + direction * m_translationSpeed * deltaTime;
+			
+            if (isGravityEntity) transform.setLocalPosition(glm::vec3(pos.x, monsterPos.y, pos.z));
+            else transform.setLocalPosition(pos);
 
 			// look at the player
 			glm::quat rotation = glm::quatLookAt(direction, VEC_UP);
@@ -33,7 +36,8 @@ void Monster::detectPlayer(glm::vec3 playerPos, float deltaTime, float &playerHe
 			rotation = rotation * initialRotation; // rotate the model
 			rotation = glm::normalize(rotation);
 
-			transform.setLocalRotation(rotation);
+			if (isGravityEntity) transform.setLocalRotation(extractYaw(rotation));
+			else transform.setLocalRotation(rotation);
 		}
         if (distance < 50.0f) {
             // Attack the player
@@ -51,6 +55,6 @@ void Monster::detectPlayer(glm::vec3 playerPos, float deltaTime, float &playerHe
 void Monster::respawn(glm::vec3 pos) {
     m_soundEngine->play2D("../data/sound/monster/dskntdth.wav", false);
     transform.setLocalPosition(pos);
-    m_health = 100;
+    m_health = m_maxHealth;
     isChasing = false;
 }
