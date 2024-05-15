@@ -1,6 +1,6 @@
 # CMake entry point
 cmake_minimum_required (VERSION 3.0)
-project (Tutorials)
+project (GoultardEngine)
 
 find_package(OpenGL REQUIRED)
 
@@ -30,12 +30,15 @@ if(INCLUDE_DISTRIB)
 	add_subdirectory(distrib)
 endif(INCLUDE_DISTRIB)
 
-
+set(IRRKLANG_LIBRARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/irrKlang-64bit-1.6.0/bin/linux-gcc-64")
 
 include_directories(
 	external/glfw-3.1.2/include/
 	external/glm-0.9.7.1/
 	external/glew-1.13.0/include/
+	external/assimp/include/ # Load Model
+	external/freetype/include/ # Text Rendering
+	external/irrKlang-64bit-1.6.0/include/ # Sound
 	.
 )
 
@@ -43,6 +46,9 @@ set(ALL_LIBS
 	${OPENGL_LIBRARY}
 	glfw
 	GLEW_1130
+	assimp
+	freetype
+	${IRRKLANG_LIBRARY_DIR}/libIrrKlang.so
 )
 
 add_definitions(
@@ -55,24 +61,46 @@ add_definitions(
 
 
 add_executable(main
-        main/Main.cpp
-	common/shader.cpp
-	common/shader.hpp
-	common/camera.hpp
-	common/texture.cpp
-	common/texture.hpp
+    main/Main.cpp
+
+	common/Shader.hpp
+	common/Shader.cpp
+
+	common/Utils.hpp
+
+	common/Camera.cpp
+	common/Camera.hpp
+
 	common/stb_image.cpp
 	common/stb_image.hpp
-	common/objloader.cpp
-	common/objloader.hpp
-	common/vboindexer.cpp
-	common/vboindexer.hpp
-	common/Mesh.hpp
+
 	common/Transform.hpp
 	common/Entity.hpp
+
+	common/Player.hpp
+	common/Player.cpp
+
+	common/Hud.hpp
+	common/Hud.cpp
+
+	common/Model.cpp
+	common/Model.hpp
+
+	common/Mesh.cpp
+	common/Mesh.hpp
+
+	common/Skybox.hpp
+	common/Skybox.cpp
+
+	common/Bullet.hpp
+	common/Bullet.cpp
 	
-        main/vertex_shader.glsl
-        main/fragment_shader.glsl
+	common/Weapon.hpp
+	common/Weapon.cpp
+
+	common/Monster.hpp
+	common/Monster.cpp
+
 )
 target_link_libraries(main
 	${ALL_LIBS}

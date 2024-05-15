@@ -4,5 +4,4 @@
 mkdir -p build
 cd build
 cmake ..
-make -j
-./launch-main.sh
+make -j 6 && ./launch-main.sh

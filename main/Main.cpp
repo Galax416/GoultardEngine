@@ -16,31 +16,31 @@ GLFWwindow* window;
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+// Audio
+#include <irrKlang.h>
 
 using namespace glm;
 
-#include <common/shader.hpp>
-#include <common/objloader.hpp>
-#include <common/vboindexer.hpp>
-#include <common/camera.hpp>
-
-void processInput(GLFWwindow *window);
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods); // Fix les input trop rapide
-void mouse_callback(GLFWwindow* window, double xpos, double ypos); // Souris
-double lastX = 400, lastY = 300;
-bool firstMouse = true;
-bool mouseButtonPressed = false; // Indicateur pour savoir si le bouton de la souris est actuellement enfoncé
+#include <common/Shader.hpp>
+#include <common/Model.hpp>
+#include <common/Camera.hpp>
+#include <common/Entity.hpp>
+#include <common/Skybox.hpp>
+#include <common/Player.hpp>
+#include <common/Weapon.hpp>
+#include <common/Monster.hpp>
+#include <common/Hud.hpp>
 
 // settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
-
-// camera
-Camera camera_libre;
+const unsigned int SCR_WIDTH = 1080;
+const unsigned int SCR_HEIGHT = 720;
 
 // timing
 float deltaTime = 0.0f;	// time between current frame and last frame
 float lastFrame = 0.0f;
+
+// Entity pointers
+std::vector<Monster*> monsters;
 
 //rotation
 float angle = 0.;
@@ -48,16 +48,553 @@ float zoom = 1.;
 
 //wire mode 
 bool wireMode = false;
+
+// edit mode
+bool isEditMode = false;
+
+// Collision
+bool CollisionRender = false;
+
+bool globalInit();
+void windowSetup();
+
+void processInput(GLFWwindow *window);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+
 /*******************************************************************************/
 
 int main( void )
+{
+    
+    if (!globalInit())
+    {
+        return -1;
+    }
+
+    // Create and compile our GLSL program from the shaders
+    Shader MainShader( "../shader/vertex_shader.glsl", "../shader/fragment_shader.glsl" );
+
+    MainShader.use();
+    
+    Entity scene(&MainShader);
+
+    Camera FreeCam, FpsCamera;
+    FreeCam.setEditionMode(true);
+    FreeCam.setPosition(glm::vec3(0.0f, 100.0f, 0.0f));
+    FreeCam.setTranslationSpeed(2000.0f);
+
+    FpsCamera.setRotation(glm::vec3(0,180,0)); 
+
+    Player Slayer("../data/model/slayer/slayer.gltf", &MainShader, FpsCamera);
+    scene.addChild(Slayer);
+    Slayer.transform.setLocalPosition(glm::vec3(0, 10, 0));
+
+    Weapon ar181("../data/model/plasma_rifle/scene.gltf", &MainShader, "../data/model/50bmg/scene.gltf");
+    ar181.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
+    ar181.transform.setLocalRotation(glm::vec3(-90.0f, 1.0f, 1.0f));
+    Slayer.addChild(ar181);
+    Slayer.setWeapon(&ar181);
+
+
+    // MAP
+    Entity map(&MainShader);
+    scene.addChild(map);
+
+    Entity road_1("../data/model/Map/road/scene.gltf", &MainShader);
+    map.addChild(road_1);
+    road_1.transform.setLocalScale(glm::vec3(0.5f));
+
+    Entity bat_1("../data/model/Map/bat_clinic/scene.gltf", &MainShader);
+    map.addChild(bat_1);
+    bat_1.transform.setLocalScale(glm::vec3(0.5f));
+    bat_1.transform.setLocalPosition(glm::vec3(1753, 0, -4470));
+
+    Model basket("../data/model/Map/basket/scene.gltf");
+
+    Entity basket_1(&basket, &MainShader);
+    map.addChild(basket_1);
+    basket_1.transform.setLocalScale(glm::vec3(0.5f));
+    basket_1.transform.setLocalPosition(glm::vec3(-4451, 0, -4143));
+    Entity basket_2(&basket, &MainShader);
+    map.addChild(basket_2);
+    basket_2.transform.setLocalScale(glm::vec3(0.5f));
+    basket_2.transform.setLocalRotation(glm::vec3(0.0f, 180.0f, 0.0f));
+    basket_2.transform.setLocalPosition(glm::vec3(-4451, 0, -5726));
+
+    Entity car_1("../data/model/Map/car/scene.gltf", &MainShader);
+    map.addChild(car_1);
+    car_1.transform.setLocalScale(glm::vec3(60.0f));
+    car_1.transform.setLocalRotation(glm::vec3(0.0f, 1140.0f, 0.0f));
+    car_1.transform.setLocalPosition(glm::vec3(-2496, 0, -4173));
+    
+    Entity bat_2("../data/model/Map/bat_car_wash/scene.gltf", &MainShader);
+    map.addChild(bat_2);
+    bat_2.transform.setLocalScale(glm::vec3(0.5f));
+    bat_2.transform.setLocalPosition(glm::vec3(-2776, 10, -4490));
+
+    Model wall("../data/model/Map/wall/scene.gltf");
+    Entity wall_1(&wall, &MainShader);
+    map.addChild(wall_1);
+    wall_1.transform.setLocalScale(glm::vec3(6.5f));
+    wall_1.transform.setLocalPosition(glm::vec3(-6336, 300, 467));
+    Entity wall_2(&wall, &MainShader);
+    map.addChild(wall_2);
+    wall_2.transform.setLocalScale(glm::vec3(6.5f));
+    wall_2.transform.setLocalPosition(glm::vec3(-6336, 300, -11242));
+    Entity wall_3(&wall, &MainShader);
+    map.addChild(wall_3);
+    wall_3.transform.setLocalScale(glm::vec3(6.5f));
+    wall_3.transform.setLocalPosition(glm::vec3(-19303, 300, -6534));
+    wall_3.transform.setLocalRotation(glm::vec3(0, 90, 0));
+    Entity wall_4(&wall, &MainShader);
+    map.addChild(wall_4);
+    wall_4.transform.setLocalScale(glm::vec3(6.5f));
+    wall_4.transform.setLocalPosition(glm::vec3(6616, 300, -6534));
+    wall_4.transform.setLocalRotation(glm::vec3(0, 90, 0));
+
+    Model bat__1("../data/model/Map/bat_1/scene.gltf");
+    Entity bat_3(&bat__1, &MainShader);
+    map.addChild(bat_3);
+    bat_3.transform.setLocalScale(glm::vec3(0.2f, 0.3f, 0.4f));
+    bat_3.transform.setLocalPosition(glm::vec3(1055, 0, -2444));
+    bat_3.transform.setLocalRotation(glm::vec3(0, -90, 0));
+    Entity bat_3_2(&bat__1, &MainShader);
+    map.addChild(bat_3_2);
+    bat_3_2.transform.setLocalScale(glm::vec3(0.2f, 0.3f, 0.4f));
+    bat_3_2.transform.setLocalPosition(glm::vec3(-1582, 0, -8189));
+    bat_3_2.transform.setLocalRotation(glm::vec3(0, -90, 0));
+    Entity bat_3_3(&bat__1, &MainShader);
+    map.addChild(bat_3_3);
+    bat_3_3.transform.setLocalScale(glm::vec3(0.2f, 0.3f, 0.4f));
+    bat_3_3.transform.setLocalPosition(glm::vec3(-5838, 0, -1035));
+    Entity bat_3_4(&bat__1, &MainShader);
+    map.addChild(bat_3_4);
+    bat_3_4.transform.setLocalScale(glm::vec3(0.2f, 0.3f, 0.4f));
+    bat_3_4.transform.setLocalPosition(glm::vec3(-15336, 0, -7350));
+
+    Model bat__2("../data/model/Map/bat_2/scene.gltf");
+    Entity bat_4(&bat__2, &MainShader);
+    map.addChild(bat_4);
+    bat_4.transform.setLocalScale(glm::vec3(0.5f));
+    bat_4.transform.setLocalPosition(glm::vec3(-3541, 0, -8112));
+    Entity bat_4_2(&bat__2, &MainShader);
+    map.addChild(bat_4_2);
+    bat_4_2.transform.setLocalScale(glm::vec3(0.5f));
+    bat_4_2.transform.setLocalPosition(glm::vec3(-8066, 0, -917));
+    bat_4_2.transform.setLocalRotation(glm::vec3(0, 180, 0));
+    Entity bat_4_3(&bat__2, &MainShader);
+    map.addChild(bat_4_3);
+    bat_4_3.transform.setLocalScale(glm::vec3(0.5f));
+    bat_4_3.transform.setLocalPosition(glm::vec3(-12516, 0, -5379));
+    bat_4_3.transform.setLocalRotation(glm::vec3(0, 90, 0));
+
+    Model bat__3("../data/model/Map/bat_3/scene.gltf");
+    Entity bat_5(&bat__3, &MainShader);
+    map.addChild(bat_5);
+    bat_5.transform.setLocalScale(glm::vec3(0.5f));
+    bat_5.transform.setLocalPosition(glm::vec3(-1733, 0, -858));
+    bat_5.transform.setLocalRotation(glm::vec3(0, 180, 0));
+    Entity bat_5_2(&bat__3, &MainShader);
+    map.addChild(bat_5_2);
+    bat_5_2.transform.setLocalScale(glm::vec3(0.5f));
+    bat_5_2.transform.setLocalPosition(glm::vec3(953, 0, -8989));
+    bat_5_2.transform.setLocalRotation(glm::vec3(0, -90, 0));
+    Entity bat_5_3(&bat__3, &MainShader);
+    map.addChild(bat_5_3);
+    bat_5_3.transform.setLocalScale(glm::vec3(0.5f));
+    bat_5_3.transform.setLocalPosition(glm::vec3(-6263, 0, -8989));
+    bat_5_3.transform.setLocalRotation(glm::vec3(0, 90, 0));
+    Entity bat_5_4(&bat__3, &MainShader);
+    map.addChild(bat_5_4);
+    bat_5_4.transform.setLocalScale(glm::vec3(0.5f));
+    bat_5_4.transform.setLocalPosition(glm::vec3(-16576, 0, -2693));
+    bat_5_4.transform.setLocalRotation(glm::vec3(0, 180, 0));
+    Entity bat_5_5(&bat__3, &MainShader);
+    map.addChild(bat_5_5);
+    bat_5_5.transform.setLocalScale(glm::vec3(0.5f));
+    bat_5_5.transform.setLocalPosition(glm::vec3(-8998, 0, -2693));
+
+    Model bat__4("../data/model/Map/bat_4/scene.gltf");
+    Entity bat_6(&bat__4, &MainShader);
+    map.addChild(bat_6);
+    bat_6.transform.setLocalScale(glm::vec3(0.5f));
+    bat_6.transform.setLocalPosition(glm::vec3(940, 0, -6281));
+    bat_6.transform.setLocalRotation(glm::vec3(0, -90, 0));
+    Entity bat_6_2(&bat__4, &MainShader);
+    map.addChild(bat_6_2);
+    bat_6_2.transform.setLocalScale(glm::vec3(0.5f));
+    bat_6_2.transform.setLocalPosition(glm::vec3(-4447, 0, -6288));
+    bat_6_2.transform.setLocalRotation(glm::vec3(0, 180, 0));
+    Entity bat_6_3(&bat__4, &MainShader);
+    map.addChild(bat_6_3);
+    bat_6_3.transform.setLocalScale(glm::vec3(0.5f));
+    bat_6_3.transform.setLocalPosition(glm::vec3(-9848, 0, -8070));
+    Entity bat_6_4(&bat__4, &MainShader);
+    map.addChild(bat_6_4);
+    bat_6_4.transform.setLocalScale(glm::vec3(0.5f));
+    bat_6_4.transform.setLocalPosition(glm::vec3(-13440, 0, -866));
+    bat_6_4.transform.setLocalRotation(glm::vec3(0, 90, 0));
+
+    Model bat__5("../data/model/Map/bat_5/scene.gltf");
+    Entity bat_7(&bat__5, &MainShader);
+    map.addChild(bat_7);
+    bat_7.transform.setLocalScale(glm::vec3(0.5f));
+    bat_7.transform.setLocalPosition(glm::vec3(-846, 0, -6735));
+    bat_7.transform.setLocalRotation(glm::vec3(0, -90, 0));
+    Entity bat_7_2(&bat__5, &MainShader);
+    map.addChild(bat_7_2);
+    bat_7_2.transform.setLocalScale(glm::vec3(0.5f));
+    bat_7_2.transform.setLocalPosition(glm::vec3(-8871, 0, -9874));
+    Entity bat_7_3(&bat__5, &MainShader);
+    map.addChild(bat_7_3);
+    bat_7_3.transform.setLocalScale(glm::vec3(0.5f));
+    bat_7_3.transform.setLocalPosition(glm::vec3(-15593, 0, -871));
+    bat_7_3.transform.setLocalRotation(glm::vec3(0, 90, 0));
+
+    Model bat__6("../data/model/Map/bat_6/scene.gltf");
+    Entity bat_8(&bat__6, &MainShader);
+    map.addChild(bat_8);
+    bat_8.transform.setLocalScale(glm::vec3(0.5f, 1.6f, 0.5f));
+    bat_8.transform.setLocalPosition(glm::vec3(-3984, 0, -9894));
+    Entity bat_8_2(&bat__6, &MainShader);
+    map.addChild(bat_8_2);
+    bat_8_2.transform.setLocalScale(glm::vec3(0.5f, 1.6f, 0.5f));
+    bat_8_2.transform.setLocalPosition(glm::vec3(-16995, 0, -7243));
+    Entity bat_8_3(&bat__6, &MainShader);
+    map.addChild(bat_8_3);
+    bat_8_3.transform.setLocalScale(glm::vec3(0.5f, 1.6f, 0.5f));
+    bat_8_3.transform.setLocalPosition(glm::vec3(-9816, 0, -5954));
+    bat_8_3.transform.setLocalRotation(glm::vec3(0, -90, 0));
+
+    Model bat__7("../data/model/Map/bat_7/scene.gltf");
+    Entity bat_9(&bat__7, &MainShader);
+    map.addChild(bat_9);
+    bat_9.transform.setLocalScale(glm::vec3(0.5f));
+    bat_9.transform.setLocalPosition(glm::vec3(-4469, 0, -8028));
+    Entity bat_9_2(&bat__7, &MainShader);
+    map.addChild(bat_9_2);
+    bat_9_2.transform.setLocalScale(glm::vec3(0.5f));
+    bat_9_2.transform.setLocalPosition(glm::vec3(-8057, 0, -8002));
+    Entity bat_9_3(&bat__7, &MainShader);
+    map.addChild(bat_9_3);
+    bat_9_3.transform.setLocalScale(glm::vec3(0.5f));
+    bat_9_3.transform.setLocalPosition(glm::vec3(-13462, 0, -9822));
+    Entity bat_9_4(&bat__7, &MainShader);
+    map.addChild(bat_9_4);
+    bat_9_4.transform.setLocalScale(glm::vec3(0.5f));
+    bat_9_4.transform.setLocalPosition(glm::vec3(-4504, 0, -149));
+    bat_9_4.transform.setLocalRotation(glm::vec3(0, 90, 0));
+    Entity bat_9_5(&bat__7, &MainShader);
+    map.addChild(bat_9_5);
+    bat_9_5.transform.setLocalScale(glm::vec3(0.5f));
+    bat_9_5.transform.setLocalPosition(glm::vec3(-8984, 0, -925));
+    bat_9_5.transform.setLocalRotation(glm::vec3(0, 180, 0));
+
+    Model bat__8("../data/model/Map/bat_8/scene.gltf");
+    Entity bat_10(&bat__8, &MainShader);
+    map.addChild(bat_10);
+    bat_10.transform.setLocalScale(glm::vec3(0.5f));
+    bat_10.transform.setLocalPosition(glm::vec3(-11602, 0, -8046));
+    Entity bat_10_2(&bat__8, &MainShader);
+    map.addChild(bat_10_2);
+    bat_10_2.transform.setLocalScale(glm::vec3(0.5f));
+    bat_10_2.transform.setLocalPosition(glm::vec3(-2612, 0, -6261));
+    bat_10_2.transform.setLocalRotation(glm::vec3(0, 180, 0));
+    Entity bat_10_3(&bat__8, &MainShader);
+    map.addChild(bat_10_3);
+    bat_10_3.transform.setLocalScale(glm::vec3(0.5f));
+    bat_10_3.transform.setLocalPosition(glm::vec3(-11688, 0, -908));
+    bat_10_3.transform.setLocalRotation(glm::vec3(0, 180, 0));
+    Entity bat_10_4(&bat__8, &MainShader);
+    map.addChild(bat_10_4);
+    bat_10_4.transform.setLocalScale(glm::vec3(0.5f));
+    bat_10_4.transform.setLocalPosition(glm::vec3(-8018, 0, -4527));
+    bat_10_4.transform.setLocalRotation(glm::vec3(0, 90, 0));
+
+
+    
+    Model chair("../data/model/Map/chair/scene.gltf");
+    Entity chair_1(&chair, &MainShader);
+    map.addChild(chair_1);
+    chair_1.transform.setLocalPosition(glm::vec3(569, 30, -4276));
+    chair_1.transform.setLocalRotation(glm::vec3(0, -90, 0));
+    Entity chair_2(&chair, &MainShader);
+    map.addChild(chair_2);
+    chair_2.transform.setLocalPosition(glm::vec3(569, 30, -4639));
+    chair_2.transform.setLocalRotation(glm::vec3(0, -90, 0));
+    Entity chair_3(&chair, &MainShader);
+    map.addChild(chair_3);
+    chair_3.transform.setLocalPosition(glm::vec3(-1555, 30, -5714));
+    Entity chair_4(&chair, &MainShader);
+    map.addChild(chair_4);
+    chair_4.transform.setLocalPosition(glm::vec3(-1981, 30, -5714));
+    // MORE CHAIR !!!!
+
+    // MONSTERS
+    Model Cacodemon("../data/model/cacodemon/scene.gltf");
+    Model Cyberdemon("../data/model/cyberdemon/scene.gltf");
+    Model HellKnight("../data/model/hellknight/scene.gltf");
+    
+    Monster Caco_1(&Cacodemon, &MainShader);
+    scene.addChild(Caco_1);
+    Caco_1.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
+    Caco_1.transform.setLocalPosition(glm::vec3(-855.0f, 200.0f, -2720.0f));
+    Caco_1.transform.setLocalRotation(glm::vec3(0.0f, -31.0f, 0.0f));
+    Caco_1.setSpawnPoint(Caco_1.transform.getLocalPosition());
+    Caco_1.setRotationOffset(90.0f);
+
+    Monster Caco_2(&Cacodemon, &MainShader);
+    scene.addChild(Caco_2);
+    Caco_2.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
+    Caco_2.transform.setLocalPosition(glm::vec3(-2953.0f, 275.0f, -3516.0f));
+    Caco_2.transform.setLocalRotation(glm::vec3(0.0f, -22.0f, 0.0f));
+    Caco_2.setSpawnPoint(Caco_2.transform.getLocalPosition());
+    Caco_2.setRotationOffset(90.0f);
+
+    Monster Caco_3(&Cacodemon, &MainShader);
+    scene.addChild(Caco_3);
+    Caco_3.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
+    Caco_3.transform.setLocalPosition(glm::vec3(386.0f, 325.0f, -5493.0f));
+    Caco_3.transform.setLocalRotation(glm::vec3(0.0f, -40.0f, 0.0f));
+    Caco_3.setSpawnPoint(Caco_3.transform.getLocalPosition());
+    Caco_3.setRotationOffset(90.0f);
+ 
+    Monster cyber_1(&Cyberdemon, &MainShader);
+    scene.addChild(cyber_1);
+    cyber_1.transform.setLocalScale(glm::vec3(15.0f, 15.0f, 15.0f));
+    cyber_1.transform.setLocalPosition(glm::vec3(2126.0f, 200.0f, -1718.0f));
+    cyber_1.transform.setLocalRotation(glm::vec3(0.0f, -43.0f, 0.0f));
+    cyber_1.setSpawnPoint(Caco_1.transform.getLocalPosition());
+    cyber_1.setHealth(250); cyber_1.setDetectionRange(1500.0f); cyber_1.setDamage(25.0f);
+    cyber_1.setRotationOffset(180.0f);
+    cyber_1.setSpeed(300.0f);
+    cyber_1.setIsGravtityEntity(true);
+
+    Monster cyber_2(&Cyberdemon, &MainShader);
+    scene.addChild(cyber_2);
+    cyber_2.transform.setLocalScale(glm::vec3(15.0f, 15.0f, 15.0f));
+    cyber_2.transform.setLocalPosition(glm::vec3(-5110.0f, 200.0f, -4923.0f));
+    cyber_2.transform.setLocalRotation(glm::vec3(0.0f, -43.0f, 0.0f));
+    cyber_2.setSpawnPoint(cyber_2.transform.getLocalPosition());
+    cyber_2.setHealth(250); cyber_2.setDetectionRange(1500.0f); cyber_2.setDamage(25.0f);
+    cyber_2.setRotationOffset(180.0f);
+    cyber_2.setSpeed(300.0f);
+    cyber_2.setIsGravtityEntity(true);
+
+    Monster cyber_3(&Cyberdemon, &MainShader);
+    scene.addChild(cyber_3);
+    cyber_3.transform.setLocalScale(glm::vec3(20.0f, 20.0f, 20.0f)); // BIG
+    cyber_3.transform.setLocalPosition(glm::vec3(-2518.0f, 300.0f, -7411.0f));
+    cyber_3.transform.setLocalRotation(glm::vec3(0.0f, -43.0f, 0.0f));
+    cyber_3.setSpawnPoint(cyber_3.transform.getLocalPosition());
+    cyber_3.setHealth(500); cyber_3.setDetectionRange(1500.0f); cyber_3.setDamage(50.0f); // STRONG
+    cyber_3.setRotationOffset(180.0f);
+    cyber_3.setSpeed(350.0f);
+    cyber_3.setIsGravtityEntity(true);
+
+    Monster hell_1(&HellKnight, &MainShader);
+    scene.addChild(hell_1);
+    hell_1.transform.setLocalScale(glm::vec3(18.0f, 18.0f, 18.0f));
+    hell_1.transform.setLocalPosition(glm::vec3(-1220.0f, 100.0f, -5152.0f));
+    hell_1.transform.setLocalRotation(glm::vec3(0.0f, 10.0f, 0.0f));
+    hell_1.setSpawnPoint(hell_1.transform.getLocalPosition());
+    hell_1.setHealth(175); hell_1.setDetectionRange(800.0f); hell_1.setDamage(35.0f);
+    hell_1.setRotationOffset(180.0f);
+    hell_1.setSpeed(250.0f);
+    hell_1.setIsGravtityEntity(true);
+
+    Monster hell_2(&HellKnight, &MainShader);
+    scene.addChild(hell_2);
+    hell_2.transform.setLocalScale(glm::vec3(18.0f, 18.0f, 18.0f));
+    hell_2.transform.setLocalPosition(glm::vec3(-7610.0f, 100.0f, -6768.0f));
+    hell_2.transform.setLocalRotation(glm::vec3(0.0f, -30.0f, 0.0f));
+    hell_2.setSpawnPoint(hell_2.transform.getLocalPosition());
+    hell_2.setHealth(175); hell_2.setDetectionRange(800.0f); hell_2.setDamage(35.0f);
+    hell_2.setRotationOffset(180.0f);
+    hell_2.setSpeed(250.0f);
+    hell_2.setIsGravtityEntity(true);
+
+
+    monsters.push_back(&Caco_1); monsters.push_back(&cyber_1); monsters.push_back(&hell_1);
+    monsters.push_back(&Caco_2); monsters.push_back(&cyber_2); monsters.push_back(&hell_2);
+    monsters.push_back(&Caco_3); monsters.push_back(&cyber_3);
+
+    scene.updateSelfAndChild();
+
+    // Get a handle for our "LightPosition" uniform
+    // GLuint LightID = glGetUniformLocation(MainShader.getID(), "LightPosition_worldspace");
+    
+    // Chargement de la Skybox
+    Shader SkyboxShader("../shader/vertexSky.glsl", "../shader/fragmentSky.glsl");
+    Skybox skybox(&SkyboxShader);
+
+
+    // Hud
+    Shader HUDShader("../shader/vertexHUD.glsl", "../shader/fragmentHUD.glsl");
+    Shader TextShader("../shader/vertexText.glsl", "../shader/fragmentText.glsl");
+    Hud hud(&HUDShader, &TextShader, SCR_WIDTH, SCR_HEIGHT);
+
+    // Pressing only one time
+    glfwSetKeyCallback(window, key_callback);
+
+    // For speed computation
+    double lastTime = glfwGetTime();
+    int nbFrames = 0;
+
+    // Audio
+    irrklang::ISoundEngine* engine = irrklang::createIrrKlangDevice();
+    engine->setSoundVolume(0.20f);
+    Slayer.setSoundEngine(engine);
+    ar181.setSoundEngine(engine);
+    for(auto&& monster : monsters) monster->setSoundEngine(engine); // set sound engine for each monster
+
+    // Intro
+    float IntroDuration = 9.0f + glfwGetTime(); // 10 seconds
+    float IntroTimer = glfwGetTime();
+    bool played = false;
+
+    Camera currentCamera;
+    if(isEditMode) currentCamera = FreeCam;
+    else currentCamera = FpsCamera;
+    do{
+
+        // Measure speed
+        // per-frame time logic
+        // --------------------
+        float currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
+        // Show FPS in consol
+        // std::cout << round(1.0 / deltaTime) << std::endl; 
+
+        // input
+        // -----
+        processInput(window);
+
+        // if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) hell_2.transform.translate(Camera::projectVectorOnPlan(FreeCam.getFront(), VEC_UP) * 10.0f);
+        // if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS) hell_2.transform.setRotation(glm::vec3(0, 10, 0));
+        // std::cout << "post : " << hell_2.transform.getLocalPosition().x << " " << hell_2.transform.getLocalPosition().z << std::endl;
+        // Clear the screen
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // Debug
+        glEnable(GL_DEBUG_OUTPUT);
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+
+        // Use our shader
+
+        // -- Update --
+        MainShader.use();
+        
+        // Intro
+        if (IntroTimer < IntroDuration) {
+            hud.renderText("Welcome to hell", SCR_WIDTH/3 - 45.0f, SCR_WIDTH/3, 2.0f, glm::vec3(0.529, 0.122, 0.051));
+            hud.renderText("Made with GoultardEngine", SCR_WIDTH/3, 25.0f, 1.0f, glm::vec3(0.141, 0.075, 0.075));
+            if(!played) {
+                engine->play2D("../data/sound/dssgcock.wav", false);
+                engine->play2D("../data/sound/AtDoomsGate.wav", false);
+                played = true;
+            }
+            IntroTimer = glfwGetTime();
+        }        
+
+        glm::vec3 listenpos = currentCamera.getPosition();
+        glm::vec3 listendir = currentCamera.getFront();
+        engine->setListenerPosition(irrklang::vec3df(listenpos.x,listenpos.y,listenpos.z), irrklang::vec3df(listendir.x,listendir.y,listendir.z));
+        if (isEditMode) {
+            FreeCam.update(deltaTime, window);
+            currentCamera = FreeCam;
+            
+        } else {
+            // Player
+            bool isColliding = Slayer.CheckCollisionWithEntity(map);
+            Slayer.updateInput(isColliding, deltaTime, window);
+
+            currentCamera = Slayer.camera;
+            
+            // HUD
+            hud.render(Slayer.getHealth(), Slayer.getMaxHealth(), Slayer.weapon->getAmmo());
+            MainShader.use();
+
+            // Weapon
+            Slayer.weapon->updateBullets(deltaTime);
+
+            // Collision with monster
+            for (auto&& bullet : Slayer.weapon->getBullets()) {
+                for (auto&& monster : monsters) {
+                    if (monster->CheckCollisionWithEntity(*bullet)) {
+                        glm::vec3 monsterpos = monster->transform.getLocalPosition();
+                        engine->play3D("../data/sound/monster/dsdmpain.wav", irrklang::vec3df(monsterpos.x,monsterpos.y,monsterpos.z), false, false, true);
+                        bullet->setAlive(false);
+                        monster->setHealth(monster->getHealth() - bullet->getDamage());
+                        monster->setisChasing(true);
+                        // respawn
+                        if (monster->getHealth() <= 0) {
+                            engine->play3D("../data/sound/monster/dskntdth.wav", irrklang::vec3df(monsterpos.x,monsterpos.y,monsterpos.z), false, false, true);
+                            monster->respawn(monster->getSpawnPoint());
+                        }
+                    }
+                }
+            }
+
+            // Monster
+            for (auto&& monster : monsters) {
+                monster->detectPlayer(Slayer.transform.getLocalPosition(), deltaTime, Slayer.getHealth());
+            }
+
+            if (Slayer.getHealth() <= 0) {
+                Slayer.respawn(glm::vec3(0, 400, 0));
+            }
+        }
+
+        MainShader.setMat4("View", currentCamera.getViewMatrix());
+        MainShader.setMat4("Projection", currentCamera.getProjectionMatrix());
+        MainShader.setInt("isEditMode", (int)isEditMode);
+
+        // Scene
+        scene.updateSelfAndChild();
+
+        // Render
+        skybox.render(currentCamera);
+        skybox.shader->setInt("isEditMode", (int)isEditMode);
+        scene.render();
+        if (CollisionRender) scene.renderCollision();
+
+        // Camera
+        MainShader.setVec3("cameraPos", currentCamera.getPosition());
+
+        // Light 
+        MainShader.setVec3("pointLightPos", currentCamera.getPosition());
+
+        // Swap buffers
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+
+    } // Check if the ESC key was pressed or the window was closed
+    while( glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
+           glfwWindowShouldClose(window) == 0 );
+
+    glDeleteProgram(MainShader.getID());
+    
+    // Cleanup VBO and shader
+    skybox.clear();
+
+    // Close OpenGL window and terminate GLFW
+    glfwTerminate();
+
+    return 0;
+}
+
+
+bool globalInit()
 {
     // Initialise GLFW
     if( !glfwInit() )
     {
         fprintf( stderr, "Failed to initialize GLFW\n" );
         getchar();
-        return -1;
+        return false;
     }
 
     glfwWindowHint(GLFW_SAMPLES, 4);
@@ -67,12 +604,12 @@ int main( void )
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Open a window and create its OpenGL context
-    window = glfwCreateWindow( 1024, 768, "TP1 - GLFW", NULL, NULL);
+    window = glfwCreateWindow( SCR_WIDTH, SCR_HEIGHT, "GoultardEngine", NULL, NULL);
     if( window == NULL ){
         fprintf( stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n" );
         getchar();
         glfwTerminate();
-        return -1;
+        return false;
     }
     glfwMakeContextCurrent(window);
 
@@ -82,18 +619,23 @@ int main( void )
         fprintf(stderr, "Failed to initialize GLEW\n");
         getchar();
         glfwTerminate();
-        return -1;
+        return false;
     }
 
+    windowSetup();
+    return true;
+}
+
+void windowSetup()
+{
     // Ensure we can capture the escape key being pressed below
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
     // Hide the mouse and enable unlimited mouvement
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-    glfwSetCursorPosCallback(window, mouse_callback);
 
     // Set the mouse at the center of the screen
     glfwPollEvents();
-    glfwSetCursorPos(window, 1024/2, 768/2);
+    //glfwSetCursorPos(window, 1024 / 2, 768 / 2);
 
     // Dark blue background
     glClearColor(0.8f, 0.8f, 0.8f, 0.0f);
@@ -104,146 +646,9 @@ int main( void )
     glDepthFunc(GL_LESS);
 
     // Cull triangles which normal is not towards the camera
-    //glEnable(GL_CULL_FACE);
-
-    GLuint VertexArrayID;
-    glGenVertexArrays(1, &VertexArrayID);
-    glBindVertexArray(VertexArrayID);
-
-    // Create and compile our GLSL program from the shaders
-    GLuint programID = LoadShaders( "vertex_shader.glsl", "fragment_shader.glsl" );
-
-    /*****************TODO***********************/
-    // Get a handle for our "Model View Projection" matrices uniforms
-
-    /****************************************/
-    std::vector<unsigned short> indices; //Triangles concaténés dans une liste
-    std::vector<std::vector<unsigned short> > triangles;
-    std::vector<glm::vec3> indexed_vertices;
-
-    //Chargement du fichier de maillage
-    std::string filename("suzanne.off");
-    loadOFF(filename, indexed_vertices, indices, triangles );
-
-    // Load it into a VBO
-
-    GLuint vertexbuffer;
-    glGenBuffers(1, &vertexbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-    glBufferData(GL_ARRAY_BUFFER, indexed_vertices.size() * sizeof(glm::vec3), &indexed_vertices[0], GL_STATIC_DRAW);
-
-    // Generate a buffer for the indices as well
-    GLuint elementbuffer;
-    glGenBuffers(1, &elementbuffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned short), &indices[0] , GL_STATIC_DRAW);
-
-    // Get a handle for our "LightPosition" uniform
-    glUseProgram(programID);
-    GLuint LightID = glGetUniformLocation(programID, "LightPosition_worldspace");
-
-    // Pressing only one time
-    glfwSetKeyCallback(window, key_callback);
-
-    // For speed computation
-    double lastTime = glfwGetTime();
-    int nbFrames = 0;
-
-    do{
-
-        // Measure speed
-        // per-frame time logic
-        // --------------------
-        float currentFrame = glfwGetTime();
-        deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;
-
-        // input
-        // -----
-        processInput(window);
-        glfwSetMouseButtonCallback(window, [](GLFWwindow* window, int button, int action, int mods) {
-            if (button == GLFW_MOUSE_BUTTON_LEFT) {
-                mouseButtonPressed = (action == GLFW_PRESS);
-                if (mouseButtonPressed) {
-                    // Mettre à jour la dernière position de la souris uniquement lorsqu'elle est enfoncée
-                    glfwGetCursorPos(window, &lastX, &lastY);
-                }
-            }
-        });
-
-
-        // Clear the screen
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // Use our shader
-        glUseProgram(programID);
-
-
-        /*****************TODO***********************/
-        // Model matrix : an identity matrix (model will be at the origin) then change
-        glm::mat4 modelMatrix = glm::mat4(1.f);
-
-        // View matrix : camera/view transformation lookat() utiliser camera_position camera_target camera_up
-        glm::mat4 viewMatrix = glm::lookAt(camera_libre.getPosition(), camera_libre.getPosition() + camera_libre.getTarget(), camera_libre.getUp());
-        
-        // Projection matrix : 45 Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
-        glm::mat4 projectionMatrix = camera_libre.getProjectionMatrix();
-
-        // Send our transformation to the currently bound shader,
-        // in the "Model View Projection" to the shader uniforms
-        glUniformMatrix4fv(glGetUniformLocation(programID, "Model"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
-        glUniformMatrix4fv(glGetUniformLocation(programID, "View"), 1, GL_FALSE, glm::value_ptr(viewMatrix));
-        glUniformMatrix4fv(glGetUniformLocation(programID, "Projection"), 1, GL_FALSE, glm::value_ptr(projectionMatrix));
-
-        /****************************************/
-
-
-
-
-        // 1rst attribute buffer : vertices
-        glEnableVertexAttribArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-        glVertexAttribPointer(
-                    0,                  // attribute
-                    3,                  // size
-                    GL_FLOAT,           // type
-                    GL_FALSE,           // normalized?
-                    0,                  // stride
-                    (void*)0            // array buffer offset
-                    );
-
-        // Index buffer
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
-
-        // Draw the triangles !
-        glDrawElements(
-                    GL_TRIANGLES,      // mode
-                    indices.size(),    // count
-                    GL_UNSIGNED_SHORT,   // type
-                    (void*)0           // element array buffer offset
-                    );
-
-        glDisableVertexAttribArray(0);
-
-        // Swap buffers
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-
-    } // Check if the ESC key was pressed or the window was closed
-    while( glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
-           glfwWindowShouldClose(window) == 0 );
-
-    // Cleanup VBO and shader
-    glDeleteBuffers(1, &vertexbuffer);
-    glDeleteBuffers(1, &elementbuffer);
-    glDeleteProgram(programID);
-    glDeleteVertexArrays(1, &VertexArrayID);
-
-    // Close OpenGL window and terminate GLFW
-    glfwTerminate();
-
-    return 0;
+    // glEnable(GL_CULL_FACE);
 }
+
 
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
@@ -252,20 +657,6 @@ void processInput(GLFWwindow *window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
-
-    //Camera zoom in and out
-    camera_libre.setCameraSpeed(2.5 * deltaTime);
-
-    // ZQSD
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) camera_libre.moveFoward();
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) camera_libre.moveBackward();
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) camera_libre.moveLeft();
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) camera_libre.moveRight();
-
-    // Haut/Bas
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) camera_libre.moveUp();
-    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) camera_libre.moveDown();
-
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods){
@@ -274,36 +665,14 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         if(wireMode) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         else glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
-}
 
-void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
-    if (firstMouse && mouseButtonPressed) {
-        lastX = xpos;
-        lastY = ypos;
-        firstMouse = false;
+    if (key == GLFW_KEY_C && action == GLFW_PRESS) {
+        isEditMode = !isEditMode;
     }
 
-    if (mouseButtonPressed) {
-        // Calculer la différence de position de la souris depuis la dernière frame
-        float xoffset = xpos - lastX;
-        float yoffset = lastY - ypos; // Inverser car l'origine de l'écran est en haut à gauche
-
-        // Mettre à jour la dernière position de la souris
-        lastX = xpos;
-        lastY = ypos;
-
-        // Ajuster la direction de la caméra en fonction des mouvements de la souris
-        xoffset *= 0.1f;
-        yoffset *= 0.1f;
-
-        // Rotation autour de l'axe y (gauche/droite)
-        glm::mat4 rotationY = glm::rotate(glm::mat4(1.0f), -glm::radians(xoffset), camera_libre.getUp());
-        camera_libre.setTarget(glm::vec3(rotationY * glm::vec4(camera_libre.getTarget(), 0.0f)));   
-
-        // Rotation autour de l'axe x (haut/bas)
-        glm::vec3 right = glm::normalize(glm::cross(camera_libre.getUp(), camera_libre.getTarget()));
-        glm::mat4 rotationX = glm::rotate(glm::mat4(1.0f), -glm::radians(yoffset), right);
-        camera_libre.setTarget(glm::vec3(rotationX * glm::vec4(camera_libre.getTarget(), 0.0f)));
+    if (key == GLFW_KEY_F1 && action == GLFW_PRESS) {
+        CollisionRender = 
+            !CollisionRender;
     }
 }
 
@@ -315,3 +684,4 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
 }
+

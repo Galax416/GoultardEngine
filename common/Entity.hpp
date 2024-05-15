@@ -1,11 +1,14 @@
+#pragma once
+
 #include <glm/glm.hpp> //glm::mat4
 #include <list> //std::list
-#include <array> //std::array
-#include <memory> //std::unique_ptr
 #include <glm/gtc/matrix_transform.hpp> //glm::translate, glm::rotate, glm::scale
 #include <GL/glew.h> //GLuint
-#include  "Mesh.hpp" //Mesh
-#include "Transform.hpp" //Transform
+
+#include <common/Model.hpp>
+#include <common/Transform.hpp>
+#include <common/Shader.hpp>
+#include <common/Camera.hpp>
 
 
 class Entity {
@@ -15,20 +18,28 @@ public:
 	Entity* parent;
 
 	// Constructors
-	Entity() : parent(nullptr){}
-	Entity(std::string filename) : mesh(filename), parent(nullptr) {} // Entity with geometry
-	Entity(std::vector<unsigned short>& indices, std::vector<glm::vec3>& indexed_vertices, std::vector<glm::vec2>& indexed_uvs) 
-	: mesh(indices, indexed_vertices, indexed_uvs), parent(nullptr) {} // Entity with geometry
+	Entity(Shader *shader) : model(nullptr), shader(shader), parent(nullptr) {}
+	Entity(Model *model, Shader *shader) : model(model), shader(shader) ,parent(nullptr) {} // Entity with geometry
+	Entity(std::string filename, Shader *shader) : model(new Model(filename)), shader(shader), parent(nullptr) {}
+	
 
 	// Geometry
-	Mesh mesh;
+	Model* model;
 
 	// Model Matrix
 	Transform transform;
 
-	// ID
-	GLuint modelLocation;
+	// Shader
+	Shader* shader;
 
+	// Gravity
+	bool isGravityEntity{ false };
+	void setIsGravtityEntity(bool boolean) { isGravityEntity = boolean; }
+	float gravity = 9.807f;
+	glm::vec3 velocity{ 0.0f, 0.0f, 0.0f };
+	bool isGrounded{ false };
+
+	// Fonctions
 	void addChild(Entity& child) {
 		child.parent = this;
 		children.push_back(&child);
@@ -57,26 +68,59 @@ public:
 		}
 	}
 
+
 	void render() {
-		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, &transform.getModelMatrix()[0][0]); // Model Matrix
-		mesh.render(); // Render geometry
+		shader->use();
+		shader->setMat4("Model", transform.getModelMatrix()); // Model Matrix
+		
+		// Draw Mesh
+		model->Draw(shader); // Render geometry
+
 		for (auto&& child : children) {
 			child->render();
 		}
 	}
 
-	void bindVBO(GLuint programID) {
-		mesh.bindVBO(programID);
-		this->modelLocation = glGetUniformLocation(programID, "Model");
+	void renderCollision() {
+		shader->use();
+		shader->setMat4("Model", transform.getModelMatrix()); // Model Matrix
+		
+		// Draw Mesh
+		model->DrawCollision(shader); // Render Collision
+
 		for (auto&& child : children) {
-			child->bindVBO(programID);
+			child->renderCollision();
 		}
 	}
 
-	void unbindVBO() {
-		mesh.unbindVBO();
-		for (auto&& child : children) {
-			child->unbindVBO();
+	bool CheckCollisionWithEntity(Entity &other) {
+		// Check collision with other
+		if (CheckCollisionWithSingleEntity(other))
+			return true;
+
+		bool collisionDetected = false;
+
+		// And check collision with other child
+		for (auto&& child : other.children) {
+			if (CheckCollisionWithEntity(*child))
+				collisionDetected = true;
 		}
+
+		return collisionDetected;
+	}
+
+	bool CheckCollisionWithSingleEntity(Entity &other) { // AABB - AABB Collision
+		AABB entityAABB = this->model->getBoundingBox();
+		AABB otherAABB = other.model->getBoundingBox();
+
+		if (entityAABB.boxMax == glm::vec3(-std::numeric_limits<float>::infinity()) || entityAABB.boxMin == glm::vec3(std::numeric_limits<float>::infinity())) return false;
+		if (otherAABB.boxMax == glm::vec3(-std::numeric_limits<float>::infinity()) || otherAABB.boxMin == glm::vec3(std::numeric_limits<float>::infinity())) return false;
+
+		// Update bounding box
+		entityAABB.updateBoundingBox(this->transform.getModelMatrix());
+		otherAABB.updateBoundingBox(other.transform.getModelMatrix());
+
+		return entityAABB.intersects(otherAABB);
+
 	}
 };
