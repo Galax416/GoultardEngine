@@ -1,6 +1,7 @@
 #include <common/Player.hpp>
 
 Player::Player(Model *model, Shader *shader, Camera camera) : Entity(model, shader) {
+	this->isGravityEntity = true;
     camera.setEditionMode(false);
     this->camera = camera;
 	this->camera.setPosition(glm::vec3(0.f, 90.f, 0.f));
@@ -9,6 +10,7 @@ Player::Player(Model *model, Shader *shader, Camera camera) : Entity(model, shad
 }
 
 Player::Player(std::string filename, Shader *shader, Camera camera) : Entity(filename, shader) {
+	this->isGravityEntity = true;
     camera.setEditionMode(false);
     this->camera = camera;
 	this->camera.setPosition(glm::vec3(0.f, 90.f, 0.f));
@@ -45,13 +47,13 @@ void Player::updateInput(bool isColliding, float _deltaTime, GLFWwindow* _window
 	glm::vec3 eulerAngle = camera.getRotationEuler();
 
 	eulerAngle.y -= (float)(deltaX) * playerRotationSpeed;
-	eulerAngle.y = Camera::clipAngle180(eulerAngle.y); // Clamp the yaw angle between -180 and 180 degrees
+	eulerAngle.y = clipAngle180(eulerAngle.y); // Clamp the yaw angle between -180 and 180 degrees
 	eulerAngle.x += (float)(deltaY) * playerRotationSpeed;
 	eulerAngle.x = glm::clamp(eulerAngle.x, -89.9f, 89.9f); // Clamp the pitch angle between -90 and 90 degrees
 
 
-	// Apply gravity if not grounded
-	if (!isGrounded) {
+	// Apply gravity if not grounded and if is a gravity entity
+	if (!isGrounded && isGravityEntity) {
 		velocity.y -= gravity * _deltaTime;
 	} else {
 		velocity.y = 0.0f;
@@ -72,16 +74,16 @@ void Player::updateInput(bool isColliding, float _deltaTime, GLFWwindow* _window
 	glm::vec3 pos = transform.getLocalPosition();
 	this->m_lastValidPosition = pos;
 	if (glfwGetKey(_window, GLFW_KEY_W) == GLFW_PRESS) {
-		pos += glm::normalize(Camera::projectVectorOnPlan(camera.getFront(), VEC_UP)) * playerTranslationSpeed;
+		pos += glm::normalize(projectVectorOnPlan(camera.getFront(), VEC_UP)) * playerTranslationSpeed;
 	}
 	if (glfwGetKey(_window, GLFW_KEY_S) == GLFW_PRESS) {
-		pos -= glm::normalize(Camera::projectVectorOnPlan(camera.getFront(), VEC_UP)) * playerTranslationSpeed;
+		pos -= glm::normalize(projectVectorOnPlan(camera.getFront(), VEC_UP)) * playerTranslationSpeed;
 	}
 	if (glfwGetKey(_window, GLFW_KEY_A) == GLFW_PRESS) {
-		pos -= glm::normalize(Camera::projectVectorOnPlan(glm::normalize(glm::cross(camera.getFront(), VEC_UP)), VEC_UP)) * playerTranslationSpeed;
+		pos -= glm::normalize(projectVectorOnPlan(glm::normalize(glm::cross(camera.getFront(), VEC_UP)), VEC_UP)) * playerTranslationSpeed;
 	}
 	if (glfwGetKey(_window, GLFW_KEY_D) == GLFW_PRESS) {
-		pos += glm::normalize(Camera::projectVectorOnPlan(glm::normalize(glm::cross(camera.getFront(), VEC_UP)), VEC_UP)) * playerTranslationSpeed;
+		pos += glm::normalize(projectVectorOnPlan(glm::normalize(glm::cross(camera.getFront(), VEC_UP)), VEC_UP)) * playerTranslationSpeed;
 	}
 
 	// footsteps sound
@@ -138,7 +140,7 @@ void Player::updatePlayer(bool isColliding, glm::vec3 pos, glm::vec3 eulerAngle)
 	transform.setLocalRotation(glm::vec3(0.0f, eulerAngle.y, 0.0f));
 
 
-	if (isColliding) {
+	if (isColliding && isGravityEntity) {
 		if (m_normalCollision.y < 0) {
 			glm::vec3 groundPos = glm::vec3(pos.x, m_jumpKeyPressed ? pos.y : m_heightGround, pos.z);
 
@@ -150,6 +152,8 @@ void Player::updatePlayer(bool isColliding, glm::vec3 pos, glm::vec3 eulerAngle)
 			camera.setPosition(m_lastValidPosition - m_normalCollision +  rotatedOffset);
 			transform.setLocalPosition(m_lastValidPosition - m_normalCollision);
 		}
+
+		m_normalCollision.y = 0;
 		
 		isGrounded = true;
 
@@ -173,6 +177,10 @@ void Player::updatePlayer(bool isColliding, glm::vec3 pos, glm::vec3 eulerAngle)
 
 }
 
+void Player::update(bool isColliding, float deltaTime, GLFWwindow* window) {
+	updateInput(isColliding, deltaTime, window);
+}
+
 bool Player::CheckCollisionWithEntity(Entity &other) {
 	// Check collision with other
 	if (CheckCollisionWithSingleEntity(other))
@@ -194,6 +202,7 @@ bool Player::CheckCollisionWithSingleEntity(Entity &entity) { // AABB - AABB Col
 	if (entity.model == nullptr) return false;
 	AABB entityAABB = entity.model->getBoundingBox();
 
+	if (playerAABB.boxMax == glm::vec3(-std::numeric_limits<float>::infinity()) || playerAABB.boxMin == glm::vec3(std::numeric_limits<float>::infinity())) return false;
 	if (entityAABB.boxMax == glm::vec3(-std::numeric_limits<float>::infinity()) || entityAABB.boxMin == glm::vec3(std::numeric_limits<float>::infinity())) return false;
 
 	// Update bounding box

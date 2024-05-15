@@ -347,11 +347,12 @@ int main( void )
     Monster Knight("../data/model/cyberdemon/scene.gltf", &MainShader);
     scene.addChild(Knight);
     Knight.transform.setLocalScale(glm::vec3(15.0f, 15.0f, 15.0f));
-    Knight.transform.setLocalPosition(glm::vec3(2200.0f, 200.0f, -300.0f));
+    Knight.transform.setLocalPosition(glm::vec3(2200.0f, 400.0f, -300.0f));
     Knight.setSpawnPoint(glm::vec3(2200.0f, 200.0f, -300.0f));
     Knight.transform.setLocalRotation(glm::vec3(0.0f, -90.0f, 0.0f));
     Knight.setHealth(350); Knight.setDetectionRange(1500.0f); Knight.setDamage(40.0f);
     Knight.setRotationOffset(180.0f);
+    Knight.setIsGravtityEntity(true);
 
 
     monsters.push_back(&Demon); monsters.push_back(&Knight);
@@ -404,10 +405,13 @@ int main( void )
         // -----
         processInput(window);
 
-        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) bat_10.transform.translate(Camera::projectVectorOnPlan(FreeCam.getFront(), VEC_UP) * 10.0f);
-        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS) bat_10.transform.setRotation(glm::vec3(0, 10, 0));
-        std::cout << bat_10.transform.getLocalPosition().x << " " << bat_10.transform.getLocalPosition().z << std::endl;
-        
+        // if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) bat_10.transform.translate(Camera::projectVectorOnPlan(FreeCam.getFront(), VEC_UP) * 10.0f);
+        // if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS) bat_10.transform.setRotation(glm::vec3(0, 10, 0));
+        // std::cout << bat_10.transform.getLocalPosition().x << " " << bat_10.transform.getLocalPosition().z << std::endl;
+        // glm::vec3 p = Knight.transform.getLocalPosition();
+        // std::cout << p.x << " " << p.y << " " << p.z << std::endl;
+
+
         // Clear the screen
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -441,7 +445,7 @@ int main( void )
         } else {
             // Player
             bool isColliding = Slayer.CheckCollisionWithEntity(map);
-            Slayer.updateInput(isColliding, deltaTime, window);
+            Slayer.update(isColliding, deltaTime, window);
 
             currentCamera = Slayer.camera;
             
@@ -469,7 +473,7 @@ int main( void )
 
             // Monster
             for (auto&& monster : monsters) {
-                monster->detectPlayer(Slayer.transform.getLocalPosition(), deltaTime, Slayer.getHealth());
+                monster->update(monster->CheckCollisionWithEntity(map), deltaTime, Slayer.transform.getLocalPosition(), Slayer.getHealth());
             }
 
             if (Slayer.getHealth() <= 0) {
@@ -487,8 +491,8 @@ int main( void )
         // Render
         skybox.render(currentCamera);
         skybox.shader->setInt("isEditMode", (int)isEditMode);
-        scene.render();
         if (CollisionRender) scene.renderCollision();
+        else scene.render();
 
         // Camera
         MainShader.setVec3("cameraPos", currentCamera.getPosition());

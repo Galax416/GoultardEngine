@@ -2,11 +2,9 @@
 
 #include <common/Entity.hpp>
 #include <common/Weapon.hpp>
+#include <common/Utils.hpp>
 #include <common/text2D.hpp>
-#include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/quaternion.hpp>
-#include <glm/gtx/quaternion.hpp>
+
 
 class Monster : public Entity {
 
@@ -24,19 +22,26 @@ private:
 
     bool isChasing{ false }; // in Aggro mode (ex : player hit the monster)
 
+    float m_heightGround{ 0.0f };
+
     glm::vec3 m_lastValidPosition;
-    // glm::vec3 m_normalCollision;
+    glm::vec3 m_normalCollision;
     glm::vec3 spawnPoint;
 
 public:
     Monster(std::string filename, Shader *shader);
     Monster(Model *model, Shader *shader);
 
-    void updateMonster(bool isColliding=false, glm::vec3 pos=glm::vec3(0.0f), glm::vec3 eulerAngle=glm::vec3(0.0f), float deltaTime=0.0f);
+    void updateMonster(bool isColliding=false, glm::vec3 pos=glm::vec3(0.0f), glm::quat eulerAngle= glm::quat());
+    void update(bool isColliding, float deltaTime, glm::vec3 slayerPos, float &slayerHealth);
+
 
     void respawn(glm::vec3 pos);
 
-    void detectPlayer(glm::vec3 playerPos, float deltaTime, float &playerHealth);
+    std::pair<glm::vec3, glm::quat> detectPlayer(glm::vec3 playerPos, float deltaTime, float &playerHealth);
+
+    bool CheckCollisionWithEntity(Entity &entity);
+    bool CheckCollisionWithSingleEntity(Entity &entity);
 
     void setHealth(int health) { this->m_health = health;};
     int getHealth() const { return m_health;} ;

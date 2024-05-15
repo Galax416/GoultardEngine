@@ -138,12 +138,13 @@ public:
     void Draw(Shader &shader);
 
     //get bounding box
-    AABB getBoundingBox() const { return boundingBox; }
-    void drawCollisionBox(Shader &shader);
+    AABB boundingBox;
+    // AABB getBoundingBox() const { return boundingBox; }
+    void DrawCollisionBox(Shader &shader);
 
 private:
     // bounding box of mesh
-    AABB boundingBox;
+    
 
     // render data 
     GLuint VBO, EBO;

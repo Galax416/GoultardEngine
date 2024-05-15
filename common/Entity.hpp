@@ -83,9 +83,10 @@ public:
 
 	void renderCollision() {
 		shader->use();
+		shader->setMat4("Model", transform.getModelMatrix()); // Model Matrix
 
-		// Draw Mesh
-		model->DrawCollision(shader); // Render Collision
+		// Draw Mesh and Bounding Box
+		model->DrawCollisionBox(this->shader); // Render Collision
 
 		for (auto&& child : children) {
 			child->renderCollision();

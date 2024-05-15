@@ -90,7 +90,7 @@ void Mesh::setupMesh() {
     glBindVertexArray(0);
 }
 
-void Mesh::drawCollisionBox(Shader &shader) {
+void Mesh::DrawCollisionBox(Shader &shader) {
     // Sauvegarde de l'état OpenGL
     // GLint prevLineWidth;
     // glGetIntegerv(GL_LINE_WIDTH, &prevLineWidth);
