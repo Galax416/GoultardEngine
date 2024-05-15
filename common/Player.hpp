@@ -2,8 +2,8 @@
 
 #include <common/Entity.hpp>
 #include <common/Weapon.hpp>
-#include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
+#include <common/Utils.hpp>
+
 #include <irrKlang.h>
 
 static glm::vec3 cameraOffset(0.f, 83.f, 25.f); // offset from the player position
@@ -15,7 +15,7 @@ class Player : public Entity {
 private:
     float m_translationSpeed{ 250.0f };
     float m_rotationSpeed{ 2.5f };
-    float   m_health{ 100 };
+    float m_health{ 100 };
     float m_maxHealth{ 100 };
 
     glm::vec3 m_lastValidPosition;
@@ -39,6 +39,7 @@ public:
 
     void updateInput(bool isColliding=false, float deltaTime=0.0f, GLFWwindow* window=nullptr);
     void updatePlayer(bool isColliding=false, glm::vec3 pos=glm::vec3(0.0f), glm::vec3 eulerAngle=glm::vec3(0.0f));
+    void update(bool isColliding, float deltaTime, GLFWwindow* window);
 
     // Mvt
     void jump(float jumpSpeed);

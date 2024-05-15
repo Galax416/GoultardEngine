@@ -6,11 +6,12 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
+#include <common/Utils.hpp>
 
 class Monster : public Entity {
 
 private:
-    float m_translationSpeed{ 150.0f };
+    float m_translationSpeed{ 300.0f };
     float m_rotationSpeed{ 2.5f };
     float m_health{ 100 };
     float m_maxHealth{ 100 };
@@ -23,8 +24,10 @@ private:
 
     bool isChasing{ false }; // in Aggro mode (ex : player hit the monster)
 
+    float m_heightGround{ 0.0f };
+
     glm::vec3 m_lastValidPosition;
-    // glm::vec3 m_normalCollision;
+    glm::vec3 m_normalCollision;
     glm::vec3 spawnPoint;
 
     irrklang::ISoundEngine* m_soundEngine;
@@ -33,18 +36,23 @@ public:
     Monster(std::string filename, Shader *shader);
     Monster(Model *model, Shader *shader);
 
-    void updateMonster(bool isColliding=false, glm::vec3 pos=glm::vec3(0.0f), glm::vec3 eulerAngle=glm::vec3(0.0f), float deltaTime=0.0f);
+    void updateMonster(bool isColliding=false, glm::vec3 pos=glm::vec3(0.0f), glm::quat eulerAngle= glm::quat());
+    void update(bool isColliding, float deltaTime, glm::vec3 slayerPos, float &slayerHealth);
+
 
     void respawn(glm::vec3 pos);
 
-    void detectPlayer(glm::vec3 playerPos, float deltaTime, float &playerHealth);
+    std::pair<glm::vec3, glm::quat> detectPlayer(glm::vec3 playerPos, float deltaTime, float &playerHealth);
+
+    bool CheckCollisionWithEntity(Entity &entity);
+    bool CheckCollisionWithSingleEntity(Entity &entity);
 
     void setHealth(int health) { this->m_health = health;};
     int getHealth() const { return m_health;};
 
     void setSpeed(float speed) { m_translationSpeed = speed; }
 
-    void setMaxHealth(int health) { this->m_maxHealth = health;};
+    void setMaxHealth(int health) { this->m_maxHealth = health; if(m_health > m_maxHealth) m_maxHealth = m_health;};
     int getMaxHealth() const { return m_maxHealth;} ;
 
     void setisChasing(bool aggr) { isChasing = aggr; }

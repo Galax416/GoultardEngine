@@ -504,7 +504,7 @@ int main( void )
         } else {
             // Player
             bool isColliding = Slayer.CheckCollisionWithEntity(map);
-            Slayer.updateInput(isColliding, deltaTime, window);
+            Slayer.update(isColliding, deltaTime, window);
 
             currentCamera = Slayer.camera;
             
@@ -535,7 +535,7 @@ int main( void )
 
             // Monster
             for (auto&& monster : monsters) {
-                monster->detectPlayer(Slayer.transform.getLocalPosition(), deltaTime, Slayer.getHealth());
+                monster->update(monster->CheckCollisionWithEntity(map), deltaTime, Slayer.transform.getLocalPosition(), Slayer.getHealth());
             }
 
             if (Slayer.getHealth() <= 0) {
@@ -553,8 +553,8 @@ int main( void )
         // Render
         skybox.render(currentCamera);
         skybox.shader->setInt("isEditMode", (int)isEditMode);
-        scene.render();
         if (CollisionRender) scene.renderCollision();
+        else scene.render();
 
         // Camera
         MainShader.setVec3("cameraPos", currentCamera.getPosition());

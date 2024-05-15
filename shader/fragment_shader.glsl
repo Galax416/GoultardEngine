@@ -29,7 +29,6 @@ void main() {
 
     // Get Normal
     vec3 normal = texture(texture_normal1, TexCoords).rgb;
-
     normal = normalize(normal * 2.0 - 1.0); // transform normal vector to range [-1,1]
     
     
