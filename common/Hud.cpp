@@ -16,6 +16,7 @@ Hud::Hud(Shader* shaderHUD, Shader* shaderText, int width, int height) {
 }
 
 void Hud::initCrosshair() {
+    // Texture bind
     m_crosshairTextureID = TextureFromFile("crosshair.png", "../data/hud/", true);
     if (m_crosshairTextureID == 0) {
         std::cerr << "Error: Loading crosshair image failed" << std::endl;
@@ -48,6 +49,7 @@ void Hud::initCrosshair() {
 }
 
 void Hud::initHealthBar() {
+    // Texture bind
     healthTextureID = TextureFromFile("health.png", "../data/hud/", true);
     if (healthTextureID == 0) {
         std::cerr << "Error: Loading crosshair image failed" << std::endl;
@@ -140,7 +142,7 @@ void Hud::render(int health, int maxHealth, int bullets) {
 }
 
 void Hud::renderHealthBar(float health, int maxHealth) {
-    
+    // since the health need to be updated, we will update the VBO each time we render the health bar
     float healthPercentage = static_cast<float>(health) / static_cast<float>(maxHealth);
     float barWidth = 2.0f * 0.2f * healthPercentage; 
 

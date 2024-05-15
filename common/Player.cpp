@@ -85,12 +85,12 @@ void Player::updateInput(bool isColliding, float _deltaTime, GLFWwindow* _window
 	}
 
 	// footsteps sound
-	if(m_lastValidPosition != pos && isGrounded) {
-		if (glfwGetTime() - lastPlayed > 2) {
-			m_soundEngine->play2D("../data/sound/footstep.wav", false);
-			lastPlayed = glfwGetTime();
-		}
-	}
+	// if(m_lastValidPosition != pos && isGrounded) {
+	// 	if (glfwGetTime() - lastPlayed > 2) {
+	// 		m_soundEngine->play2D("../data/sound/footstep.wav", false);
+	// 		lastPlayed = glfwGetTime();
+	// 	}
+	// }
 
 
 	// jump
@@ -138,7 +138,7 @@ void Player::updatePlayer(bool isColliding, glm::vec3 pos, glm::vec3 eulerAngle)
     camera.setRotation(eulerAngle);
 	transform.setLocalRotation(glm::vec3(0.0f, eulerAngle.y, 0.0f));
 
-
+	// Check collision with the map
 	if (isColliding) {
 		if (m_normalCollision.y < 0) {
 			glm::vec3 groundPos = glm::vec3(pos.x, m_jumpKeyPressed ? pos.y : m_heightGround, pos.z);

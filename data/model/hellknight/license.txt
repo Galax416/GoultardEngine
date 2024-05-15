@@ -1,0 +1,11 @@
+Model Information:
+* title:	DOOM - Hell Knight -
+* source:	https://sketchfab.com/3d-models/doom-hell-knight-2ff3458809da4f3d867a9edfc3ee5f43
+* author:	nataliedesign (https://sketchfab.com/nataliedesign)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "DOOM - Hell Knight -" (https://sketchfab.com/3d-models/doom-hell-knight-2ff3458809da4f3d867a9edfc3ee5f43) by nataliedesign (https://sketchfab.com/nataliedesign) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

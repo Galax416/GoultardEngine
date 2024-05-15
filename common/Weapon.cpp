@@ -29,6 +29,7 @@ void Weapon::shoot(glm::vec3 position, glm::vec3 direction, glm::vec3 rotation, 
 
         bullet->transform.setLocalScale(glm::vec3(3.0f, 3.0f, 3.0f));
 
+        // Set bullet properties
         bullet->setDirection(direction);
         bullet->setSpeed(speed);
         bullet->setLifeTime(lifeTime);

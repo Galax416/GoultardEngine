@@ -40,7 +40,9 @@ public:
     void detectPlayer(glm::vec3 playerPos, float deltaTime, float &playerHealth);
 
     void setHealth(int health) { this->m_health = health;};
-    int getHealth() const { return m_health;} ;
+    int getHealth() const { return m_health;};
+
+    void setSpeed(float speed) { m_translationSpeed = speed; }
 
     void setMaxHealth(int health) { this->m_maxHealth = health;};
     int getMaxHealth() const { return m_maxHealth;} ;

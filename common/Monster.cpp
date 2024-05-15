@@ -37,7 +37,7 @@ void Monster::detectPlayer(glm::vec3 playerPos, float deltaTime, float &playerHe
 		}
         if (distance < 50.0f) {
             // Attack the player
-            m_soundEngine->play2D("../data/sound/monster/dssgtatk.wav", false);
+            if (!m_soundEngine->isCurrentlyPlaying("../data/sound/monster/dssgtatk.wav")) m_soundEngine->play2D("../data/sound/monster/dssgtatk.wav", false);
             static float attackTimer = 0.0f;
             attackTimer += deltaTime;
             if (attackTimer >= attackSpeed) {

@@ -87,7 +87,7 @@ int main( void )
 
     Player Slayer("../data/model/slayer/slayer.gltf", &MainShader, FpsCamera);
     scene.addChild(Slayer);
-    Slayer.transform.setLocalPosition(glm::vec3(0, 500, 0));
+    Slayer.transform.setLocalPosition(glm::vec3(0, 1000, 0));
 
     Weapon ar181("../data/model/plasma_rifle/scene.gltf", &MainShader, "../data/model/50bmg/scene.gltf");
     ar181.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
@@ -333,27 +333,86 @@ int main( void )
     // MONSTERS
     Model Cacodemon("../data/model/cacodemon/scene.gltf");
     Model Cyberdemon("../data/model/cyberdemon/scene.gltf");
+    Model HellKnight("../data/model/hellknight/scene.gltf");
     
-    Monster Demon(&Cacodemon, &MainShader);
-    scene.addChild(Demon);
-    Demon.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
-    Demon.transform.setLocalPosition(glm::vec3(2500.0f, 200.0f, 100.0f));
-    Demon.setSpawnPoint(glm::vec3(2500.0f, 200.0f, 100.0f));
-    Demon.transform.setLocalRotation(glm::vec3(0.0f, 97.0f, 0.0f));
-    Demon.setRotationOffset(90.0f);
+    Monster Caco_1(&Cacodemon, &MainShader);
+    scene.addChild(Caco_1);
+    Caco_1.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
+    Caco_1.transform.setLocalPosition(glm::vec3(-855.0f, 200.0f, -2720.0f));
+    Caco_1.transform.setLocalRotation(glm::vec3(0.0f, -31.0f, 0.0f));
+    Caco_1.setSpawnPoint(Caco_1.transform.getLocalPosition());
+    Caco_1.setRotationOffset(90.0f);
+
+    Monster Caco_2(&Cacodemon, &MainShader);
+    scene.addChild(Caco_2);
+    Caco_2.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
+    Caco_2.transform.setLocalPosition(glm::vec3(-2953.0f, 275.0f, -3516.0f));
+    Caco_2.transform.setLocalRotation(glm::vec3(0.0f, -22.0f, 0.0f));
+    Caco_2.setSpawnPoint(Caco_2.transform.getLocalPosition());
+    Caco_2.setRotationOffset(90.0f);
+
+    Monster Caco_3(&Cacodemon, &MainShader);
+    scene.addChild(Caco_3);
+    Caco_3.transform.setLocalScale(glm::vec3(0.5f, 0.5f, 0.5f));
+    Caco_3.transform.setLocalPosition(glm::vec3(386.0f, 325.0f, -5493.0f));
+    Caco_3.transform.setLocalRotation(glm::vec3(0.0f, -40.0f, 0.0f));
+    Caco_3.setSpawnPoint(Caco_3.transform.getLocalPosition());
+    Caco_3.setRotationOffset(90.0f);
  
+    Monster cyber_1(&Cyberdemon, &MainShader);
+    scene.addChild(cyber_1);
+    cyber_1.transform.setLocalScale(glm::vec3(15.0f, 15.0f, 15.0f));
+    cyber_1.transform.setLocalPosition(glm::vec3(2126.0f, 200.0f, -1718.0f));
+    cyber_1.transform.setLocalRotation(glm::vec3(0.0f, -43.0f, 0.0f));
+    cyber_1.setSpawnPoint(Caco_1.transform.getLocalPosition());
+    cyber_1.setHealth(250); cyber_1.setDetectionRange(1500.0f); cyber_1.setDamage(25.0f);
+    cyber_1.setRotationOffset(180.0f);
+    cyber_1.setSpeed(300.0f);
 
-    Monster Knight("../data/model/cyberdemon/scene.gltf", &MainShader);
-    scene.addChild(Knight);
-    Knight.transform.setLocalScale(glm::vec3(15.0f, 15.0f, 15.0f));
-    Knight.transform.setLocalPosition(glm::vec3(2200.0f, 200.0f, -300.0f));
-    Knight.setSpawnPoint(glm::vec3(2200.0f, 200.0f, -300.0f));
-    Knight.transform.setLocalRotation(glm::vec3(0.0f, -90.0f, 0.0f));
-    Knight.setHealth(350); Knight.setDetectionRange(1500.0f); Knight.setDamage(40.0f);
-    Knight.setRotationOffset(180.0f);
+    Monster cyber_2(&Cyberdemon, &MainShader);
+    scene.addChild(cyber_2);
+    cyber_2.transform.setLocalScale(glm::vec3(15.0f, 15.0f, 15.0f));
+    cyber_2.transform.setLocalPosition(glm::vec3(-5110.0f, 200.0f, -4923.0f));
+    cyber_2.transform.setLocalRotation(glm::vec3(0.0f, -43.0f, 0.0f));
+    cyber_2.setSpawnPoint(cyber_2.transform.getLocalPosition());
+    cyber_2.setHealth(250); cyber_2.setDetectionRange(1500.0f); cyber_2.setDamage(25.0f);
+    cyber_2.setRotationOffset(180.0f);
+    cyber_2.setSpeed(300.0f);
+
+    Monster cyber_3(&Cyberdemon, &MainShader);
+    scene.addChild(cyber_3);
+    cyber_3.transform.setLocalScale(glm::vec3(20.0f, 20.0f, 20.0f)); // BIG
+    cyber_3.transform.setLocalPosition(glm::vec3(-2518.0f, 300.0f, -7411.0f));
+    cyber_3.transform.setLocalRotation(glm::vec3(0.0f, -43.0f, 0.0f));
+    cyber_3.setSpawnPoint(cyber_3.transform.getLocalPosition());
+    cyber_3.setHealth(500); cyber_3.setDetectionRange(1500.0f); cyber_3.setDamage(50.0f); // STRONG
+    cyber_3.setRotationOffset(180.0f);
+    cyber_3.setSpeed(350.0f);
+
+    Monster hell_1(&HellKnight, &MainShader);
+    scene.addChild(hell_1);
+    hell_1.transform.setLocalScale(glm::vec3(18.0f, 18.0f, 18.0f));
+    hell_1.transform.setLocalPosition(glm::vec3(-1220.0f, 100.0f, -5152.0f));
+    hell_1.transform.setLocalRotation(glm::vec3(0.0f, 10.0f, 0.0f));
+    hell_1.setSpawnPoint(hell_1.transform.getLocalPosition());
+    hell_1.setHealth(175); hell_1.setDetectionRange(800.0f); hell_1.setDamage(35.0f);
+    hell_1.setRotationOffset(180.0f);
+    hell_1.setSpeed(250.0f);
+
+    Monster hell_2(&HellKnight, &MainShader);
+    scene.addChild(hell_2);
+    hell_2.transform.setLocalScale(glm::vec3(18.0f, 18.0f, 18.0f));
+    hell_2.transform.setLocalPosition(glm::vec3(-7610.0f, 100.0f, -6768.0f));
+    hell_2.transform.setLocalRotation(glm::vec3(0.0f, -30.0f, 0.0f));
+    hell_2.setSpawnPoint(hell_2.transform.getLocalPosition());
+    hell_2.setHealth(175); hell_2.setDetectionRange(800.0f); hell_2.setDamage(35.0f);
+    hell_2.setRotationOffset(180.0f);
+    hell_2.setSpeed(250.0f);
 
 
-    monsters.push_back(&Demon); monsters.push_back(&Knight);
+    monsters.push_back(&Caco_1); monsters.push_back(&cyber_1); monsters.push_back(&hell_1);
+    monsters.push_back(&Caco_2); monsters.push_back(&cyber_2); monsters.push_back(&hell_2);
+    monsters.push_back(&Caco_3); monsters.push_back(&cyber_3);
 
     scene.updateSelfAndChild();
 
@@ -377,12 +436,12 @@ int main( void )
     double lastTime = glfwGetTime();
     int nbFrames = 0;
 
+    // Audio
     irrklang::ISoundEngine* engine = irrklang::createIrrKlangDevice();
     engine->setSoundVolume(0.20f);
     Slayer.setSoundEngine(engine);
     ar181.setSoundEngine(engine);
-    Demon.setSoundEngine(engine);
-    Knight.setSoundEngine(engine);
+    for(auto&& monster : monsters) monster->setSoundEngine(engine); // set sound engine for each monster
 
     // Intro
     float IntroDuration = 9.0f + glfwGetTime(); // 10 seconds
@@ -408,10 +467,9 @@ int main( void )
         // -----
         processInput(window);
 
-        // if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) bat_10.transform.translate(Camera::projectVectorOnPlan(FreeCam.getFront(), VEC_UP) * 10.0f);
-        // if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS) bat_10.transform.setRotation(glm::vec3(0, 10, 0));
-        // std::cout << bat_10.transform.getLocalPosition().x << " " << bat_10.transform.getLocalPosition().z << std::endl;
-        
+        // if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) hell_2.transform.translate(Camera::projectVectorOnPlan(FreeCam.getFront(), VEC_UP) * 10.0f);
+        // if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS) hell_2.transform.setRotation(glm::vec3(0, 10, 0));
+        // std::cout << "post : " << hell_2.transform.getLocalPosition().x << " " << hell_2.transform.getLocalPosition().z << std::endl;
         // Clear the screen
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
