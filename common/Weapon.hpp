@@ -3,8 +3,8 @@
 #include <common/Entity.hpp>
 #include <common/Model.hpp>
 #include <common/Bullet.hpp>
-#include <common/Utils.hpp>
-
+#include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 #include <irrKlang.h>
 
 class Weapon : public Entity {

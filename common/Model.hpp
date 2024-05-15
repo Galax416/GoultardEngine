@@ -38,7 +38,7 @@ public:
 
     // draws the model, and thus all its meshes
     void Draw(Shader *shader);
-    void DrawCollisionBox(Shader *shader);
+    void DrawCollision(Shader *shader);
 
     // get all meshes
     vector<Mesh> getAllMeshes() { return meshes; }

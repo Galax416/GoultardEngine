@@ -1,8 +1,26 @@
 #pragma once
 
-#include <common/Utils.hpp>
+#include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/euler_angles.hpp>
+#include <glm/gtx/norm.hpp>
 
 // #define M_PI       3.14159265358979323846f   // pi
+
+enum InterpolationType {
+    SMOOTHSTEP,
+    COSINUS,
+    EXPONENTIAL,
+    LOGARITHMIC
+};
+
+static glm::vec3 VEC_ZERO{ 0.f,0.f,0.f };
+static glm::vec3 VEC_UP{ 0.f,1.f,0.f };
+static glm::vec3 VEC_FRONT{ 0.f,0.f,1.f };
+static glm::vec3 VEC_RIGHT{ 1.f,0.f,0.f };
 
 class Camera {
 public:
@@ -31,12 +49,21 @@ public:
     void setRotation(glm::vec3 _eulerAngle) { m_eulerAngle = _eulerAngle; }
     void setTranslationSpeed(float _speed) { m_translationSpeed = _speed; }
 
+    static float clipAngle180(float angle);
+    static glm::vec3 projectVectorOnPlan(glm::vec3 vector, glm::vec3 normalPlan);
+    static glm::vec3 quatToEuler(glm::quat _quat);
+
     glm::vec3 simulateIdle();
     glm::vec3 simulateWalking();
     glm::vec3 simulateSprint();
 
 
 protected:
+
+    // Utils
+    float interpolate(float ratio, InterpolationType type);
+    
+
     // Camera parameters 
     float       m_fovDegree{ 45.0 };
     float       m_translationSpeed{ 2.5f };

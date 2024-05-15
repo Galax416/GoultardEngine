@@ -8,25 +8,21 @@ Model::Model(string const &path, bool gamma) : gammaCorrection(gamma){
 
 void Model::computeBoundingBox() {
     for (const Mesh& mesh : meshes) {
-        boundingBox.expand(mesh.boundingBox); // Update the total bounding box by expanding it to include the current mesh's box
+        AABB meshAABB = mesh.getBoundingBox();
+        boundingBox.expand(meshAABB); // Update the total bounding box by expanding it to include the current mesh's box
     }
 }
 
 void Model::Draw(Shader *shader) {
     if (this == nullptr) return;
-    for (unsigned int i = 0; i < meshes.size(); i++) {
+    for(unsigned int i = 0; i < meshes.size(); i++)
         meshes[i].Draw(*shader);
-        // meshes[i].DrawCollisionBox(*shader);
-    }
-        
 }
 
-void Model::DrawCollisionBox(Shader *shader) {
+void Model::DrawCollision(Shader *shader) {
     if (this == nullptr) return;
-    for (unsigned int i = 0; i < meshes.size(); i++) {
-        meshes[i].Draw(*shader);
-        meshes[i].DrawCollisionBox(*shader);
-    }
+    for (unsigned int i = 0; i < meshes.size(); i++)
+        meshes[i].drawCollisionBox(*shader);
 }
 
 void Model::loadModel(string const &path) {

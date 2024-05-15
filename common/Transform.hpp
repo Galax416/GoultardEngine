@@ -86,10 +86,6 @@ public:
 		return m_eulerRot;
 	}
 
-	const glm::quat& getLocalRotationQuat() const {
-		return m_rotation;
-	}
-
 	const glm::vec3& getLocalScale() const {
 		return m_scale;
 	}
